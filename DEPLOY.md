@@ -127,6 +127,7 @@ Cloudflare hará el primer build (ejecuta el sync y publica). Al terminar tendr�
 - **Pedidos** — ver detalle y cambiar estado.
 - **Clientes** — crear/editar usuarios y contraseñas (bcrypt, por RPC).
 - **Cupones** — códigos de descuento (%, monto fijo o envío gratis) aplicables en el carrito.
+- **Constructor visual** — bloques de la home (banner, productos, categorías, texto, promo) con crear/reordenar/editar/eliminar; se guardan en JSON en Supabase y la tienda los pinta en tiempo real (`assets/ek-page.js`).
 - **Configuración** — datos de contacto, pagos, colores de marca, FAQ, etc.
 
 ---

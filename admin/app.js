@@ -132,6 +132,7 @@
     pedidos: { titulo: "Pedidos", render: renderPedidos },
     clientes: { titulo: "Clientes", render: renderClientes },
     cupones: { titulo: "Cupones", render: renderCupones },
+    constructor: { titulo: "Constructor visual", render: renderConstructor },
     configuracion: { titulo: "Configuración", render: renderConfiguracion },
   };
 
@@ -799,6 +800,149 @@
         else await supa("POST", "/rest/v1/Cupon", datos);
         cerrarModal(); toast("Cupón guardado. Pulsa 'Publicar cambios' para activarlo en la tienda."); renderCupones();
       } catch (err) { toast(err.message, false); }
+    });
+  }
+
+  /* ============================== CONSTRUCTOR VISUAL ============================== */
+  var BLOQUES_TIPOS = [
+    { v: "hero", l: "Banner principal (hero)", i: "bi-image" },
+    { v: "productos", l: "Carrusel / grilla de productos", i: "bi-grid" },
+    { v: "categorias", l: "Cuadrícula de categorías", i: "bi-tags" },
+    { v: "texto", l: "Texto enriquecido", i: "bi-text-paragraph" },
+    { v: "promo", l: "Banner promocional", i: "bi-megaphone" },
+  ];
+  function tipoL(v) { for (var i = 0; i < BLOQUES_TIPOS.length; i++) if (BLOQUES_TIPOS[i].v === v) return BLOQUES_TIPOS[i].l; return v; }
+  function resumenBloque(b) {
+    var c = b.config || {};
+    var t = c.titulo || c.subtitulo || c.boton || "";
+    return t ? esc(t).slice(0, 60) : "—";
+  }
+
+  var paginaCache = null;
+  async function renderConstructor() {
+    var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
+    try {
+      var rows = await supa("GET", "/rest/v1/Pagina?slug=eq.inicio&select=*");
+      var pagina = rows && rows[0];
+      if (!pagina) {
+        var creado = await supa("POST", "/rest/v1/Pagina", { slug: "inicio", nombre: "Página de inicio", bloques: [] });
+        pagina = creado[0];
+      }
+      paginaCache = pagina;
+      pintarConstructor();
+    } catch (e) { cont.innerHTML = errCard(e); }
+  }
+  function pintarConstructor() {
+    var cont = $("#contenido");
+    var bloques = (paginaCache && paginaCache.bloques) || [];
+    cont.innerHTML =
+      '<div class="card"><div class="toolbar">' +
+        '<button class="btn" id="btn-add-bloque"><i class="bi bi-plus-lg"></i> Añadir bloque</button>' +
+        '<span class="muted" style="margin-left:auto">Los cambios se ven en la tienda en tiempo real (sin publicar).</span>' +
+      "</div>" +
+      (bloques.length
+        ? bloques.map(function (b, i) {
+            return '<div class="ek-row" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--linea)">' +
+              '<i class="bi ' + (tipoIcono(b.tipo) || "bi-bounding-box") + '" style="font-size:1.2rem;color:var(--azul)"></i>' +
+              '<div style="flex:1"><b>' + esc(tipoL(b.tipo)) + '</b><br><small class="muted">' + resumenBloque(b) + "</small></div>" +
+              '<button class="btn btn--ghost btn--sm" data-subir="' + i + '"' + (i === 0 ? " disabled" : "") + '><i class="bi bi-arrow-up"></i></button>' +
+              '<button class="btn btn--ghost btn--sm" data-bajar="' + i + '"' + (i === bloques.length - 1 ? " disabled" : "") + '><i class="bi bi-arrow-down"></i></button>' +
+              '<button class="btn btn--ghost btn--sm" data-editar="' + i + '"><i class="bi bi-pencil"></i></button>' +
+              '<button class="btn btn--ghost btn--sm" data-del-bloque="' + i + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button>' +
+            "</div>";
+          }).join("")
+        : '<div class="empty">Sin bloques todavía. Añade uno para empezar a personalizar la home.</div>') +
+      "</div>";
+
+    $("#btn-add-bloque").onclick = function () { elegirTipoBloque(); };
+    $$("[data-subir]", cont).forEach(function (b) { b.onclick = function () { moverBloque(+b.getAttribute("data-subir"), -1); }; });
+    $$("[data-bajar]", cont).forEach(function (b) { b.onclick = function () { moverBloque(+b.getAttribute("data-bajar"), 1); }; });
+    $$("[data-editar]", cont).forEach(function (b) { b.onclick = function () { formBloque(+b.getAttribute("data-editar")); }; });
+    $$("[data-del-bloque]", cont).forEach(function (b) {
+      b.onclick = function () {
+        if (!confirm("¿Eliminar este bloque?")) return;
+        paginaCache.bloques.splice(+b.getAttribute("data-del-bloque"), 1);
+        guardarPagina();
+      };
+    });
+  }
+  function tipoIcono(v) { for (var i = 0; i < BLOQUES_TIPOS.length; i++) if (BLOQUES_TIPOS[i].v === v) return BLOQUES_TIPOS[i].i; return "bi-bounding-box"; }
+  function moverBloque(i, dir) {
+    var j = i + dir;
+    var arr = paginaCache.bloques;
+    if (j < 0 || j >= arr.length) return;
+    var tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    guardarPagina();
+  }
+  async function guardarPagina() {
+    try {
+      await supa("PATCH", "/rest/v1/Pagina?id=eq." + paginaCache.id, { bloques: paginaCache.bloques, actualizadoEn: new Date().toISOString() });
+      toast("Página guardada. Se verá en la tienda en unos segundos.");
+      pintarConstructor();
+    } catch (e) { toast(e.message, false); }
+  }
+  function elegirTipoBloque() {
+    var body = '<p class="muted">Elige el tipo de bloque a añadir:</p>' +
+      BLOQUES_TIPOS.map(function (t) {
+        return '<button class="btn btn--ghost" style="display:block;width:100%;margin-bottom:8px;text-align:left" data-tipo="' + t.v + '"><i class="bi ' + t.i + '"></i> ' + esc(t.l) + "</button>";
+      }).join("");
+    modal("Añadir bloque", body);
+    $$("#modal [data-tipo]").forEach(function (b) {
+      b.onclick = function () { cerrarModal(); formBloque(null, b.getAttribute("data-tipo")); };
+    });
+  }
+  async function formBloque(index, tipo) {
+    var editando = index !== null && index !== undefined;
+    var b = editando ? paginaCache.bloques[index] : { tipo: tipo, config: {} };
+    var c = b.config || {};
+    var cats = await supa("GET", "/rest/v1/Categoria?select=id,nombre,slug&order=nombre.asc").catch(function () { return []; });
+    var subs = await supa("GET", "/rest/v1/Subcategoria?select=id,slug,nombre&order=nombre.asc").catch(function () { return []; });
+    var cuerpo = "";
+    if (b.tipo === "hero") {
+      cuerpo = fld("Etiqueta", input("etiqueta", c.etiqueta || "")) +
+        fld("Título *", input("titulo", c.titulo || "")) +
+        fld("Subtítulo", area("subtitulo", c.subtitulo || "", 2)) +
+        '<div class="row">' + fld("Texto del botón", input("boton", c.boton || "")) + fld("Enlace", input("enlace", c.enlace || "")) + "</div>" +
+        '<div class="row">' + '<div class="field"><label>Tema</label>' + select("tema", [{ v: "oscuro", l: "Oscuro" }, { v: "rojo", l: "Rojo" }, { v: "azul", l: "Azul" }], c.tema || "oscuro") + "</div>" +
+        fld("Imagen de fondo (URL)", input("imagen", c.imagen || "")) + "</div>";
+    } else if (b.tipo === "productos") {
+      cuerpo = fld("Título", input("titulo", c.titulo || "Destacados")) +
+        '<div class="row">' +
+        '<div class="field"><label>Categoría</label><select name="categoria"><option value="">— Todas —</option>' + cats.map(function (x) { return '<option value="' + esc(x.slug) + '"' + (c.categoria === x.slug ? " selected" : "") + ">" + esc(x.nombre) + "</option>"; }).join("") + "</select></div>" +
+        '<div class="field"><label>Subcategoría</label><select name="subcategoria"><option value="">— Ninguna —</option>' + subs.map(function (x) { return '<option value="' + esc(x.slug) + '"' + (c.subcategoria === x.slug ? " selected" : "") + ">" + esc(x.nombre) + "</option>"; }).join("") + "</select></div>" +
+        "</div>" + fld("Cantidad de productos", input("limite", c.limite || 8, "number"));
+    } else if (b.tipo === "categorias") {
+      cuerpo = fld("Título", input("titulo", c.titulo || "Categorías")) +
+        '<div class="row">' +
+        '<div class="field"><label>Grupo</label>' + select("grupo", [{ v: "temporada", l: "Temporada" }, { v: "producto", l: "Producto" }, { v: "todas", l: "Todas" }], c.grupo || "todas") + "</div>" +
+        fld("Cantidad", input("limite", c.limite || 10, "number")) + "</div>";
+    } else if (b.tipo === "texto") {
+      cuerpo = fld("Título", input("titulo", c.titulo || "")) +
+        fld("Contenido <span class=hint>(acepta HTML)</span>", area("contenido", c.contenido || "", 6));
+    } else if (b.tipo === "promo") {
+      cuerpo = fld("Título *", input("titulo", c.titulo || "")) +
+        fld("Subtítulo", area("subtitulo", c.subtitulo || "", 2)) +
+        '<div class="row">' + fld("Texto del botón", input("boton", c.boton || "")) + fld("Enlace", input("enlace", c.enlace || "")) + "</div>" +
+        '<div class="field"><label>Tema</label>' + select("tema", [{ v: "rojo", l: "Rojo" }, { v: "azul", l: "Azul" }, { v: "oscuro", l: "Oscuro" }], c.tema || "rojo") + "</div>";
+    }
+    var body = '<form id="f-bloque">' + cuerpo +
+      '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar bloque</button></div></form>';
+    modal((editando ? "Editar bloque · " : "Nuevo bloque · ") + tipoL(b.tipo), body);
+    $("#f-bloque").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var f = new FormData(e.target);
+      var conf = {};
+      if (b.tipo === "hero") conf = { etiqueta: f.get("etiqueta") || null, titulo: f.get("titulo"), subtitulo: f.get("subtitulo") || null, boton: f.get("boton") || null, enlace: f.get("enlace") || null, tema: f.get("tema"), imagen: f.get("imagen") || null };
+      if (b.tipo === "productos") conf = { titulo: f.get("titulo") || "Destacados", categoria: f.get("categoria") || null, subcategoria: f.get("subcategoria") || null, limite: Number(f.get("limite")) || 8 };
+      if (b.tipo === "categorias") conf = { titulo: f.get("titulo") || "Categorías", grupo: f.get("grupo"), limite: Number(f.get("limite")) || 10 };
+      if (b.tipo === "texto") conf = { titulo: f.get("titulo") || null, contenido: f.get("contenido") || "" };
+      if (b.tipo === "promo") conf = { titulo: f.get("titulo"), subtitulo: f.get("subtitulo") || null, boton: f.get("boton") || null, enlace: f.get("enlace") || null, tema: f.get("tema") };
+      if (!conf.titulo && (b.tipo === "hero" || b.tipo === "promo")) { toast("El título es obligatorio", false); return; }
+      if (editando) paginaCache.bloques[index] = { tipo: b.tipo, config: conf };
+      else paginaCache.bloques.push({ tipo: b.tipo, config: conf });
+      cerrarModal();
+      guardarPagina();
     });
   }
 

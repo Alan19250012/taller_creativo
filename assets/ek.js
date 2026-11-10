@@ -175,6 +175,9 @@
       '<div class="ek-catcard__c">' + n + " artículos" + (c.epoca ? " · " + c.epoca : "") + "</div></div>" +
       '<i class="bi bi-arrow-right-circle-fill ek-catcard__x"></i></a>';
   }
+  // Expuestos para el constructor visual (assets/ek-page.js)
+  window.EK_tarjeta = tarjeta;
+  window.EK_tarjetaCat = tarjetaCat;
   function waLink(txt) { return "https://wa.me/" + C.whatsapp + "?text=" + encodeURIComponent(txt); }
 
   /* ======================= CABECERA / GLOBAL ======================= */
