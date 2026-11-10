@@ -133,6 +133,7 @@
     clientes: { titulo: "Clientes", render: renderClientes },
     cupones: { titulo: "Cupones", render: renderCupones },
     constructor: { titulo: "Constructor visual", render: renderConstructor },
+    politicas: { titulo: "Políticas", render: renderPoliticas },
     configuracion: { titulo: "Configuración", render: renderConfiguracion },
   };
 
@@ -620,32 +621,43 @@
     var cont = $("#contenido");
     try {
       resenasCache = await supa("GET", "/rest/v1/Resena?select=*,Producto(nombre)&order=creadoEn.desc");
-      cont.innerHTML =
-        '<div class="card"><table><thead><tr><th>Autor</th><th>Producto</th><th>★</th><th>Estado</th><th></th></tr></thead><tbody>' +
-        resenasCache.map(function (r) {
-          return "<tr><td><b>" + esc(r.autor) + "</b><br><small class='muted'>" + esc(r.ciudad || "") + "</small></td>" +
-            "<td>" + esc((r.Producto && r.Producto.nombre) || "—") + "</td>" +
-            "<td>" + "★".repeat(r.estrellas) + "☆".repeat(5 - r.estrellas) + "</td>" +
-            "<td>" + (r.aprobada ? '<span class="badge badge--on">Aprobada</span>' : '<span class="badge badge--pend">Pendiente</span>') + "</td>" +
-            '<td class="actions"><button class="btn btn--ghost btn--sm" data-aprobar="' + r.id + '" data-val="' + (r.aprobada ? "0" : "1") + '">' + (r.aprobada ? "Ocultar" : "Aprobar") + "</button>" +
-            '<button class="btn btn--ghost btn--sm" data-del="' + r.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
-        }).join("") + (resenasCache.length ? "" : '<tr><td colspan="5" class="empty">Sin reseñas</td></tr>') + "</tbody></table></div>";
-      $$("[data-aprobar]", cont).forEach(function (b) {
-        b.onclick = async function () {
-          try {
-            await supa("PATCH", "/rest/v1/Resena?id=eq." + b.getAttribute("data-aprobar"), { aprobada: b.getAttribute("data-val") === "1" });
-            toast("Reseña actualizada"); renderResenas();
-          } catch (e) { toast(e.message, false); }
-        };
-      });
-      $$("[data-del]", cont).forEach(function (b) {
-        b.onclick = async function () {
-          if (!confirm("¿Eliminar esta reseña?")) return;
-          try { await supa("DELETE", "/rest/v1/Resena?id=eq." + b.getAttribute("data-del")); toast("Reseña eliminada"); renderResenas(); }
-          catch (e) { toast(e.message, false); }
-        };
-      });
+      pintarResenas("TODAS");
     } catch (e) { cont.innerHTML = errCard(e); }
+  }
+  function pintarResenas(filtro) {
+    var cont = $("#contenido");
+    var lista = filtro === "TODAS" ? resenasCache : resenasCache.filter(function (r) { return (filtro === "APROBADAS") === !!r.aprobada; });
+    cont.innerHTML =
+      '<div class="card"><div class="toolbar">' +
+        '<span class="muted">Filtrar:</span>' +
+        '<select id="filtro-resenas" style="width:auto"><option value="TODAS">Todas</option><option value="APROBADAS">Aprobadas</option><option value="PENDIENTES">Pendientes</option></select>' +
+      "</div>" +
+      '<table><thead><tr><th>Autor</th><th>Producto</th><th>★</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      lista.map(function (r) {
+        return "<tr><td><b>" + esc(r.autor) + "</b><br><small class='muted'>" + esc(r.ciudad || "") + "</small></td>" +
+          "<td>" + esc((r.Producto && r.Producto.nombre) || "—") + "</td>" +
+          "<td>" + "★".repeat(r.estrellas) + "☆".repeat(5 - r.estrellas) + "</td>" +
+          "<td>" + (r.aprobada ? '<span class="badge badge--on">Aprobada</span>' : '<span class="badge badge--pend">Pendiente</span>') + "</td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-aprobar="' + r.id + '" data-val="' + (r.aprobada ? "0" : "1") + '">' + (r.aprobada ? "Ocultar" : "Aprobar") + "</button>" +
+          '<button class="btn btn--ghost btn--sm" data-del="' + r.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+      }).join("") + (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin reseñas en este filtro</td></tr>') + "</tbody></table></div>";
+    var sel = $("#filtro-resenas");
+    if (sel) { sel.value = filtro; sel.onchange = function () { pintarResenas(sel.value); }; }
+    $$("[data-aprobar]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        try {
+          await supa("PATCH", "/rest/v1/Resena?id=eq." + b.getAttribute("data-aprobar"), { aprobada: b.getAttribute("data-val") === "1" });
+          toast("Reseña actualizada"); renderResenas();
+        } catch (e) { toast(e.message, false); }
+      };
+    });
+    $$("[data-del]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        if (!confirm("¿Eliminar esta reseña?")) return;
+        try { await supa("DELETE", "/rest/v1/Resena?id=eq." + b.getAttribute("data-del")); toast("Reseña eliminada"); renderResenas(); }
+        catch (e) { toast(e.message, false); }
+      };
+    });
   }
 
   /* ============================== PEDIDOS ============================== */
@@ -655,17 +667,30 @@
     var cont = $("#contenido");
     try {
       pedidosCache = await supa("GET", "/rest/v1/Pedido?select=*&order=creadoEn.desc");
-      cont.innerHTML =
-        '<div class="card"><table><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>' +
-        pedidosCache.map(function (p) {
-          var cls = p.estado === "ENTREGADO" ? "on" : (p.estado === "CANCELADO" ? "off" : (p.estado === "ENVIADO" ? "env" : "pend"));
-          return "<tr><td><small class='muted'>#" + esc(String(p.id).slice(0, 8)) + "</small><br><b>" + fecha(p.creadoEn) + "</b></td>" +
-            "<td>" + esc(p.cliente || "—") + "</td><td>" + money(p.total) + "</td>" +
-            '<td><span class="badge badge--' + cls + '">' + esc(p.estado) + "</span></td>" +
-            '<td class="actions"><button class="btn btn--ghost btn--sm" data-ver="' + p.id + '"><i class="bi bi-eye"></i></button></td></tr>';
-        }).join("") + (pedidosCache.length ? "" : '<tr><td colspan="5" class="empty">Sin pedidos aún</td></tr>') + "</tbody></table></div>";
-      $$("[data-ver]", cont).forEach(function (b) { b.onclick = function () { verPedido(b.getAttribute("data-ver")); }; });
+      pintarPedidos("TODOS");
     } catch (e) { cont.innerHTML = errCard(e); }
+  }
+  function pintarPedidos(filtro) {
+    var cont = $("#contenido");
+    var lista = filtro === "TODOS" ? pedidosCache : pedidosCache.filter(function (p) { return p.estado === filtro; });
+    cont.innerHTML =
+      '<div class="card"><div class="toolbar">' +
+        '<span class="muted">Filtrar por estado:</span>' +
+        '<select id="filtro-pedidos" style="width:auto">' +
+          '<option value="TODOS">Todos</option>' + ESTADOS.map(function (e) { return '<option value="' + e + '">' + e + "</option>"; }).join("") +
+        "</select>" +
+      "</div>" +
+      '<table><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      lista.map(function (p) {
+        var cls = p.estado === "ENTREGADO" ? "on" : (p.estado === "CANCELADO" ? "off" : (p.estado === "ENVIADO" ? "env" : "pend"));
+        return "<tr><td><small class='muted'>#" + esc(String(p.id).slice(0, 8)) + "</small><br><b>" + fecha(p.creadoEn) + "</b></td>" +
+          "<td>" + esc(p.cliente || "—") + "</td><td>" + money(p.total) + "</td>" +
+          '<td><span class="badge badge--' + cls + '">' + esc(p.estado) + "</span></td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-ver="' + p.id + '"><i class="bi bi-eye"></i></button></td></tr>';
+      }).join("") + (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin pedidos en este estado</td></tr>') + "</tbody></table></div>";
+    var sel = $("#filtro-pedidos");
+    if (sel) { sel.value = filtro; sel.onchange = function () { pintarPedidos(sel.value); }; }
+    $$("[data-ver]", cont).forEach(function (b) { b.onclick = function () { verPedido(b.getAttribute("data-ver")); }; });
   }
   async function verPedido(id) {
     var p = pedidosCache.find(function (x) { return x.id === id; });
@@ -707,25 +732,36 @@
     var cont = $("#contenido");
     try {
       clientesCache = await supa("GET", "/rest/v1/Usuario?select=id,nombre,email,rol,telefono,activo&order=creadoEn.desc");
-      cont.innerHTML =
-        '<div class="card"><div class="toolbar"><button class="btn" id="btn-nuevo-cli"><i class="bi bi-plus-lg"></i> Nuevo cliente</button></div>' +
-        '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
-        clientesCache.map(function (u) {
-          return "<tr><td><b>" + esc(u.nombre) + "</b></td><td>" + esc(u.email) + "</td><td><span class='tag'>" + esc(u.rol) + "</span></td>" +
-            "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
-            '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
-            '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
-        }).join("") + "</tbody></table></div>";
-      $("#btn-nuevo-cli").onclick = function () { formCliente(null); };
-      $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formCliente(b.getAttribute("data-edit")); }; });
-      $$("[data-del]", cont).forEach(function (b) {
-        b.onclick = async function () {
-          if (!confirm("¿Eliminar este usuario?")) return;
-          try { await supa("DELETE", "/rest/v1/Usuario?id=eq." + b.getAttribute("data-del")); toast("Usuario eliminado"); renderClientes(); }
-          catch (e) { toast(e.message, false); }
-        };
-      });
+      pintarClientes("TODOS");
     } catch (e) { cont.innerHTML = errCard(e); }
+  }
+  function pintarClientes(filtro) {
+    var cont = $("#contenido");
+    var lista = filtro === "TODOS" ? clientesCache : clientesCache.filter(function (u) { return u.rol === filtro; });
+    cont.innerHTML =
+      '<div class="card"><div class="toolbar">' +
+        '<button class="btn" id="btn-nuevo-cli"><i class="bi bi-plus-lg"></i> Nuevo cliente</button>' +
+        '<span class="muted">Filtrar por rol:</span>' +
+        '<select id="filtro-clientes" style="width:auto"><option value="TODOS">Todos</option>' + ROLES.map(function (r) { return '<option value="' + r + '">' + r + "</option>"; }).join("") + "</select>" +
+      "</div>" +
+      '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      lista.map(function (u) {
+        return "<tr><td><b>" + esc(u.nombre) + "</b></td><td>" + esc(u.email) + "</td><td><span class='tag'>" + esc(u.rol) + "</span></td>" +
+          "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
+          '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+      }).join("") + "</tbody></table></div>";
+    $("#btn-nuevo-cli").onclick = function () { formCliente(null); };
+    var sel = $("#filtro-clientes");
+    if (sel) { sel.value = filtro; sel.onchange = function () { pintarClientes(sel.value); }; }
+    $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formCliente(b.getAttribute("data-edit")); }; });
+    $$("[data-del]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        if (!confirm("¿Eliminar este usuario?")) return;
+        try { await supa("DELETE", "/rest/v1/Usuario?id=eq." + b.getAttribute("data-del")); toast("Usuario eliminado"); renderClientes(); }
+        catch (e) { toast(e.message, false); }
+      };
+    });
   }
   function formCliente(id) {
     var u = id ? clientesCache.find(function (x) { return x.id === id; }) : null;
@@ -957,6 +993,42 @@
       cerrarModal();
       guardarPagina();
     });
+  }
+
+  /* ============================== POLÍTICAS ============================== */
+  var POLITICAS = [
+    { clave: "politica_privacidad", label: "Política de privacidad" },
+    { clave: "politica_envios", label: "Política de envíos" },
+    { clave: "politica_devoluciones", label: "Política de devoluciones" },
+    { clave: "politica_terminos", label: "Términos y condiciones" },
+  ];
+  async function renderPoliticas() {
+    var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
+    try {
+      var config = await supa("GET", "/rest/v1/Configuracion?select=id,clave,valor");
+      var mapa = {};
+      config.forEach(function (c) { mapa[c.clave] = c.valor; });
+      var campos = POLITICAS.map(function (p) {
+        return fld(p.label + " <span class=hint>(acepta HTML)</span>", '<textarea name="' + p.clave + '" rows="9">' + esc(mapa[p.clave] || "") + "</textarea>");
+      }).join("");
+      cont.innerHTML = '<form id="f-politicas"><div class="card"><h2>Políticas de la tienda</h2>' +
+        '<p class="muted">Estos textos se guardan en Supabase. Puedes mostrarlos en tu sitio (pie de página o página de políticas).</p>' + campos +
+        '<div class="modal__ft" style="margin-top:18px"><button class="btn btn--rojo" type="submit"><i class="bi bi-check-lg"></i> Guardar políticas</button></div></div></form>';
+      $("#f-politicas").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var f = new FormData(e.target);
+        try {
+          for (var i = 0; i < POLITICAS.length; i++) {
+            var p = POLITICAS[i];
+            var existe = config.find(function (c) { return c.clave === p.clave; });
+            if (existe) await supa("PATCH", "/rest/v1/Configuracion?id=eq." + existe.id, { valor: f.get(p.clave) || "" });
+            else await supa("POST", "/rest/v1/Configuracion", { clave: p.clave, valor: f.get(p.clave) || "" });
+          }
+          toast("Políticas guardadas");
+        } catch (err) { toast(err.message, false); }
+      });
+    } catch (e) { cont.innerHTML = errCard(e); }
   }
 
   /* ============================== CONFIGURACIÓN ============================== */
