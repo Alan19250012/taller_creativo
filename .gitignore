@@ -1,0 +1,16 @@
+# Secretos — NUNCA subir
+.env
+.env.*
+!.env.example
+.dev.vars
+
+# Dependencias / herramientas
+node_modules/
+.wrangler/
+
+# Material de referencia (sitios descargados como inspiración)
+paginas que me gustaron/
+
+# Sistema
+.DS_Store
+Thumbs.db

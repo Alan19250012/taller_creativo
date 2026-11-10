@@ -1,0 +1,92 @@
+# ============================================================================
+#  TALLER CREATIVO EK · Configuración Apache / cPanel
+#  Objetivo: que el servidor sirva lo mínimo y el navegador no vuelva a bajar
+#  nada. Sube este archivo a la raíz del sitio (junto a index.html).
+#  Si tu hosting usa Nginx, revisa el README.md (sección "Otros servidores").
+# ============================================================================
+
+# ---------------------------- COMPRESIÓN ----------------------------
+# El catálogo son 4 archivos de texto: comprimidos bajan ~75 %.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/xml image/svg+xml
+  AddOutputFilterByType DEFLATE application/manifest+json
+</IfModule>
+
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# ------------------------- CACHÉ DEL NAVEGADOR -------------------------
+# Equilibrio: se cachea mucho (el sitio casi no se vuelve a descargar) pero
+# cuando cambias una foto o el CSS, el cambio se ve en días, no en un año.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/webp                "access plus 1 month"
+  ExpiresByType image/avif                "access plus 1 month"
+  ExpiresByType image/jpeg                "access plus 1 month"
+  ExpiresByType image/png                 "access plus 1 month"
+  ExpiresByType image/svg+xml             "access plus 1 month"
+  ExpiresByType image/x-icon              "access plus 1 year"
+  ExpiresByType font/woff2                "access plus 1 year"
+  ExpiresByType text/css                  "access plus 1 week"
+  ExpiresByType application/javascript    "access plus 1 week"
+  ExpiresByType application/json          "access plus 1 week"
+  ExpiresByType text/html                 "access plus 1 hour"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.(webp|avif|jpe?g|png|gif|svg)$">
+    Header set Cache-Control "public, max-age=2592000, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(ico|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=604800, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.(html|json|xml|txt|webmanifest)$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  # No revelar la versión del servidor
+  Header unset X-Powered-By
+  Header unset Server
+</IfModule>
+
+# ------------------------- TIPOS MIME MODERNOS -------------------------
+<IfModule mod_mime.c>
+  AddType image/webp .webp
+  AddType image/avif .avif
+  AddType font/woff2 .woff2
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+# --------------------------- URLS Y ERRORES ---------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  # Quita la barra final (evita duplicados en Google)
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.+)/$ /$1 [R=301,L]
+  # Forzar HTTPS (descomenta cuando tengas certificado SSL)
+  # RewriteCond %{HTTPS} off
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+ErrorDocument 404 /404.html
+
+# --------------------------- SEGURIDAD BÁSICA ---------------------------
+Options -Indexes
+<FilesMatch "^\.(htaccess|htpasswd|git|env)">
+  Require all denied
+</FilesMatch>
+
+# --------------------------- LIGERO AHORRO EXTRA ---------------------------
+# Evita que las imágenes se envíen si el navegador ya las tiene.
+<IfModule mod_headers.c>
+  Header append Vary Accept-Encoding
+</IfModule>

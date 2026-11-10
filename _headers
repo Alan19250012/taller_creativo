@@ -1,0 +1,33 @@
+# ============================================================================
+#  TALLER CREATIVO EK · Cabeceras para Netlify / Cloudflare Pages / Vercel
+#  Si tu hosting es cPanel/Apache usa .htaccess y puedes borrar este archivo.
+#  Caché equilibrada: mucho ahorro de datos y los cambios se ven en días.
+# ============================================================================
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+# El panel administrativo no debe cachearse (para no ver la versión vieja)
+/admin/*
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/img/*
+  Cache-Control: public, max-age=2592000, must-revalidate
+
+/*.css
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/*.js
+  Cache-Control: public, max-age=604800, must-revalidate
+
+/*.html
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=3600

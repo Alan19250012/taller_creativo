@@ -1,0 +1,4 @@
+Carpeta: img/productos
+Coloca aquí las imágenes de esta sección.
+Nombres y formatos exactos: revisa IMAGENES.md en la raíz del proyecto.
+Formato recomendado: WEBP · peso máximo 120 KB por imagen.

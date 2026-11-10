@@ -1,0 +1,24 @@
+{
+  "name": "Taller Creativo EK",
+  "short_name": "Taller EK",
+  "description": "Decoración MDF, impresión DTF UV y regalos personalizados. Navidad, Año Nuevo, graduación, bodas y más.",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F6F7FC",
+  "theme_color": "#DA1D2A",
+  "lang": "es-MX",
+  "dir": "ltr",
+  "categories": ["shopping", "lifestyle"],
+  "icons": [
+    { "src": "img/favicon/favicon-32x32.png", "sizes": "32x32", "type": "image/png" },
+    { "src": "img/favicon/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "img/favicon/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "img/favicon/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Ver catálogo", "url": "tienda.html" },
+    { "name": "Mi carrito", "url": "carrito.html" },
+    { "name": "WhatsApp", "url": "https://wa.me/525562208987" }
+  ]
+}

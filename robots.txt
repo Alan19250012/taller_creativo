@@ -1,0 +1,13 @@
+# Taller Creativo EK · robots.txt
+User-agent: *
+Allow: /
+Disallow: /build/
+Disallow: /404.html
+
+# Rastreadores de IA (opcional: descomenta para bloquearlos)
+# User-agent: GPTBot
+# Disallow: /
+# User-agent: CCBot
+# Disallow: /
+
+Sitemap: https://tallercreativoek.com/sitemap.xml
