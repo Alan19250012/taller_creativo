@@ -15,6 +15,8 @@
   --sombra: 0 1px 3px rgba(16,24,40,.08), 0 1px 2px rgba(16,24,40,.06);
 }
 * { box-sizing: border-box; }
+/* El atributo `hidden` debe ganar SIEMPRE (aunque .login/.app tengan display:grid) */
+[hidden] { display: none !important; }
 html, body { margin: 0; padding: 0; }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
