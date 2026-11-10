@@ -1355,11 +1355,31 @@
 
     /* Interacciones */
     var talla = p.t[0], color = p.col[0];
+    // Stock por variante (si el producto tiene variantes definidas)
+    function stockVariante() {
+      var vs = p.variantes || [];
+      for (var i = 0; i < vs.length; i++) {
+        if ((vs[i].talla == null || vs[i].talla === talla) && (vs[i].color == null || vs[i].color === color)) return vs[i].stock;
+      }
+      return null;
+    }
+    function actualizarStockUI() {
+      var st = stockVariante();
+      if (st == null) return;
+      var max = document.getElementById("ek-live-max");
+      if (max) max.textContent = "Máx. " + nf(st);
+      var cant = document.getElementById("ek-cant");
+      if (cant) { cant.max = Math.max(1, st); if (+cant.value > st) cant.value = Math.max(1, st); }
+      var txt = document.getElementById("ek-live-stocktext");
+      if (txt) txt.innerHTML = st > 0 ? "Quedan <b>" + nf(st) + "</b> piezas de esta variante" : "Variante agotada";
+      var bar = document.getElementById("ek-live-stockbar");
+      if (bar) { bar.className = "ek-stockbar" + (st <= 10 ? " poco" : ""); bar.innerHTML = '<i style="width:' + Math.max(6, Math.min(100, Math.round(st / 120 * 100))) + '%"></i>'; }
+    }
     $$("#ek-tallas .ek-chip").forEach(function (b) {
-      b.onclick = function () { $$("#ek-tallas .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); talla = b.getAttribute("data-t"); $("#ek-talla-sel").textContent = talla; };
+      b.onclick = function () { $$("#ek-tallas .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); talla = b.getAttribute("data-t"); $("#ek-talla-sel").textContent = talla; actualizarStockUI(); };
     });
     $$("#ek-colores .ek-chip").forEach(function (b) {
-      b.onclick = function () { $$("#ek-colores .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); color = b.getAttribute("data-c"); $("#ek-color-sel").textContent = color; };
+      b.onclick = function () { $$("#ek-colores .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); color = b.getAttribute("data-c"); $("#ek-color-sel").textContent = color; actualizarStockUI(); };
     });
     $$("[data-q]").forEach(function (b) {
       b.onclick = function () { var i = $("#ek-cant"), v = Math.max(1, Math.min(p.st || 1, (+i.value || 1) + (+b.getAttribute("data-q")))); i.value = v; };

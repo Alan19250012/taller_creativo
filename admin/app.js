@@ -269,10 +269,13 @@
     var cats = await supa("GET", "/rest/v1/Categoria?select=id,nombre&order=nombre.asc").catch(function () { return []; });
     var p = id ? productosCache.find(function (x) { return x.id === id; }) : null;
     var actuales = [];
+    var variantes = [];
     if (p) {
       actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=B&A=eq." + p.id).catch(function () { return []; }))
         .map(function (r) { return r.B; });
+      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock&productoId=eq." + p.id).catch(function () { return []; });
     }
+    var variantesTxt = variantes.map(function (v) { return [v.talla || "", v.color || "", v.stock].join(" | "); }).join("\n");
     var body =
       '<form id="f-prod">' +
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", p ? p.nombre : "") + "</div>" +
@@ -292,6 +295,7 @@
         fld("Tallas / tamaños <span class=hint>(separados por coma)</span>", input("tallas", p ? arrSplit(p.tallas) : "")) +
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
+      fld("Stock por variante <span class=hint>(opcional · una por línea: talla | color | stock)</span>", area("variantes", variantesTxt, 4)) +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
@@ -330,6 +334,15 @@
         var catsSel = $$('input[name="cat"]:checked').map(function (c) { return c.value; });
         for (var i = 0; i < catsSel.length; i++) {
           await supa("POST", "/rest/v1/_CategoriaToProducto", { A: catsSel[i], B: pid });
+        }
+        // variantes (talla | color | stock)
+        await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
+        var varRows = String(f.get("variantes") || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean)
+          .map(function (l) { var pp = l.split("|").map(function (x) { return x.trim(); }); return { talla: pp[0] || null, color: pp[1] || null, stock: Number(pp[2]) || 0 }; });
+        for (var j = 0; j < varRows.length; j++) {
+          if (varRows[j].talla || varRows[j].color) {
+            await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock });
+          }
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");
         renderProductos();

@@ -112,7 +112,7 @@ function emitir(ruta, cabecera, cuerpo) {
 async function main() {
   console.log("🔄 Sincronizando Supabase → archivos estáticos...\n");
 
-  const [categorias, subcategorias, productos, banners, articulos, resenas, config, cupones, relPC, relPS, relCS] =
+  const [categorias, subcategorias, productos, banners, articulos, resenas, config, cupones, variantes, relPC, relPS, relCS] =
     await Promise.all([
       pg("Categoria", "select=*&order=orden.asc"),
       pg("Subcategoria", "select=*&order=orden.asc"),
@@ -122,6 +122,7 @@ async function main() {
       pg("Resena", "select=*&aprobada=eq.true&order=creadoEn.desc"),
       pg("Configuracion", "select=clave,valor"),
       pg("Cupon", "select=*"),
+      pg("Variante", "select=productoId,talla,color,stock"),
       pg("_CategoriaToProducto", "select=A,B"),
       pg("_ProductoToSubcategoria", "select=A,B"),
       pg("_CategoriaToSubcategoria", "select=A,B"),
@@ -171,11 +172,20 @@ async function main() {
     kw: b.keywords || "", et: b.etiqueta || "", tema: b.tema || "rojo",
   }));
 
+  // Variantes por producto: slug → [{talla,color,stock}]
+  const prodVariantes = {};
+  productos.forEach((p) => { prodVariantes[p.slug] = []; });
+  (variantes || []).forEach((v) => {
+    const s = prodSlug[v.productoId];
+    if (s && prodVariantes[s]) prodVariantes[s].push({ talla: v.talla || null, color: v.color || null, stock: v.stock || 0 });
+  });
+
   const productosJS = productos.map((p) => ({
     n: p.nombre, s: p.slug, p: p.precioMinorista, a: p.precioAnterior || 0,
     c: prodCats[p.slug] || [], col: p.colores || [], t: p.tallas || [],
     st: p.stock, v: p.vendidos, r: p.calificacion, b: badge(p),
     d: p.descripcion || "", f: p.caracteristicas || [], kw: p.keywords || "",
+    variantes: prodVariantes[p.slug] || [],
   }));
 
   const resenasJS = resenas.map((r) => ({
