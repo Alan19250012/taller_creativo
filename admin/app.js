@@ -274,18 +274,19 @@
     if (p) {
       actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=B&A=eq." + p.id).catch(function () { return []; }))
         .map(function (r) { return r.B; });
-      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock&productoId=eq." + p.id).catch(function () { return []; });
+      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio&productoId=eq." + p.id).catch(function () { return []; });
     }
-    var variantesTxt = variantes.map(function (v) { return [v.talla || "", v.color || "", v.stock].join(" | "); }).join("\n");
+    var variantesTxt = variantes.map(function (v) { return [v.talla || "", v.color || "", v.stock, v.precio || ""].join(" | "); }).join("\n");
     var body =
       '<form id="f-prod">' +
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", p ? p.nombre : "") + "</div>" +
       '<div class="field"><label>Slug <span class="hint">(se genera solo si lo dejas vacío)</span></label>' + input("slug", p ? p.slug : "") + "</div></div>" +
       fld("Descripción", area("descripcion", p ? p.descripcion : "", 3)) +
       '<div class="row">' +
-        fld("Precio (MXN) *", input("precioMinorista", p ? p.precioMinorista : "", "number")) +
-        fld("Precio anterior (oferta)", input("precioAnterior", p ? (p.precioAnterior || "") : "", "number")) +
+        fld("Precio minorista (MXN) *", input("precioMinorista", p ? p.precioMinorista : "", "number")) +
+        fld("Precio distribuidor (MXN) <span class=hint>(solo lo ven distribuidores)</span>", input("precioDistribuidor", p ? (p.precioDistribuidor || "") : "", "number")) +
       "</div>" +
+      fld("Precio anterior (oferta)", input("precioAnterior", p ? (p.precioAnterior || "") : "", "number")) +
       '<div class="row row--3">' +
         fld("Stock", input("stock", p ? p.stock : 0, "number")) +
         fld("Vendidos", input("vendidos", p ? p.vendidos : 0, "number")) +
@@ -296,7 +297,7 @@
         fld("Tallas / tamaños <span class=hint>(separados por coma)</span>", input("tallas", p ? arrSplit(p.tallas) : "")) +
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
-      fld("Stock por variante <span class=hint>(opcional · una por línea: talla | color | stock)</span>", area("variantes", variantesTxt, 4)) +
+      fld("Stock y precio por variante <span class=hint>(opcional · una por línea: talla | color | stock | precio)</span>", area("variantes", variantesTxt, 5)) +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
@@ -317,6 +318,7 @@
         nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")),
         descripcion: f.get("descripcion") || "",
         precioMinorista: Number(f.get("precioMinorista")) || 0,
+        precioDistribuidor: f.get("precioDistribuidor") ? Number(f.get("precioDistribuidor")) : null,
         precioAnterior: f.get("precioAnterior") ? Number(f.get("precioAnterior")) : null,
         stock: Number(f.get("stock")) || 0, vendidos: Number(f.get("vendidos")) || 0,
         calificacion: Number(f.get("calificacion")) || 0,
@@ -336,13 +338,13 @@
         for (var i = 0; i < catsSel.length; i++) {
           await supa("POST", "/rest/v1/_CategoriaToProducto", { A: catsSel[i], B: pid });
         }
-        // variantes (talla | color | stock)
+        // variantes (talla | color | stock | precio)
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
         var varRows = String(f.get("variantes") || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean)
-          .map(function (l) { var pp = l.split("|").map(function (x) { return x.trim(); }); return { talla: pp[0] || null, color: pp[1] || null, stock: Number(pp[2]) || 0 }; });
+          .map(function (l) { var pp = l.split("|").map(function (x) { return x.trim(); }); return { talla: pp[0] || null, color: pp[1] || null, stock: Number(pp[2]) || 0, precio: pp[3] ? Number(pp[3]) : null }; });
         for (var j = 0; j < varRows.length; j++) {
           if (varRows[j].talla || varRows[j].color) {
-            await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock });
+            await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio });
           }
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");

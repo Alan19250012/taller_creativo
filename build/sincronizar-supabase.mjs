@@ -122,7 +122,7 @@ async function main() {
       pg("Resena", "select=*&aprobada=eq.true&order=creadoEn.desc"),
       pg("Configuracion", "select=clave,valor"),
       pg("Cupon", "select=*"),
-      pg("Variante", "select=productoId,talla,color,stock"),
+      pg("Variante", "select=productoId,talla,color,stock,precio"),
       pg("_CategoriaToProducto", "select=A,B"),
       pg("_ProductoToSubcategoria", "select=A,B"),
       pg("_CategoriaToSubcategoria", "select=A,B"),
@@ -177,11 +177,13 @@ async function main() {
   productos.forEach((p) => { prodVariantes[p.slug] = []; });
   (variantes || []).forEach((v) => {
     const s = prodSlug[v.productoId];
-    if (s && prodVariantes[s]) prodVariantes[s].push({ talla: v.talla || null, color: v.color || null, stock: v.stock || 0 });
+    if (s && prodVariantes[s]) prodVariantes[s].push({ talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null });
   });
 
   const productosJS = productos.map((p) => ({
     n: p.nombre, s: p.slug, p: p.precioMinorista, a: p.precioAnterior || 0,
+    pd: p.precioDistribuidor || null,  // precio de distribuidor (solo lo ven los distribuidores)
+    imagen: p.imagen || null,
     c: prodCats[p.slug] || [], col: p.colores || [], t: p.tallas || [],
     st: p.stock, v: p.vendidos, r: p.calificacion, b: badge(p),
     d: p.descripcion || "", f: p.caracteristicas || [], kw: p.keywords || "",

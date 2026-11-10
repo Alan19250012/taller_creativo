@@ -13,6 +13,10 @@
   "use strict";
   var C = window.EK_CONFIG || {}, D = window.EK_DATA || { productos: [], categorias: [], banners: [], resenas: [], faq: [] };
   var P = D.productos, CATS = D.categorias;
+  // Sesión de distribuidor (precio de mayoreo). Solo ADMIN/DISTRIBUIDOR ven el precio pd.
+  var ROL = (function () { try { return localStorage.getItem("ek_rol") || null; } catch (e) { return null; } })();
+  function esDistribuidor() { return ROL === "DISTRIBUIDOR" || ROL === "ADMINISTRADOR"; }
+  function precioDe(p) { return esDistribuidor() && p.pd ? p.pd : p.p; }
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
   var RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -162,6 +166,7 @@
         '<div class="ek-card__prices"><span class="ek-price">' + money(p.p) + "</span>" +
           (off ? '<span class="ek-price--old">' + money(p.a) + '</span><span class="ek-price--off">-' + off + "%</span>" : "") +
         "</div>" +
+        (esDistribuidor() && p.pd ? '<div style="font-size:.85rem;color:var(--azul);font-weight:700;margin-top:2px">Precio distribuidor: ' + money(p.pd) + "</div>" : "") +
         '<div class="ek-row" style="gap:8px"><a class="ek-btn ek-btn--rojo ek-btn--sm" style="flex:1" href="articulo.html?id=' + p.s + '"><i class="bi bi-eye"></i> Ver ficha</a>' +
         '<button class="ek-btn ek-btn--ghost ek-btn--sm" data-add="' + p.s + '" aria-label="Agregar al carrito"><i class="bi bi-cart-plus"></i></button></div>' +
       "</div></article>";
@@ -1291,8 +1296,9 @@
       '<h1 class="ek-buy__title">' + esc(p.n) + "</h1>" +
       '<div class="ek-row" style="gap:14px" id="ek-live-meta">' + estrellas(p.r, rv) + "<span class='ek-muted'>·</span><span class='ek-muted'><i class=\"bi bi-fire\"></i> " + nf(p.v) + " vendidos</span>" +
       "<span class='ek-muted'>·</span><span class='ek-muted'><i class=\"bi bi-box-seam\"></i> " + nf(p.st) + " en stock</span></div>" +
-      '<div class="ek-buy__price"><span class="ek-price">' + money(p.p) + "</span>" +
+      '<div class="ek-buy__price"><span class="ek-price" id="ek-live-precio">' + money(p.p) + "</span>" +
       (off ? '<span class="ek-price--old">' + money(p.a) + '</span><span class="ek-price--off">Ahorras ' + money(p.a - p.p) + " (-" + off + "%)</span>" : "") + "</div>" +
+      (esDistribuidor() && p.pd ? '<div style="color:var(--azul);font-weight:700;margin-bottom:6px">Precio distribuidor: ' + money(p.pd) + "</div>" : "") +
       '<div class="ek-buy__msi"><i class="bi bi-credit-card-2-front"></i> ' + esc(C.mesesSinIntereses) + "</div>" +
       '<div class="ek-stockbar' + (p.st <= 10 ? " poco" : "") + '" id="ek-live-stockbar"><i style="width:' + Math.max(6, Math.min(100, Math.round(p.st / 120 * 100))) + '%"></i></div>' +
       "<small class='ek-muted' id='ek-live-stocktext'>" + (p.st > 0 ? "Quedan <b>" + nf(p.st) + "</b> piezas · " + nf(p.v) + " ya vendidas" : "Agotado por ahora: te avisamos cuando llegue") + "</small>" +
@@ -1355,25 +1361,27 @@
 
     /* Interacciones */
     var talla = p.t[0], color = p.col[0];
-    // Stock por variante (si el producto tiene variantes definidas)
-    function stockVariante() {
+    // Variante seleccionada (stock y precio por talla/color, si están definidos)
+    function varianteSeleccionada() {
       var vs = p.variantes || [];
       for (var i = 0; i < vs.length; i++) {
-        if ((vs[i].talla == null || vs[i].talla === talla) && (vs[i].color == null || vs[i].color === color)) return vs[i].stock;
+        if ((vs[i].talla == null || vs[i].talla === talla) && (vs[i].color == null || vs[i].color === color)) return vs[i];
       }
       return null;
     }
     function actualizarStockUI() {
-      var st = stockVariante();
-      if (st == null) return;
+      var v = varianteSeleccionada();
+      if (!v) return;
       var max = document.getElementById("ek-live-max");
-      if (max) max.textContent = "Máx. " + nf(st);
+      if (max) max.textContent = "Máx. " + nf(v.stock);
       var cant = document.getElementById("ek-cant");
-      if (cant) { cant.max = Math.max(1, st); if (+cant.value > st) cant.value = Math.max(1, st); }
+      if (cant) { cant.max = Math.max(1, v.stock); if (+cant.value > v.stock) cant.value = Math.max(1, v.stock); }
       var txt = document.getElementById("ek-live-stocktext");
-      if (txt) txt.innerHTML = st > 0 ? "Quedan <b>" + nf(st) + "</b> piezas de esta variante" : "Variante agotada";
+      if (txt) txt.innerHTML = v.stock > 0 ? "Quedan <b>" + nf(v.stock) + "</b> piezas de esta variante" : "Variante agotada";
       var bar = document.getElementById("ek-live-stockbar");
-      if (bar) { bar.className = "ek-stockbar" + (st <= 10 ? " poco" : ""); bar.innerHTML = '<i style="width:' + Math.max(6, Math.min(100, Math.round(st / 120 * 100))) + '%"></i>'; }
+      if (bar) { bar.className = "ek-stockbar" + (v.stock <= 10 ? " poco" : ""); bar.innerHTML = '<i style="width:' + Math.max(6, Math.min(100, Math.round(v.stock / 120 * 100))) + '%"></i>'; }
+      var precioEl = document.getElementById("ek-live-precio");
+      if (precioEl) precioEl.textContent = money(v.precio || p.p);
     }
     $$("#ek-tallas .ek-chip").forEach(function (b) {
       b.onclick = function () { $$("#ek-tallas .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); talla = b.getAttribute("data-t"); $("#ek-talla-sel").textContent = talla; actualizarStockUI(); };
@@ -1761,8 +1769,63 @@
     });
   }
 
+  /* ---- Acceso de distribuidores (precios de mayoreo) ---- */
+  function initDistribuidor() {
+    var acciones = $(".ek-actions");
+    if (!acciones) return;
+    var boton = document.createElement("button");
+    boton.type = "button";
+    boton.className = "ek-action";
+    boton.setAttribute("aria-label", esDistribuidor() ? "Cerrar sesión" : "Acceso distribuidores");
+    boton.title = esDistribuidor() ? "Cerrar sesión de distribuidor" : "Acceso distribuidores";
+    boton.innerHTML = '<i class="bi bi-' + (esDistribuidor() ? "box-arrow-right" : "briefcase") + '"></i>';
+    boton.onclick = function () { if (esDistribuidor()) logoutDistribuidor(); else abrirLoginDistribuidor(); };
+    acciones.insertBefore(boton, acciones.firstChild);
+  }
+  function abrirLoginDistribuidor() {
+    var m = document.createElement("div");
+    m.style.cssText = "position:fixed;inset:0;background:rgba(16,24,40,.65);z-index:99999;display:grid;place-items:center;padding:20px";
+    m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:26px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(0,0,0,.35)">' +
+      '<h3 style="margin:0 0 4px">Acceso distribuidores</h3>' +
+      '<p style="color:#6b7280;font-size:.9rem;margin:0 0 16px">Entra para ver los precios de mayoreo.</p>' +
+      '<input id="dk-email" type="email" placeholder="Correo" autocomplete="username" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;font:inherit">' +
+      '<input id="dk-pass" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px;font:inherit">' +
+      '<div id="dk-err" style="color:#DA1D2A;font-size:.85rem;margin-bottom:10px"></div>' +
+      '<button id="dk-enter" style="width:100%;background:#DA1D2A;color:#fff;border:0;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;font:inherit">Entrar</button>' +
+      '<button id="dk-close" style="width:100%;background:none;border:0;padding:8px;color:#6b7280;margin-top:4px;cursor:pointer;font:inherit">Cancelar</button>' +
+      "</div>";
+    document.body.appendChild(m);
+    m.onclick = function (e) { if (e.target === m) m.remove(); };
+    m.querySelector("#dk-close").onclick = function () { m.remove(); };
+    m.querySelector("#dk-enter").onclick = function () { entrarDistribuidor(m); };
+    m.querySelector("#dk-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") entrarDistribuidor(m); });
+  }
+  async function entrarDistribuidor(m) {
+    var email = (m.querySelector("#dk-email").value || "").trim();
+    var pass = m.querySelector("#dk-pass").value || "";
+    var err = m.querySelector("#dk-err");
+    err.textContent = "";
+    if (!email || !pass) { err.textContent = "Escribe correo y contraseña"; return; }
+    try {
+      var res = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email, password: pass }) });
+      var d = await res.json();
+      if (!d.ok) { err.textContent = d.error || "No autorizado"; return; }
+      if (d.usuario && (d.usuario.rol === "DISTRIBUIDOR" || d.usuario.rol === "ADMINISTRADOR")) {
+        localStorage.setItem("ek_rol", d.usuario.rol);
+        location.reload();
+      } else {
+        err.textContent = "Esta cuenta no es de distribuidor";
+      }
+    } catch (e) { err.textContent = "Error de conexión"; }
+  }
+  function logoutDistribuidor() {
+    localStorage.removeItem("ek_rol");
+    location.reload();
+  }
+
   function arrancar() {
     initGlobal();
+    initDistribuidor();
     initFAQ();
     initNav();
     initAcordeones(document);
