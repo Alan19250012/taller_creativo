@@ -242,6 +242,49 @@
     pintar();
     return { getUrls: function () { return lista.filter(Boolean); } };
   }
+  // Editor de variantes (talla | color | stock | precio) en filas, sin escribir comas ni pipes.
+  function initVariantes(variantesIniciales) {
+    var cont = $("#variantes");
+    if (!cont) return { getValor: function () { return []; } };
+    var lista = (variantesIniciales || []).map(function (v) {
+      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "" };
+    });
+    function pintar() {
+      cont.innerHTML = lista.map(function (v, i) {
+        return '<div class="var-row" data-i="' + i + '">' +
+          '<input class="var-talla" placeholder="Talla" value="' + esc(v.talla) + '">' +
+          '<input class="var-color" placeholder="Color" value="' + esc(v.color) + '">' +
+          '<input class="var-stock" type="number" placeholder="Stock" value="' + esc(v.stock) + '">' +
+          '<input class="var-precio" type="number" placeholder="Precio" value="' + esc(v.precio) + '">' +
+          '<button type="button" class="btn btn--sm btn--ghost" data-quitar="' + i + '" style="color:var(--rojo)" title="Quitar"><i class="bi bi-x-lg"></i></button>' +
+          "</div>";
+      }).join("") +
+        '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar variante</button>';
+    }
+    cont.addEventListener("input", function (e) {
+      var fila = e.target.closest(".var-row");
+      if (!fila) return;
+      var v = lista[+fila.getAttribute("data-i")];
+      if (e.target.classList.contains("var-talla")) v.talla = e.target.value;
+      else if (e.target.classList.contains("var-color")) v.color = e.target.value;
+      else if (e.target.classList.contains("var-stock")) v.stock = Number(e.target.value) || 0;
+      else if (e.target.classList.contains("var-precio")) v.precio = e.target.value ? Number(e.target.value) : "";
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "" }); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+    });
+    pintar();
+    return {
+      getValor: function () {
+        return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
+          return { talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null };
+        });
+      },
+    };
+  }
   function arrSplit(v) { return (v || []).join(", "); }
   function arrJoin(txt) {
     return String(txt || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
@@ -399,11 +442,15 @@
         fld("Tallas / tamaños", tagInput("tallas", p ? p.tallas : [], "Ej. 30 cm")) +
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
-      fld("Stock y precio por variante <span class=hint>(opcional · una por línea: talla | color | stock | precio)</span>", area("variantes", variantesTxt, 5)) +
+      fld("Stock y precio por variante <span class=hint>(opcional: agrega filas con talla, color, stock y precio)</span>", '<div id="variantes"></div>') +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
       '<div class="row"><div class="field"><label></label>' + check("personalizable", p ? p.personalizable : false, "Producto personalizable (mostrar editor de texto al cliente)") + "</div></div>" +
+      fld("Imagen base para personalizar <span class=hint>(sobre esta trabaja el cliente; NO aparece en la galería)</span>",
+        '<input type="file" id="up-personalizacion" accept="image/*">' +
+        '<input type="hidden" name="imagen_personalizacion" id="imagen_personalizacion" value="' + esc(p ? (p.imagen_personalizacion || "") : "") + '">' +
+        '<img id="personalizacion-preview" style="max-width:160px;max-height:160px;margin-top:8px;border-radius:8px;' + (p && p.imagen_personalizacion ? "" : "display:none") + '" src="' + esc(p ? (p.imagen_personalizacion || "") : "") + '">') +
       fld("Área de impresión / personalización <span class=hint>(define dónde irá el texto del cliente; solo aplica si es personalizable)</span>",
         '<div id="print-area-container"><p class="hint" style="margin:0">Sube primero una imagen para dibujar el área.</p></div>') +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
@@ -421,25 +468,60 @@
     // Entradas de etiquetas (colores y tallas con chips)
     initTagInput("colores");
     initTagInput("tallas");
+    // Editor de variantes (filas)
+    var variantesEditor = initVariantes(p ? (p.variantes || []) : []);
     // Galería de imágenes (1-5)
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
     var galeria = initGaleria(imagenesIniciales);
-    // Configurador de área de impresión (usa la primera imagen de la galería)
+
+    // Imagen base de personalización (subida separada, NO visible en la galería)
+    function subirPersonalizacion(file) {
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "personalizacion" }) });
+          var d = await res.json();
+          if (d.ok && d.url) {
+            $("#imagen_personalizacion").value = d.url;
+            var pv = $("#personalizacion-preview");
+            if (pv) { pv.src = d.url; pv.style.display = ""; }
+            if (editorPA) editorPA.setImagen(d.url);   // el editor de área usa esta imagen
+          } else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
+    }
+    $("#up-personalizacion").addEventListener("change", function () {
+      if (this.files[0]) subirPersonalizacion(this.files[0]);
+    });
+
+    // Configurador de área de impresión: usa la imagen de personalización si existe, si no la primera de la galería
     var editorPA = null;
+    var imgBasePA = (p && p.imagen_personalizacion) || imagenesIniciales[0] || "";
     if (window.PrintAreaEditor) {
       editorPA = window.PrintAreaEditor({
         container: $("#print-area-container"),
-        imagen: imagenesIniciales[0] || "",
+        imagen: imgBasePA,
         valor: p ? (p.print_area || null) : null,
       });
     }
-    // Al subir la primera imagen de la galería, se actualiza el editor de área
+    // Al subir la primera imagen de la galería (si no hay imagen de personalización), se actualiza el editor
     $("#galeria").addEventListener("click", function () {
       setTimeout(function () {
+        if ($("#imagen_personalizacion").value) return;
         var urls = galeria.getUrls();
         if (editorPA && urls[0]) editorPA.setImagen(urls[0]);
       }, 1500);
     });
+
+    // Mostrar/ocultar la imagen de personalización según el checkbox
+    var cbPersonalizable = $('input[name="personalizable"]');
+    function togglePersonalizable() {
+      var on = cbPersonalizable.checked;
+      $("#up-personalizacion").closest(".field").style.display = on ? "" : "none";
+    }
+    if (cbPersonalizable) { cbPersonalizable.addEventListener("change", togglePersonalizable); togglePersonalizable(); }
+
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
@@ -455,6 +537,7 @@
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagenes: galeria ? galeria.getUrls() : [],
         imagen: (galeria && galeria.getUrls()[0]) || null,
+        imagen_personalizacion: f.get("imagen_personalizacion") || null,
         personalizable: !!f.get("personalizable"),
         print_area: editorPA ? editorPA.getValor() : null,
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
@@ -471,14 +554,11 @@
         for (var i = 0; i < catsSel.length; i++) {
           await supa("POST", "/rest/v1/_CategoriaToProducto", { A: catsSel[i], B: pid });
         }
-        // variantes (talla | color | stock | precio)
+        // variantes (desde el editor de filas)
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
-        var varRows = String(f.get("variantes") || "").split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean)
-          .map(function (l) { var pp = l.split("|").map(function (x) { return x.trim(); }); return { talla: pp[0] || null, color: pp[1] || null, stock: Number(pp[2]) || 0, precio: pp[3] ? Number(pp[3]) : null }; });
+        var varRows = variantesEditor ? variantesEditor.getValor() : [];
         for (var j = 0; j < varRows.length; j++) {
-          if (varRows[j].talla || varRows[j].color) {
-            await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio });
-          }
+          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio });
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");
         renderProductos();

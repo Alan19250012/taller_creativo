@@ -81,7 +81,8 @@
   }
 
   window.EK_personalizador = function (p) {
-    if (!p || !p.personalizable || !p.print_area || !p.imagen) return;
+    var imgBase = (p && p.imagen_personalizacion) || (p && p.imagen);
+    if (!p || !p.personalizable || !p.print_area || !imgBase) return;
     var pa = p.print_area;
     inyectarEstilos();
 
@@ -125,7 +126,7 @@
     img.onerror = function () {
       sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base.";
     };
-    img.src = p.imagen;
+    img.src = imgBase;
 
     // Renderiza la composición: imagen base + texto dentro del print_area
     function dibujar() {

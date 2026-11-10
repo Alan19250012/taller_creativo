@@ -185,6 +185,7 @@ async function main() {
     pd: p.precioDistribuidor || null,  // precio de distribuidor (solo lo ven los distribuidores)
     imagen: p.imagen || null,
     imagenes: p.imagenes || [],       // 1-5 imágenes
+    imagen_personalizacion: p.imagen_personalizacion || null,
     personalizable: !!p.personalizable,
     print_area: p.print_area || null,  // área de personalización {x,y,width,height} en %
     c: prodCats[p.slug] || [], col: p.colores || [], t: p.tallas || [],
