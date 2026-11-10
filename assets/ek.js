@@ -1472,6 +1472,7 @@
         '<div class="ek-coupon"><input id="ek-cupon" placeholder="Código de descuento" value="' + esc(t.cuponTxt) + '"><button class="ek-btn ek-btn--ghost ek-btn--sm" id="ek-aplica">Aplicar</button></div>' +
         '<div class="ek-summary__tot"><span>Total</span><span class="ek-price">' + money(t.total) + "</span></div>" +
         '<a class="ek-btn ek-btn--wa ek-btn--block ek-btn--lg ek-mt" id="ek-checkout" target="_blank" rel="noopener" href="' + waLink(mensajePedido(t)) + '"><i class="bi bi-whatsapp"></i> Enviar pedido por WhatsApp</a>' +
+        '<button class="ek-btn ek-btn--rojo ek-btn--block ek-mt" id="ek-stripe" type="button"><i class="bi bi-credit-card-2-front"></i> Pagar con tarjeta y recibir factura por correo</button>' +
         '<a class="ek-btn ek-btn--azul ek-btn--block ek-mt" href="contacto.html"><i class="bi bi-chat-dots"></i> Dudas antes de comprar</a>' +
         '<div class="ek-paylist"><span>SPEI</span><span>Mercado Pago</span><span>Clip</span><span>Efectivo</span><span>3, 6 y 9 MSI</span></div>' +
         '<p class="ek-muted" style="font-size:.8rem;margin-top:14px">El pago se realiza fuera del sitio (transferencia o liga de pago segura). ' +
@@ -1498,7 +1499,25 @@
       for (i = 0; i < c.length; i++) if (c[i].k === k) c[i].c = Math.max(1, +inp.value || 1);
       guardar(c); pintar();
     });
+    function pagarConTarjeta() {
+      var t = totales();
+      if (!t.lineas.length) return;
+      var items = t.lineas.map(function (l) {
+        return { nombre: l.p.n, precio: l.p.p, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
+      });
+      var base = location.origin + location.pathname;
+      fetch("/api/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ items: items, success_url: base + "?pago=ok", cancel_url: base + "?pago=cancelado" }),
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.ok && d.url) location.href = d.url;
+        else toast(d.error || "No se pudo iniciar el pago", "bi-x-circle");
+      }).catch(function () { toast("Error de conexión al iniciar el pago", "bi-x-circle"); });
+    }
+
     document.addEventListener("click", function (e) {
+      if (e.target.closest("#ek-stripe")) { pagarConTarjeta(); return; }
       if (e.target.closest("#ek-aplica")) {
         var v = ($("#ek-cupon").value || "").trim().toUpperCase();
         if (!v) { LS.set("cupon", ""); pintar(); return; }
@@ -1509,6 +1528,10 @@
       if (e.target.closest("#ek-vaciar")) { guardar([]); LS.set("cupon", ""); pintar(); toast("Carrito vaciado", "bi-trash3"); }
     });
     pintar();
+    // Retorno desde Stripe
+    var pag = param("pago");
+    if (pag === "ok") { guardar([]); LS.set("cupon", ""); pintar(); toast("✅ Pago recibido. Te enviamos tu factura por correo.", "bi-check-circle-fill"); }
+    else if (pag === "cancelado") { toast("Pago cancelado. Tu carrito sigue guardado.", "bi-x-circle"); }
   }
 
   /* ======================= CONTACTO ======================= */

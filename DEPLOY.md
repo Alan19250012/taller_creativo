@@ -83,8 +83,20 @@ En **Settings → Environment variables → Production** agrega:
 | `SUPABASE_SERVICE_ROLE_KEY` | tu service role key (secreta, solo server) |
 | `JWT_SECRET` | una cadena larga y aleatoria (firma las sesiones del panel) |
 | `DEPLOY_HOOK_URL` | el Deploy Hook (paso 3.4) |
+| `STRIPE_SECRET_KEY` | clave secreta de Stripe (`sk_...`) |
+| `STRIPE_WEBHOOK_SECRET` | secreto del webhook de Stripe (`whsec_...`) |
+| `RESEND_API_KEY` | API key de Resend (`re_...`) |
+| `EMAIL_FROM` | remitente, ej. `Taller Creativo EK <pedidos@tallercreativoek.com>` |
 
-Marca `SUPABASE_SERVICE_ROLE_KEY` y `JWT_SECRET` como **secret** si Cloudflare lo permite.
+Marca `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` y `RESEND_API_KEY` como **secret** si Cloudflare lo permite.
+
+### 3.5 Configura el webhook de Stripe (para pago con tarjeta + factura)
+1. En [Stripe Dashboard](https://dashboard.stripe.com) → **Developers → Webhooks → Add endpoint**.
+2. URL: `https://tu-proyecto.pages.dev/api/webhook`.
+3. Eventos: marca **`checkout.session.completed`**.
+4. Copia el **Signing secret** (`whsec_...`) en la variable `STRIPE_WEBHOOK_SECRET`.
+
+El flujo es: cliente pulsa **"Pagar con tarjeta"** en el carrito → se crea una sesión de Stripe Checkout → paga → Stripe llama a `/api/webhook` → se crea el pedido y se envía la **factura por correo** (Resend). El pago de prueba usa la tarjeta `4242 4242 4242 4242`.
 
 ### 3.4 Crea el Deploy Hook (para el botón "Publicar cambios")
 1. En el proyecto Pages → **Settings → Builds & deployments → Deploy hooks → Add deploy hook**.
