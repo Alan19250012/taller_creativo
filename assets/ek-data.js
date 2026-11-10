@@ -358,7 +358,8 @@ window.EK_DATA =
     "Impresión UV",
     "Precio por pieza"
    ],
-   "kw": "christmas,ornament,wooden"
+   "kw": "christmas,ornament,wooden",
+   "variantes": []
   },
   {
    "n": "Alcancía MDF Personalizada",
@@ -393,7 +394,8 @@ window.EK_DATA =
     "Pintura no tóxica",
     "3 tamaños"
    ],
-   "kw": "piggy,bank,kids,wood"
+   "kw": "piggy,bank,kids,wood",
+   "variantes": []
   },
   {
    "n": "Árbolito Navideño de MDF",
@@ -427,7 +429,8 @@ window.EK_DATA =
     "Se arma en segundos",
     "Pintura acrílica sellada"
    ],
-   "kw": "christmas,tree,wood"
+   "kw": "christmas,tree,wood",
+   "variantes": []
   },
   {
    "n": "Arreglo Floral Día de Muertos",
@@ -460,7 +463,8 @@ window.EK_DATA =
     "Base decorada",
     "Hecho a mano"
    ],
-   "kw": "marigold,dayofthedead,flowers"
+   "kw": "marigold,dayofthedead,flowers",
+   "variantes": []
   },
   {
    "n": "Arreglo Floral Navideño 25x20",
@@ -493,7 +497,8 @@ window.EK_DATA =
     "Hecho a mano",
     "Ideal para negocio"
    ],
-   "kw": "christmas,flowers,arrangement"
+   "kw": "christmas,flowers,arrangement",
+   "variantes": []
   },
   {
    "n": "Arreglo Floral Primavera 25x20",
@@ -528,7 +533,8 @@ window.EK_DATA =
     "Hecho a mano",
     "5 colores disponibles"
    ],
-   "kw": "spring,flowers,bouquet"
+   "kw": "spring,flowers,bouquet",
+   "variantes": []
   },
   {
    "n": "Arreglo Floral San Valentín 25x20",
@@ -561,7 +567,8 @@ window.EK_DATA =
     "Hecho a mano",
     "Entrega el mismo día en CDMX"
    ],
-   "kw": "roses,valentine,flowers"
+   "kw": "roses,valentine,flowers",
+   "variantes": []
   },
   {
    "n": "Banderín Año Nuevo DTF UV",
@@ -594,7 +601,8 @@ window.EK_DATA =
     "Cordón incluido",
     "Fácil de colgar"
    ],
-   "kw": "bunting,newyear,party"
+   "kw": "bunting,newyear,party",
+   "variantes": []
   },
   {
    "n": "Birrete Decorativo MDF",
@@ -627,7 +635,8 @@ window.EK_DATA =
     "Personaliza el año",
     "Base opcional"
    ],
-   "kw": "graduation,cap,mortarboard"
+   "kw": "graduation,cap,mortarboard",
+   "variantes": []
   },
   {
    "n": "Body Bebé Navideño",
@@ -661,7 +670,8 @@ window.EK_DATA =
     "Nombre incluido",
     "Regalo perfecto"
    ],
-   "kw": "baby,bodysuit,christmas"
+   "kw": "baby,bodysuit,christmas",
+   "variantes": []
   },
   {
    "n": "Bota Navideña DTF UV Personalizada",
@@ -695,7 +705,8 @@ window.EK_DATA =
     "Tela resistente",
     "Lista para colgar"
    ],
-   "kw": "christmas,stocking,personalized"
+   "kw": "christmas,stocking,personalized",
+   "variantes": []
   },
   {
    "n": "Botella Personalizada DTF UV + Llavero Gratis",
@@ -731,7 +742,8 @@ window.EK_DATA =
     "Acabado duradero",
     "Ideal para eventos"
    ],
-   "kw": "bottle,custom,drink"
+   "kw": "bottle,custom,drink",
+   "variantes": []
   },
   {
    "n": "Botita Navideña para Dulces",
@@ -764,7 +776,8 @@ window.EK_DATA =
     "Personalizable con nombre",
     "Precio por pieza"
    ],
-   "kw": "christmas,stocking,candy"
+   "kw": "christmas,stocking,candy",
+   "variantes": []
   },
   {
    "n": "Caja Corazón MDF",
@@ -799,7 +812,8 @@ window.EK_DATA =
     "Interior forrado",
     "4 tamaños"
    ],
-   "kw": "heart,box,valentine"
+   "kw": "heart,box,valentine",
+   "variantes": []
   },
   {
    "n": "Calabaza Halloween MDF",
@@ -832,7 +846,8 @@ window.EK_DATA =
     "Reutilizable",
     "Varios tamaños"
    ],
-   "kw": "halloween,pumpkin,decor"
+   "kw": "halloween,pumpkin,decor",
+   "variantes": []
   },
   {
    "n": "Calaverita MDF Día de Muertos",
@@ -866,7 +881,8 @@ window.EK_DATA =
     "Base opcional",
     "Varios estilos"
    ],
-   "kw": "dayofthedead,skull,muertos"
+   "kw": "dayofthedead,skull,muertos",
+   "variantes": []
   },
   {
    "n": "Camino de Mesa Navideño DTF UV",
@@ -899,7 +915,8 @@ window.EK_DATA =
     "Lavable en máquina",
     "Diseño exclusivo"
    ],
-   "kw": "table,runner,christmas"
+   "kw": "table,runner,christmas",
+   "variantes": []
   },
   {
    "n": "Catrina Decorativa 30 cm",
@@ -933,7 +950,8 @@ window.EK_DATA =
     "Base incluida",
     "Pieza de colección"
    ],
-   "kw": "catrina,dayofthedead,mexico"
+   "kw": "catrina,dayofthedead,mexico",
+   "variantes": []
   },
   {
    "n": "Charola Decorativa MDF",
@@ -967,7 +985,8 @@ window.EK_DATA =
     "Diseño impreso en UV",
     "Fácil de limpiar"
    ],
-   "kw": "serving,tray,decorative"
+   "kw": "serving,tray,decorative",
+   "variantes": []
   },
   {
    "n": "Charola Portapapeles MDF",
@@ -1001,7 +1020,8 @@ window.EK_DATA =
     "Sellado protector",
     "Varios tamaños"
    ],
-   "kw": "tray,wood,clipboard"
+   "kw": "tray,wood,clipboard",
+   "variantes": []
   },
   {
    "n": "Cilindro 1 L Personalizado",
@@ -1034,7 +1054,8 @@ window.EK_DATA =
     "Mayoreo para eventos",
     "Entrega programada"
    ],
-   "kw": "glass,bottle,wedding"
+   "kw": "glass,bottle,wedding",
+   "variantes": []
   },
   {
    "n": "Cilindros para Boda con Iniciales",
@@ -1067,7 +1088,8 @@ window.EK_DATA =
     "Recuerdo perfecto para invitados",
     "Mayoreo para eventos"
    ],
-   "kw": "wedding,bottle,favors"
+   "kw": "wedding,bottle,favors",
+   "variantes": []
   },
   {
    "n": "Copa Decorada DTF UV Año Nuevo",
@@ -1100,7 +1122,8 @@ window.EK_DATA =
     "Personaliza el nombre",
     "Precio por pieza"
    ],
-   "kw": "champagne,glass,newyear"
+   "kw": "champagne,glass,newyear",
+   "variantes": []
   },
   {
    "n": "Corona Mis 12 Deseos Año Nuevo",
@@ -1133,7 +1156,8 @@ window.EK_DATA =
     "Pluma incluida",
     "Centro de mesa perfecto"
    ],
-   "kw": "newyear,crown,decoration"
+   "kw": "newyear,crown,decoration",
+   "variantes": []
   },
   {
    "n": "Corona Navideña MDF",
@@ -1166,7 +1190,8 @@ window.EK_DATA =
     "Moño incluido",
     "Personalizable"
    ],
-   "kw": "christmas,wreath,door"
+   "kw": "christmas,wreath,door",
+   "variantes": []
   },
   {
    "n": "Corona XV Años Decorada",
@@ -1199,7 +1224,8 @@ window.EK_DATA =
     "Peine incluido",
     "Se ajusta a la cabeza"
    ],
-   "kw": "tiara,crown,quinceanera"
+   "kw": "tiara,crown,quinceanera",
+   "variantes": []
   },
   {
    "n": "Cuadro de Luz LED",
@@ -1232,7 +1258,8 @@ window.EK_DATA =
     "Para colgar o base",
     "Enchufe USB"
    ],
-   "kw": "led,light,frame"
+   "kw": "led,light,frame",
+   "variantes": []
   },
   {
    "n": "Esferas Navideñas M1 a M4",
@@ -1268,7 +1295,8 @@ window.EK_DATA =
     "Impresión UV o vinil",
     "Listón incluido"
    ],
-   "kw": "christmas,bauble,ornament"
+   "kw": "christmas,bauble,ornament",
+   "variantes": []
   },
   {
    "n": "Esferas Navideñas Set 12 Piezas",
@@ -1301,7 +1329,8 @@ window.EK_DATA =
     "Empaque de regalo",
     "Personalizables con nombres"
    ],
-   "kw": "christmas,ornaments,set"
+   "kw": "christmas,ornaments,set",
+   "variantes": []
   },
   {
    "n": "Etiquetas Adhesivas Personalizadas",
@@ -1336,7 +1365,8 @@ window.EK_DATA =
     "Ideal emprendedores",
     "Precio de mayoreo"
    ],
-   "kw": "stickers,labels,branding"
+   "kw": "stickers,labels,branding",
+   "variantes": []
   },
   {
    "n": "Familia de Venados MDF",
@@ -1371,7 +1401,8 @@ window.EK_DATA =
     "Pintura base incluida",
     "Resistente a interiores"
    ],
-   "kw": "reindeer,christmas,deer"
+   "kw": "reindeer,christmas,deer",
+   "variantes": []
   },
   {
    "n": "Funda para Celular Personalizada",
@@ -1407,7 +1438,8 @@ window.EK_DATA =
     "No se despinta",
     "Protege tu equipo"
    ],
-   "kw": "phone,case,custom"
+   "kw": "phone,case,custom",
+   "variantes": []
   },
   {
    "n": "Globo Burbuja con Mensaje",
@@ -1441,7 +1473,8 @@ window.EK_DATA =
     "Se entrega inflado",
     "Ideal para sorpresa"
    ],
-   "kw": "balloon,gift,valentine"
+   "kw": "balloon,gift,valentine",
+   "variantes": []
   },
   {
    "n": "Gnomos Enamorados 10 cm",
@@ -1475,7 +1508,8 @@ window.EK_DATA =
     "Tres tamaños",
     "Hechos a mano"
    ],
-   "kw": "gnome,valentine,love"
+   "kw": "gnome,valentine,love",
+   "variantes": []
   },
   {
    "n": "Gnomos Navideños 10 cm",
@@ -1509,7 +1543,8 @@ window.EK_DATA =
     "Tres tamaños",
     "Combinables en set"
    ],
-   "kw": "gnome,christmas,nordic"
+   "kw": "gnome,christmas,nordic",
+   "variantes": []
   },
   {
    "n": "Guirnalda de Estrellas MDF",
@@ -1542,7 +1577,8 @@ window.EK_DATA =
     "Cordón incluido",
     "Pintura mate"
    ],
-   "kw": "garland,stars,christmas"
+   "kw": "garland,stars,christmas",
+   "variantes": []
   },
   {
    "n": "Guirnalda Papel Picado MDF",
@@ -1575,7 +1611,8 @@ window.EK_DATA =
     "Cordón incluido",
     "Diseño tradicional"
    ],
-   "kw": "papel,picado,bunting"
+   "kw": "papel,picado,bunting",
+   "variantes": []
   },
   {
    "n": "Invitaciones DTF UV",
@@ -1610,7 +1647,8 @@ window.EK_DATA =
     "Diseño incluido",
     "Entrega rápida"
    ],
-   "kw": "invitation,card,wedding"
+   "kw": "invitation,card,wedding",
+   "variantes": []
   },
   {
    "n": "Kit Brindis 6 Copas + Porta Uvas",
@@ -1643,7 +1681,8 @@ window.EK_DATA =
     "Ahorro vs. suelto",
     "Empaque de regalo"
    ],
-   "kw": "newyear,party,glassware"
+   "kw": "newyear,party,glassware",
+   "variantes": []
   },
   {
    "n": "Lámpara LED 3D Acrílico",
@@ -1675,7 +1714,8 @@ window.EK_DATA =
     "Control táctil",
     "Regalo estrella"
    ],
-   "kw": "3d,lamp,acrylic"
+   "kw": "3d,lamp,acrylic",
+   "variantes": []
   },
   {
    "n": "Lámpara LED Base de Madera",
@@ -1709,7 +1749,8 @@ window.EK_DATA =
     "Luz cálida",
     "Hecho a mano"
    ],
-   "kw": "wood,lamp,led"
+   "kw": "wood,lamp,led",
+   "variantes": []
   },
   {
    "n": "Lámpara LED Personalizada",
@@ -1744,7 +1785,8 @@ window.EK_DATA =
     "Base de madera",
     "Cable USB incluido"
    ],
-   "kw": "led,lamp,night"
+   "kw": "led,lamp,night",
+   "variantes": []
   },
   {
    "n": "Letrero de Bienvenida con Santa 40x35",
@@ -1778,7 +1820,8 @@ window.EK_DATA =
     "Cuerda para colgar incluida",
     "Acabado resistente a interiores"
    ],
-   "kw": "santa,christmas,sign"
+   "kw": "santa,christmas,sign",
+   "variantes": []
   },
   {
    "n": "Letrero Felicidades Graduado",
@@ -1812,7 +1855,8 @@ window.EK_DATA =
     "Corte láser",
     "Reutilizable"
    ],
-   "kw": "graduation,sign,congrats"
+   "kw": "graduation,sign,congrats",
+   "variantes": []
   },
   {
    "n": "Letrero Feliz Año Nuevo MDF 30x20",
@@ -1845,7 +1889,8 @@ window.EK_DATA =
     "Base incluida",
     "3 tamaños"
    ],
-   "kw": "newyear,sign,party"
+   "kw": "newyear,sign,party",
+   "variantes": []
   },
   {
    "n": "Letrero Feliz Día Mamá MDF",
@@ -1880,7 +1925,8 @@ window.EK_DATA =
     "Para base o pared",
     "Regalo emotivo"
    ],
-   "kw": "mothersday,sign,love"
+   "kw": "mothersday,sign,love",
+   "variantes": []
   },
   {
    "n": "Letrero Mr & Mrs MDF",
@@ -1914,7 +1960,8 @@ window.EK_DATA =
     "Reutilizable",
     "3 tamaños"
    ],
-   "kw": "wedding,mr,mrs,sign"
+   "kw": "wedding,mr,mrs,sign",
+   "variantes": []
   },
   {
    "n": "Letrero Te Amo MDF",
@@ -1949,7 +1996,8 @@ window.EK_DATA =
     "Para base o pared",
     "Personalizable"
    ],
-   "kw": "love,sign,wood"
+   "kw": "love,sign,wood",
+   "variantes": []
   },
   {
    "n": "Libro de Firmas MDF",
@@ -1982,7 +2030,8 @@ window.EK_DATA =
     "Nombres incluidos",
     "Recuerdo duradero"
    ],
-   "kw": "guestbook,wedding,book"
+   "kw": "guestbook,wedding,book",
+   "variantes": []
   },
   {
    "n": "Llavero Acrílico Personalizado",
@@ -2015,7 +2064,8 @@ window.EK_DATA =
     "Impresión UV",
     "Económico"
    ],
-   "kw": "acrylic,keychain,clear"
+   "kw": "acrylic,keychain,clear",
+   "variantes": []
   },
   {
    "n": "Llavero DTF UV Doble Cara",
@@ -2049,7 +2099,8 @@ window.EK_DATA =
     "Súper ligero",
     "Precio de mayoreo"
    ],
-   "kw": "keychain,double,print"
+   "kw": "keychain,double,print",
+   "variantes": []
   },
   {
    "n": "Llavero MDF Personalizado",
@@ -2086,7 +2137,8 @@ window.EK_DATA =
     "Precio por pieza",
     "Listo en 24 h"
    ],
-   "kw": "keychain,wood,custom"
+   "kw": "keychain,wood,custom",
+   "variantes": []
   },
   {
    "n": "Llavero Papá MDF Grabado",
@@ -2121,7 +2173,8 @@ window.EK_DATA =
     "Precio por pieza",
     "Listo en 24 h"
    ],
-   "kw": "keychain,dad,wood"
+   "kw": "keychain,dad,wood",
+   "variantes": []
   },
   {
    "n": "Llavero Pareja MDF",
@@ -2156,7 +2209,8 @@ window.EK_DATA =
     "Grabado láser",
     "Precio por par"
    ],
-   "kw": "keychain,couple,love"
+   "kw": "keychain,couple,love",
+   "variantes": []
   },
   {
    "n": "Maquila DTF UV Hoja A4",
@@ -2186,7 +2240,8 @@ window.EK_DATA =
     "Para tazas, telas y más",
     "Precio por hoja"
    ],
-   "kw": "dtf,transfer,printing"
+   "kw": "dtf,transfer,printing",
+   "variantes": []
   },
   {
    "n": "Maquila DTF UV Planilla 38x100 cm",
@@ -2216,7 +2271,8 @@ window.EK_DATA =
     "Ideal mayoreo",
     "Atención personalizada"
    ],
-   "kw": "printing,uv,workshop"
+   "kw": "printing,uv,workshop",
+   "variantes": []
   },
   {
    "n": "Marco de Foto Graduación MDF",
@@ -2249,7 +2305,8 @@ window.EK_DATA =
     "Acrílico protector",
     "Regalo ideal"
    ],
-   "kw": "photo,frame,graduation"
+   "kw": "photo,frame,graduation",
+   "variantes": []
   },
   {
    "n": "Nacimiento Impresión UV 22x22",
@@ -2284,7 +2341,8 @@ window.EK_DATA =
     "4 tamaños disponibles",
     "Listo para regalar"
    ],
-   "kw": "nativity,christmas,manger"
+   "kw": "nativity,christmas,manger",
+   "variantes": []
   },
   {
    "n": "Números de Mesa MDF",
@@ -2318,7 +2376,8 @@ window.EK_DATA =
     "Acabado mate o brillante",
     "Sets a tu medida"
    ],
-   "kw": "table,numbers,wedding"
+   "kw": "table,numbers,wedding",
+   "variantes": []
   },
   {
    "n": "Organizador de Escritorio MDF",
@@ -2351,7 +2410,8 @@ window.EK_DATA =
     "Grabado opcional",
     "Resistente"
    ],
-   "kw": "desk,organizer,wood"
+   "kw": "desk,organizer,wood",
+   "variantes": []
   },
   {
    "n": "Oso de Graduación 40 cm",
@@ -2384,7 +2444,8 @@ window.EK_DATA =
     "Nombre bordado opcional",
     "Lavable a mano"
    ],
-   "kw": "graduation,teddy,bear"
+   "kw": "graduation,teddy,bear",
+   "variantes": []
   },
   {
    "n": "Oso de Graduación Gigante 50 cm",
@@ -2417,7 +2478,8 @@ window.EK_DATA =
     "Birrete a juego",
     "Envío protegido"
    ],
-   "kw": "big,teddy,bear,graduation"
+   "kw": "big,teddy,bear,graduation",
+   "variantes": []
   },
   {
    "n": "Oso de Graduación para Firmar 30 cm",
@@ -2451,7 +2513,8 @@ window.EK_DATA =
     "Birrete y toga",
     "Recuerdo inolvidable"
    ],
-   "kw": "graduation,bear,teddy"
+   "kw": "graduation,bear,teddy",
+   "variantes": []
   },
   {
    "n": "Paquete Amor y Amistad 1",
@@ -2484,7 +2547,8 @@ window.EK_DATA =
     "Listo para regalar",
     "Personalizable con nombre"
    ],
-   "kw": "valentine,gift,box"
+   "kw": "valentine,gift,box",
+   "variantes": []
   },
   {
    "n": "Paquete Amor y Amistad 2",
@@ -2517,7 +2581,8 @@ window.EK_DATA =
     "Moño premium",
     "Tarjeta personalizada"
    ],
-   "kw": "valentine,gift,heart"
+   "kw": "valentine,gift,heart",
+   "variantes": []
   },
   {
    "n": "Paquete Amor y Amistad 3",
@@ -2550,7 +2615,8 @@ window.EK_DATA =
     "Tapa decorada",
     "Sorprende a esa persona"
    ],
-   "kw": "valentine,gift,romantic"
+   "kw": "valentine,gift,romantic",
+   "variantes": []
   },
   {
    "n": "Pin Personalizado Graduación",
@@ -2585,7 +2651,8 @@ window.EK_DATA =
     "Cierre seguro",
     "Mayoreo disponible"
    ],
-   "kw": "pin,badge,graduation"
+   "kw": "pin,badge,graduation",
+   "variantes": []
   },
   {
    "n": "Pines Personalizados",
@@ -2620,7 +2687,8 @@ window.EK_DATA =
     "Diseño a todo color",
     "Mayoreo disponible"
    ],
-   "kw": "pin,badge,button"
+   "kw": "pin,badge,button",
+   "variantes": []
   },
   {
    "n": "Placa de Reconocimiento UV",
@@ -2653,7 +2721,8 @@ window.EK_DATA =
     "Texto personalizado",
     "Ideal para empresas"
    ],
-   "kw": "award,plaque,trophy"
+   "kw": "award,plaque,trophy",
+   "variantes": []
   },
   {
    "n": "Playera Copo de Nieve",
@@ -2688,7 +2757,8 @@ window.EK_DATA =
     "Corte unisex",
     "Lavable en máquina"
    ],
-   "kw": "snowflake,tshirt,winter"
+   "kw": "snowflake,tshirt,winter",
+   "variantes": []
   },
   {
    "n": "Playera Merry Grinch más",
@@ -2723,7 +2793,8 @@ window.EK_DATA =
     "Corte unisex",
     "Tallas CH a 2XG"
    ],
-   "kw": "grinch,christmas,tshirt"
+   "kw": "grinch,christmas,tshirt",
+   "variantes": []
   },
   {
    "n": "Playera Navideña Familia Pack 4",
@@ -2757,7 +2828,8 @@ window.EK_DATA =
     "Diseños combinados",
     "Ideal para la foto familiar"
    ],
-   "kw": "family,christmas,tshirts"
+   "kw": "family,christmas,tshirts",
+   "variantes": []
   },
   {
    "n": "Playera Navideña Grinch Merry Christmas",
@@ -2793,7 +2865,8 @@ window.EK_DATA =
     "5 tallas",
     "Diseño de temporada"
    ],
-   "kw": "christmas,tshirt,grinch"
+   "kw": "christmas,tshirt,grinch",
+   "variantes": []
   },
   {
    "n": "Porta Uvas de MDF Personalizado DTF UV",
@@ -2828,7 +2901,8 @@ window.EK_DATA =
     "12 o 24 espacios",
     "Haz de tu mesa un momento inolvidable"
    ],
-   "kw": "grapes,newyear,wood"
+   "kw": "grapes,newyear,wood",
+   "variantes": []
   },
   {
    "n": "Portallaves de Pared MDF",
@@ -2863,7 +2937,8 @@ window.EK_DATA =
     "Fácil instalación",
     "Regalo útil"
    ],
-   "kw": "key,holder,wall"
+   "kw": "key,holder,wall",
+   "variantes": []
   },
   {
    "n": "Portarretrato MDF Personalizado",
@@ -2897,7 +2972,8 @@ window.EK_DATA =
     "Acrílico protector",
     "3 medidas"
    ],
-   "kw": "photo,frame,wood"
+   "kw": "photo,frame,wood",
+   "variantes": []
   },
   {
    "n": "Rampa Navideña MDF",
@@ -2931,7 +3007,8 @@ window.EK_DATA =
     "Varios niveles",
     "Pintura horneada"
    ],
-   "kw": "christmas,wood,stairs"
+   "kw": "christmas,wood,stairs",
+   "variantes": []
   },
   {
    "n": "Recuerdo de Boda MDF Personalizado",
@@ -2964,7 +3041,8 @@ window.EK_DATA =
     "Entrega programada",
     "Empaque individual"
    ],
-   "kw": "wedding,favor,wood"
+   "kw": "wedding,favor,wood",
+   "variantes": []
   },
   {
    "n": "Reloj MDF Personalizado",
@@ -3000,7 +3078,8 @@ window.EK_DATA =
     "Pila incluida",
     "4 tamaños"
    ],
-   "kw": "clock,wood,wall"
+   "kw": "clock,wood,wall",
+   "variantes": []
   },
   {
    "n": "Santa Claus MDF 30 cm",
@@ -3034,7 +3113,8 @@ window.EK_DATA =
     "Base incluida",
     "4 tamaños"
    ],
-   "kw": "santa,claus,christmas"
+   "kw": "santa,claus,christmas",
+   "variantes": []
   },
   {
    "n": "Set 12 Porta Uvas Mini MDF",
@@ -3067,7 +3147,8 @@ window.EK_DATA =
     "Personalizables",
     "Listos para la mesa"
    ],
-   "kw": "newyear,table,grapes"
+   "kw": "newyear,table,grapes",
+   "variantes": []
   },
   {
    "n": "Set 2 Tazas Pareja Personalizadas",
@@ -3102,7 +3183,8 @@ window.EK_DATA =
     "Nombres incluidos",
     "Empaque de regalo"
    ],
-   "kw": "mug,couple,gift"
+   "kw": "mug,couple,gift",
+   "variantes": []
   },
   {
    "n": "Set 20 Osos Firmables + 20 Pines",
@@ -3135,7 +3217,8 @@ window.EK_DATA =
     "Precio de mayoreo",
     "Entrega programada"
    ],
-   "kw": "graduation,party,bears"
+   "kw": "graduation,party,bears",
+   "variantes": []
   },
   {
    "n": "Set 4 Cuadros Navideños UV",
@@ -3168,7 +3251,8 @@ window.EK_DATA =
     "Cinta doble cara incluida",
     "Diseños a juego"
    ],
-   "kw": "christmas,wall,art"
+   "kw": "christmas,wall,art",
+   "variantes": []
   },
   {
    "n": "Set Bloques Didácticos MDF",
@@ -3200,7 +3284,8 @@ window.EK_DATA =
     "Letras y números",
     "Empaque de regalo"
    ],
-   "kw": "blocks,toys,kids,wooden"
+   "kw": "blocks,toys,kids,wooden",
+   "variantes": []
   },
   {
    "n": "Set Ofrenda MDF",
@@ -3233,7 +3318,8 @@ window.EK_DATA =
     "Papel picado incluido",
     "Set armado"
    ],
-   "kw": "altar,dayofthedead,offering"
+   "kw": "altar,dayofthedead,offering",
+   "variantes": []
   },
   {
    "n": "Sudadera Navideña Personalizada",
@@ -3269,7 +3355,8 @@ window.EK_DATA =
     "Personaliza tu nombre",
     "Unisex"
    ],
-   "kw": "hoodie,christmas,sweater"
+   "kw": "hoodie,christmas,sweater",
+   "variantes": []
   },
   {
    "n": "Taza Cerámica 11 oz Personalizada",
@@ -3305,7 +3392,8 @@ window.EK_DATA =
     "4 tamaños",
     "Precio por pieza"
    ],
-   "kw": "mug,ceramic,custom"
+   "kw": "mug,ceramic,custom",
+   "variantes": []
   },
   {
    "n": "Taza de Color Interior Personalizada",
@@ -3339,7 +3427,8 @@ window.EK_DATA =
     "5 colores",
     "Ideal para regalo"
    ],
-   "kw": "colorful,mug,cup"
+   "kw": "colorful,mug,cup",
+   "variantes": []
   },
   {
    "n": "Taza Día de las Madres Personalizada",
@@ -3373,7 +3462,8 @@ window.EK_DATA =
     "Caja de regalo",
     "Entrega rápida"
    ],
-   "kw": "mothersday,mug,gift"
+   "kw": "mothersday,mug,gift",
+   "variantes": []
   },
   {
    "n": "Taza Día del Padre Personalizada",
@@ -3407,7 +3497,8 @@ window.EK_DATA =
     "Caja de regalo",
     "Ideal para papá"
    ],
-   "kw": "fathersday,mug,gift"
+   "kw": "fathersday,mug,gift",
+   "variantes": []
   },
   {
    "n": "Taza Mágica Cambia Color",
@@ -3439,7 +3530,8 @@ window.EK_DATA =
     "Ideal para regalo",
     "Caja incluida"
    ],
-   "kw": "magic,mug,color"
+   "kw": "magic,mug,color",
+   "variantes": []
   },
   {
    "n": "Termo 20 oz Personalizado",
@@ -3474,7 +3566,8 @@ window.EK_DATA =
     "Grabado o impresión UV",
     "3 tamaños"
    ],
-   "kw": "tumbler,steel,thermos"
+   "kw": "tumbler,steel,thermos",
+   "variantes": []
   },
   {
    "n": "Termo 30 oz Personalizado",
@@ -3508,7 +3601,8 @@ window.EK_DATA =
     "Popote incluido",
     "Personalizado"
    ],
-   "kw": "tumbler,large,bottle"
+   "kw": "tumbler,large,bottle",
+   "variantes": []
   },
   {
    "n": "Topper para Pastel de Boda",
@@ -3541,7 +3635,8 @@ window.EK_DATA =
     "Palillo reforzado",
     "Varios estilos"
    ],
-   "kw": "cake,topper,wedding"
+   "kw": "cake,topper,wedding",
+   "variantes": []
   },
   {
    "n": "Topper para Pastel Navideño",
@@ -3574,7 +3669,8 @@ window.EK_DATA =
     "Reutilizable",
     "Varios diseños"
    ],
-   "kw": "cake,topper,christmas"
+   "kw": "cake,topper,christmas",
+   "variantes": []
   },
   {
    "n": "Transfer DTF UV por Metro Lineal",
@@ -3604,7 +3700,8 @@ window.EK_DATA =
     "Resistente al lavado",
     "Ideal para producción"
    ],
-   "kw": "transfer,textile,print"
+   "kw": "transfer,textile,print",
+   "variantes": []
   },
   {
    "n": "Trineo Decorativo MDF",
@@ -3637,7 +3734,8 @@ window.EK_DATA =
     "Corte y grabado láser",
     "Pintura sellada"
    ],
-   "kw": "sled,christmas,wood"
+   "kw": "sled,christmas,wood",
+   "variantes": []
   },
   {
    "n": "Vaso Cervecero Personalizado",
@@ -3669,7 +3767,8 @@ window.EK_DATA =
     "Ideal para regalo",
     "Se lava a mano"
    ],
-   "kw": "beer,glass,mug"
+   "kw": "beer,glass,mug",
+   "variantes": []
   },
   {
    "n": "Vela LED Navideña Decorada",
@@ -3702,7 +3801,8 @@ window.EK_DATA =
     "Segura con niños",
     "Base decorada"
    ],
-   "kw": "led,candle,christmas"
+   "kw": "led,candle,christmas",
+   "variantes": []
   }
  ],
  "resenas": [
@@ -3813,4 +3913,31 @@ window.EK_DATA =
    "r": "Sí, para escuelas, empresas, bodas y eventos. Escríbenos por WhatsApp con la cantidad y te cotizamos en minutos."
   }
  ]
+};
+
+window.EK_CUPONES = {
+ "EK10": {
+  "tipo": "pct",
+  "val": 10,
+  "min": 0,
+  "txt": "10% de descuento"
+ },
+ "EK200": {
+  "tipo": "monto",
+  "val": 200,
+  "min": 1500,
+  "txt": "$200 de descuento en compras +$1,500"
+ },
+ "ENVIOGRATIS": {
+  "tipo": "envio",
+  "val": 0,
+  "min": 0,
+  "txt": "Envío gratis"
+ },
+ "MAYOREO5": {
+  "tipo": "pct",
+  "val": 5,
+  "min": 2500,
+  "txt": "5% de mayoreo en compras +$2,500"
+ }
 };
