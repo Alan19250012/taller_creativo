@@ -121,6 +121,16 @@
     guardar(c);
     pintarDrawerCarrito();
   }
+  // Agrega un artículo personalizado (con la imagen compuesta) al carrito.
+  // Lo usa assets/ek-personalizador.js al capturar la vista previa.
+  window.EK_agregarPersonalizado = function (slug, imagen) {
+    var p = prod(slug); if (!p || !imagen) return;
+    var c = carrito();
+    c.push({ k: slug + "|personalizado|" + Date.now(), s: slug, t: "Personalizado", col: "—", c: 1, img: imagen });
+    guardar(c);
+    pintarDrawerCarrito();
+    toast("Personalización agregada al carrito", "bi-bag-check-fill");
+  };
 
   /* ======================= COMPONENTES ======================= */
   function estrellas(r, rv) {
@@ -1429,6 +1439,8 @@
     document.body.appendChild(sb);
     $("#ek-add2").onclick = function () { addCart(p.s, talla, color, +$("#ek-cant").value || 1); toast("Agregado al carrito", "bi-bag-check-fill"); };
     revelar();
+    // Personalizador dinámico (si el producto tiene print_area + imagen)
+    if (window.EK_personalizador) window.EK_personalizador(p);
   }
 
   /* ======================= CARRITO Y PAGO ======================= */
@@ -1481,8 +1493,9 @@
         return;
       }
       cont.innerHTML = t.lineas.map(function (l) {
+        var mini = l.x.img ? '<img src="' + l.x.img + '" alt="Personalizado" style="width:88px;height:88px;object-fit:cover;border-radius:8px">' : imgTag(l.p, 0, 300, l.p.n);
         return '<div class="ek-cart__row" data-k="' + esc(l.x.k) + '">' +
-          "<a href=\"articulo.html?id=" + l.p.s + '">' + imgTag(l.p, 0, 300, l.p.n) + "</a>" +
+          "<a href=\"articulo.html?id=" + l.p.s + '">' + mini + "</a>" +
           "<div><div class=\"ek-cart__n\"><a href=\"articulo.html?id=" + l.p.s + '">' + esc(l.p.n) + "</a></div>" +
           '<div class="ek-cart__d">' + esc(l.x.t) + " · " + esc(l.x.col) + " · " + money(l.p.p) + " c/u</div>" +
           '<div class="ek-row" style="gap:10px"><div class="ek-qty"><button data-menos="' + esc(l.x.k) + '">−</button>' +

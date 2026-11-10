@@ -302,6 +302,8 @@
       fld("Imagen principal <span class=hint>(URL, o súbela con el botón)</span>",
         '<input name="imagen" id="imagen" type="text" value="' + esc(p ? (p.imagen || "") : "") + '" placeholder="https://...">' +
         '<input type="file" id="up-imagen" accept="image/*" style="margin-top:8px"><small class="hint" id="up-estado"></small>') +
+      fld("Área de impresión / personalización <span class=hint>(define dónde irá el texto del cliente)</span>",
+        '<div id="print-area-container"><p class="hint" style="margin:0">Sube o pega primero la imagen principal para dibujar el área.</p></div>') +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
@@ -314,6 +316,15 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(p ? "Editar producto" : "Nuevo producto", body);
+    // Configurador de área de impresión
+    var editorPA = null;
+    if (window.PrintAreaEditor) {
+      editorPA = window.PrintAreaEditor({
+        container: $("#print-area-container"),
+        imagen: p ? (p.imagen || "") : "",
+        valor: p ? (p.print_area || null) : null,
+      });
+    }
     // Subida de imagen principal
     var upInput = $("#up-imagen");
     if (upInput) upInput.addEventListener("change", async function () {
@@ -329,6 +340,7 @@
           if (d.ok && d.url) {
             var inp = $("#imagen");
             if (inp) inp.value = d.url;
+            if (editorPA) editorPA.setImagen(d.url);
             if (estado) estado.textContent = "✔ Imagen subida";
           } else {
             if (estado) estado.textContent = "Error: " + (d.error || "desconocido");
@@ -351,6 +363,7 @@
         colores: arrJoin(f.get("colores")), tallas: arrJoin(f.get("tallas")),
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagen: f.get("imagen") || null,
+        print_area: editorPA ? editorPA.getValor() : null,
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
         activo: !!f.get("activo"),
       };
