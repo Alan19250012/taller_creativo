@@ -50,6 +50,7 @@
   }
   function localProd(p, i) { return "img/productos/" + p.s + "-" + (i + 1) + "." + extImg(); }
   function imgURL(p, i, size) {
+    if (p.imagen && i === 0) return p.imagen;   // imagen subida desde el panel (principal)
     if (modo() === "hotlink") return hotProd(p, i, size);
     var a = L.productos && L.productos[p.s];
     if (a && a.indexOf(i + 1) > -1) return localProd(p, i);

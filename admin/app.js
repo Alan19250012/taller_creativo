@@ -299,6 +299,9 @@
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
       fld("Stock y precio por variante <span class=hint>(opcional · una por línea: talla | color | stock | precio)</span>", area("variantes", variantesTxt, 5)) +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
+      fld("Imagen principal <span class=hint>(URL, o súbela con el botón)</span>",
+        '<input name="imagen" id="imagen" type="text" value="' + esc(p ? (p.imagen || "") : "") + '" placeholder="https://...">' +
+        '<input type="file" id="up-imagen" accept="image/*" style="margin-top:8px"><small class="hint" id="up-estado"></small>') +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
@@ -311,6 +314,29 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(p ? "Editar producto" : "Nuevo producto", body);
+    // Subida de imagen principal
+    var upInput = $("#up-imagen");
+    if (upInput) upInput.addEventListener("change", async function () {
+      var file = upInput.files[0];
+      if (!file) return;
+      var estado = $("#up-estado");
+      if (estado) estado.textContent = "Subiendo…";
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "productos" }) });
+          var d = await res.json();
+          if (d.ok && d.url) {
+            var inp = $("#imagen");
+            if (inp) inp.value = d.url;
+            if (estado) estado.textContent = "✔ Imagen subida";
+          } else {
+            if (estado) estado.textContent = "Error: " + (d.error || "desconocido");
+          }
+        } catch (e) { if (estado) estado.textContent = "Error de conexión"; }
+      };
+      lector.readAsDataURL(file);
+    });
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
@@ -324,6 +350,7 @@
         calificacion: Number(f.get("calificacion")) || 0,
         colores: arrJoin(f.get("colores")), tallas: arrJoin(f.get("tallas")),
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
+        imagen: f.get("imagen") || null,
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
         activo: !!f.get("activo"),
       };
