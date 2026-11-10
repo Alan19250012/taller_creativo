@@ -81,7 +81,7 @@
   }
 
   window.EK_personalizador = function (p) {
-    if (!p || !p.print_area || !p.imagen) return;
+    if (!p || !p.personalizable || !p.print_area || !p.imagen) return;
     var pa = p.print_area;
     inyectarEstilos();
 

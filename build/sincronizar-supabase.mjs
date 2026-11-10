@@ -184,6 +184,8 @@ async function main() {
     n: p.nombre, s: p.slug, p: p.precioMinorista, a: p.precioAnterior || 0,
     pd: p.precioDistribuidor || null,  // precio de distribuidor (solo lo ven los distribuidores)
     imagen: p.imagen || null,
+    imagenes: p.imagenes || [],       // 1-5 imágenes
+    personalizable: !!p.personalizable,
     print_area: p.print_area || null,  // área de personalización {x,y,width,height} en %
     c: prodCats[p.slug] || [], col: p.colores || [], t: p.tallas || [],
     st: p.stock, v: p.vendidos, r: p.calificacion, b: badge(p),

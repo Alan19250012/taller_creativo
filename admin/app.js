@@ -164,6 +164,84 @@
       return '<option value="' + esc(o.v) + '"' + (String(o.v) === String(val) ? " selected" : "") + ">" + esc(o.l) + "</option>";
     }).join("") + "</select>";
   }
+  // Entrada de etiquetas (chips): un input + botón "Agregar" en vez de escribir comas.
+  function tagInput(name, valores, placeholder) {
+    var id = "tag-" + name;
+    return '<div class="taginput" data-tag="' + name + '">' +
+      '<input type="hidden" name="' + name + '" id="' + id + '" value="' + esc((valores || []).join(", ")) + '">' +
+      '<div class="taginput__chips" id="' + id + '-chips"></div>' +
+      '<div class="taginput__row"><input type="text" id="' + id + '-inp" placeholder="' + esc(placeholder || "Escribe y presiona Enter") + '">' +
+      '<button type="button" class="btn btn--sm btn--ghost" id="' + id + '-add"><i class="bi bi-plus-lg"></i> Agregar</button></div></div>';
+  }
+  function initTagInput(name) {
+    var id = "tag-" + name;
+    var hidden = $("#" + id), chips = $("#" + id + "-chips"), inp = $("#" + id + "-inp"), add = $("#" + id + "-add");
+    if (!hidden || !chips || !inp) return;
+    var lista = (hidden.value || "").split(",").map(function (s) { return s.trim(); }).filter(Boolean);
+    function pintar() {
+      chips.innerHTML = lista.map(function (v) {
+        return '<span class="tag"><i class="bi bi-tag"></i> ' + esc(v) + ' <button type="button" data-quitar="' + esc(v) + '" aria-label="Quitar">&times;</button></span>';
+      }).join("");
+      hidden.value = lista.join(", ");
+    }
+    function agregar() {
+      var v = inp.value.trim();
+      if (v && lista.indexOf(v) === -1) { lista.push(v); inp.value = ""; pintar(); inp.focus(); }
+    }
+    add.onclick = agregar;
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); agregar(); } });
+    chips.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-quitar]");
+      if (b) { lista = lista.filter(function (x) { return x !== b.getAttribute("data-quitar"); }); pintar(); }
+    });
+    pintar();
+  }
+  // Galería de imágenes (1-5) con subida a Supabase Storage.
+  function initGaleria(urlsIniciales) {
+    var cont = $("#galeria");
+    if (!cont) return { getUrls: function () { return []; } };
+    var lista = (urlsIniciales || []).slice(0, 5);
+    function pintar() {
+      cont.innerHTML = lista.map(function (u, i) {
+        if (!u) return '<div class="gal-item gal-item--vacio" data-i="' + i + '"><i class="bi bi-image"></i></div>' +
+          '<input type="file" accept="image/*" data-file="' + i + '" style="display:none">';
+        return '<div class="gal-item" data-i="' + i + '"><img src="' + esc(u) + '" alt="Imagen ' + (i + 1) + '" onerror="this.style.opacity=.2">' +
+          '<div class="gal-item__ops">' +
+            '<button type="button" class="btn btn--sm" data-subir="' + i + '" title="Subir"><i class="bi bi-upload"></i></button>' +
+            '<button type="button" class="btn btn--sm" data-quitar="' + i + '" title="Quitar" style="color:var(--rojo)"><i class="bi bi-x-lg"></i></button>' +
+          "</div></div>" +
+          '<input type="file" accept="image/*" data-file="' + i + '" style="display:none">';
+      }).join("") +
+      (lista.length < 5 ? '<button type="button" class="btn btn--sm btn--ghost" data-agregar style="grid-column:1/-1"><i class="bi bi-plus-lg"></i> Añadir imagen (' + lista.length + "/5)</button>" : "");
+    }
+    function subir(fileInput, idx) {
+      var file = fileInput.files[0];
+      if (!file) return;
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "productos" }) });
+          var d = await res.json();
+          if (d.ok && d.url) { lista[idx] = d.url; pintar(); }
+          else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
+    }
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push(""); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+      else if (b.hasAttribute("data-subir")) { cont.querySelector('[data-file="' + b.getAttribute("data-subir") + '"]').click(); }
+    });
+    cont.addEventListener("change", function (e) {
+      var f = e.target.closest("[data-file]");
+      if (f) subir(f, +f.getAttribute("data-file"));
+    });
+    pintar();
+    return { getUrls: function () { return lista.filter(Boolean); } };
+  }
   function arrSplit(v) { return (v || []).join(", "); }
   function arrJoin(txt) {
     return String(txt || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
@@ -219,23 +297,44 @@
 
   /* ============================== PRODUCTOS ============================== */
   var productosCache = [];
+  var productosCategorias = [];
+  var productosCats = {};   // productoId → [slug de categorías]
   async function renderProductos() {
     var cont = $("#contenido");
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      productosCache = await supa("GET", "/rest/v1/Producto?select=*&order=nombre.asc");
-      pintarProductos("");
+      var [prods, cats, rel] = await Promise.all([
+        supa("GET", "/rest/v1/Producto?select=*&order=nombre.asc"),
+        supa("GET", "/rest/v1/Categoria?select=id,slug,nombre&order=nombre.asc"),
+        supa("GET", "/rest/v1/_CategoriaToProducto?select=A,B"),
+      ]);
+      productosCache = prods;
+      productosCategorias = cats;
+      var catIdSlug = {};
+      cats.forEach(function (c) { catIdSlug[c.id] = c.slug; });
+      productosCats = {};
+      prods.forEach(function (p) { productosCats[p.id] = []; });
+      rel.forEach(function (r) { var s = catIdSlug[r.A]; if (s && productosCats[r.B]) productosCats[r.B].push(s); });
+      pintarProductos("", "TODAS", "TODOS");
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function pintarProductos(q) {
+  function pintarProductos(q, cat, estado) {
     var cont = $("#contenido");
     var lista = productosCache.filter(function (p) {
-      return !q || (p.nombre + " " + (p.slug || "") + " " + (p.keywords || "")).toLowerCase().indexOf(q.toLowerCase()) > -1;
+      if (q && (p.nombre + " " + (p.slug || "") + " " + (p.keywords || "")).toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+      if (cat && cat !== "TODAS" && (productosCats[p.id] || []).indexOf(cat) === -1) return false;
+      if (estado === "ACTIVOS" && !p.activo) return false;
+      if (estado === "OCULTOS" && p.activo) return false;
+      return true;
     });
     cont.innerHTML =
       '<div class="card">' +
         '<div class="toolbar">' +
           '<input type="search" id="q-prod" placeholder="Buscar producto…" value="' + esc(q) + '">' +
+          '<select id="filtro-cat" style="width:auto"><option value="TODAS">Todas las categorías</option>' +
+            productosCategorias.map(function (c) { return '<option value="' + esc(c.slug) + '">' + esc(c.nombre) + "</option>"; }).join("") +
+          "</select>" +
+          '<select id="filtro-estado" style="width:auto"><option value="TODOS">Todos</option><option value="ACTIVOS">Activos</option><option value="OCULTOS">Ocultos</option></select>' +
           '<button class="btn" id="btn-nuevo-prod"><i class="bi bi-plus-lg"></i> Nuevo producto</button>' +
         "</div>" +
         '<table><thead><tr><th>Producto</th><th>Precio</th><th>Stock</th><th>Estado</th><th></th></tr></thead><tbody>' +
@@ -253,8 +352,11 @@
         (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin resultados</td></tr>') +
         "</tbody></table></div>";
 
-    var buscador = $("#q-prod");
-    if (buscador) buscador.addEventListener("input", function () { pintarProductos(buscador.value); });
+    var buscador = $("#q-prod"), catSel = $("#filtro-cat"), estSel = $("#filtro-estado");
+    function refrescar() { pintarProductos(buscador.value, catSel.value, estSel.value); }
+    if (buscador) buscador.addEventListener("input", refrescar);
+    if (catSel) { catSel.value = cat; catSel.onchange = refrescar; }
+    if (estSel) { estSel.value = estado; estSel.onchange = refrescar; }
     var btnN = $("#btn-nuevo-prod"); if (btnN) btnN.onclick = function () { formProducto(null); };
     $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formProducto(b.getAttribute("data-edit")); }; });
     $$("[data-del]", cont).forEach(function (b) {
@@ -293,17 +395,17 @@
         fld("Calificación (0-5)", input("calificacion", p ? p.calificacion : 0, "number")) +
       "</div>" +
       '<div class="row">' +
-        fld("Colores <span class=hint>(separados por coma)</span>", input("colores", p ? arrSplit(p.colores) : "")) +
-        fld("Tallas / tamaños <span class=hint>(separados por coma)</span>", input("tallas", p ? arrSplit(p.tallas) : "")) +
+        fld("Colores", tagInput("colores", p ? p.colores : [], "Ej. Rojo")) +
+        fld("Tallas / tamaños", tagInput("tallas", p ? p.tallas : [], "Ej. 30 cm")) +
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
       fld("Stock y precio por variante <span class=hint>(opcional · una por línea: talla | color | stock | precio)</span>", area("variantes", variantesTxt, 5)) +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
-      fld("Imagen principal <span class=hint>(URL, o súbela con el botón)</span>",
-        '<input name="imagen" id="imagen" type="text" value="' + esc(p ? (p.imagen || "") : "") + '" placeholder="https://...">' +
-        '<input type="file" id="up-imagen" accept="image/*" style="margin-top:8px"><small class="hint" id="up-estado"></small>') +
-      fld("Área de impresión / personalización <span class=hint>(define dónde irá el texto del cliente)</span>",
-        '<div id="print-area-container"><p class="hint" style="margin:0">Sube o pega primero la imagen principal para dibujar el área.</p></div>') +
+      fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
+        '<div id="galeria"></div>') +
+      '<div class="row"><div class="field"><label></label>' + check("personalizable", p ? p.personalizable : false, "Producto personalizable (mostrar editor de texto al cliente)") + "</div></div>" +
+      fld("Área de impresión / personalización <span class=hint>(define dónde irá el texto del cliente; solo aplica si es personalizable)</span>",
+        '<div id="print-area-container"><p class="hint" style="margin:0">Sube primero una imagen para dibujar el área.</p></div>') +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
@@ -316,38 +418,27 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(p ? "Editar producto" : "Nuevo producto", body);
-    // Configurador de área de impresión
+    // Entradas de etiquetas (colores y tallas con chips)
+    initTagInput("colores");
+    initTagInput("tallas");
+    // Galería de imágenes (1-5)
+    var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
+    var galeria = initGaleria(imagenesIniciales);
+    // Configurador de área de impresión (usa la primera imagen de la galería)
     var editorPA = null;
     if (window.PrintAreaEditor) {
       editorPA = window.PrintAreaEditor({
         container: $("#print-area-container"),
-        imagen: p ? (p.imagen || "") : "",
+        imagen: imagenesIniciales[0] || "",
         valor: p ? (p.print_area || null) : null,
       });
     }
-    // Subida de imagen principal
-    var upInput = $("#up-imagen");
-    if (upInput) upInput.addEventListener("change", async function () {
-      var file = upInput.files[0];
-      if (!file) return;
-      var estado = $("#up-estado");
-      if (estado) estado.textContent = "Subiendo…";
-      var lector = new FileReader();
-      lector.onload = async function () {
-        try {
-          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "productos" }) });
-          var d = await res.json();
-          if (d.ok && d.url) {
-            var inp = $("#imagen");
-            if (inp) inp.value = d.url;
-            if (editorPA) editorPA.setImagen(d.url);
-            if (estado) estado.textContent = "✔ Imagen subida";
-          } else {
-            if (estado) estado.textContent = "Error: " + (d.error || "desconocido");
-          }
-        } catch (e) { if (estado) estado.textContent = "Error de conexión"; }
-      };
-      lector.readAsDataURL(file);
+    // Al subir la primera imagen de la galería, se actualiza el editor de área
+    $("#galeria").addEventListener("click", function () {
+      setTimeout(function () {
+        var urls = galeria.getUrls();
+        if (editorPA && urls[0]) editorPA.setImagen(urls[0]);
+      }, 1500);
     });
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -362,7 +453,9 @@
         calificacion: Number(f.get("calificacion")) || 0,
         colores: arrJoin(f.get("colores")), tallas: arrJoin(f.get("tallas")),
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
-        imagen: f.get("imagen") || null,
+        imagenes: galeria ? galeria.getUrls() : [],
+        imagen: (galeria && galeria.getUrls()[0]) || null,
+        personalizable: !!f.get("personalizable"),
         print_area: editorPA ? editorPA.getValor() : null,
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
         activo: !!f.get("activo"),
@@ -709,15 +802,20 @@
     var cont = $("#contenido");
     try {
       pedidosCache = await supa("GET", "/rest/v1/Pedido?select=*&order=creadoEn.desc");
-      pintarPedidos("TODOS");
+      pintarPedidos("TODOS", "");
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function pintarPedidos(filtro) {
+  function pintarPedidos(filtro, q) {
     var cont = $("#contenido");
-    var lista = filtro === "TODOS" ? pedidosCache : pedidosCache.filter(function (p) { return p.estado === filtro; });
+    var lista = pedidosCache.filter(function (p) {
+      if (filtro !== "TODOS" && p.estado !== filtro) return false;
+      if (q && (p.cliente || "").toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+      return true;
+    });
     cont.innerHTML =
       '<div class="card"><div class="toolbar">' +
-        '<span class="muted">Filtrar por estado:</span>' +
+        '<input type="search" id="q-pedidos" placeholder="Buscar por cliente…" value="' + esc(q) + '">' +
+        '<span class="muted">Estado:</span>' +
         '<select id="filtro-pedidos" style="width:auto">' +
           '<option value="TODOS">Todos</option>' + ESTADOS.map(function (e) { return '<option value="' + e + '">' + e + "</option>"; }).join("") +
         "</select>" +
@@ -730,8 +828,10 @@
           '<td><span class="badge badge--' + cls + '">' + esc(p.estado) + "</span></td>" +
           '<td class="actions"><button class="btn btn--ghost btn--sm" data-ver="' + p.id + '"><i class="bi bi-eye"></i></button></td></tr>';
       }).join("") + (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin pedidos en este estado</td></tr>') + "</tbody></table></div>";
-    var sel = $("#filtro-pedidos");
-    if (sel) { sel.value = filtro; sel.onchange = function () { pintarPedidos(sel.value); }; }
+    var sel = $("#filtro-pedidos"), busq = $("#q-pedidos");
+    function refrescar() { pintarPedidos(sel.value, busq.value); }
+    if (sel) { sel.value = filtro; sel.onchange = refrescar; }
+    if (busq) busq.addEventListener("input", refrescar);
     $$("[data-ver]", cont).forEach(function (b) { b.onclick = function () { verPedido(b.getAttribute("data-ver")); }; });
   }
   async function verPedido(id) {
@@ -774,16 +874,21 @@
     var cont = $("#contenido");
     try {
       clientesCache = await supa("GET", "/rest/v1/Usuario?select=id,nombre,email,rol,telefono,activo&order=creadoEn.desc");
-      pintarClientes("TODOS");
+      pintarClientes("TODOS", "");
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function pintarClientes(filtro) {
+  function pintarClientes(filtro, q) {
     var cont = $("#contenido");
-    var lista = filtro === "TODOS" ? clientesCache : clientesCache.filter(function (u) { return u.rol === filtro; });
+    var lista = clientesCache.filter(function (u) {
+      if (filtro !== "TODOS" && u.rol !== filtro) return false;
+      if (q && (u.nombre + " " + u.email).toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+      return true;
+    });
     cont.innerHTML =
       '<div class="card"><div class="toolbar">' +
         '<button class="btn" id="btn-nuevo-cli"><i class="bi bi-plus-lg"></i> Nuevo cliente</button>' +
-        '<span class="muted">Filtrar por rol:</span>' +
+        '<input type="search" id="q-clientes" placeholder="Buscar por nombre/correo…" value="' + esc(q) + '">' +
+        '<span class="muted">Rol:</span>' +
         '<select id="filtro-clientes" style="width:auto"><option value="TODOS">Todos</option>' + ROLES.map(function (r) { return '<option value="' + r + '">' + r + "</option>"; }).join("") + "</select>" +
       "</div>" +
       '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
@@ -794,8 +899,10 @@
           '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
       }).join("") + "</tbody></table></div>";
     $("#btn-nuevo-cli").onclick = function () { formCliente(null); };
-    var sel = $("#filtro-clientes");
-    if (sel) { sel.value = filtro; sel.onchange = function () { pintarClientes(sel.value); }; }
+    var sel = $("#filtro-clientes"), busq = $("#q-clientes");
+    function refrescar() { pintarClientes(sel.value, busq.value); }
+    if (sel) { sel.value = filtro; sel.onchange = refrescar; }
+    if (busq) busq.addEventListener("input", refrescar);
     $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formCliente(b.getAttribute("data-edit")); }; });
     $$("[data-del]", cont).forEach(function (b) {
       b.onclick = async function () {

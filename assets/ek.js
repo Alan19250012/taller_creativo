@@ -50,7 +50,10 @@
   }
   function localProd(p, i) { return "img/productos/" + p.s + "-" + (i + 1) + "." + extImg(); }
   function imgURL(p, i, size) {
-    if (p.imagen && i === 0) return p.imagen;   // imagen subida desde el panel (principal)
+    if (p.imagenes && p.imagenes.length) {
+      if (p.imagenes[i]) return p.imagenes[i];   // usa la imagen subida (1-5) si existe
+    }
+    if (p.imagen && i === 0) return p.imagen;   // imagen principal subida desde el panel
     if (modo() === "hotlink") return hotProd(p, i, size);
     var a = L.productos && L.productos[p.s];
     if (a && a.indexOf(i + 1) > -1) return localProd(p, i);
@@ -515,6 +518,16 @@
       '<div class="ek-nav__item"><a class="ek-nav__link" href="tienda.html">🛍️ Todo</a></div>' +
       '<div class="ek-nav__item"><a class="ek-nav__link" href="blog.html">📝 Blog</a></div>' +
       '<div class="ek-nav__item"><a class="ek-nav__link" href="contacto.html">📞 Contacto</a></div>';
+
+    // Posiciona el panel de la categoría activa (si la hay) para que NO quede
+    // en la esquina superior izquierda (bug al navegar a una categoría).
+    var itemActivo = $(".ek-nav__item.is-open", cont);
+    if (itemActivo) {
+      var panelActivo = $(".ek-subnav", itemActivo);
+      if (panelActivo) {
+        setTimeout(function () { colocarPanel(itemActivo, panelActivo); }, 0);
+      }
+    }
 
     var prev = $("#ek-nav-prev"), next = $("#ek-nav-next");
     function paso() { return Math.max(180, cont.clientWidth * 0.7); }
@@ -1297,11 +1310,16 @@
       '<div class="ek-gallery__badges">' + insignias(p) + "</div>" +
       '<img id="ek-main-img" src="' + imgURL(p, 0, 900) + '" alt="' + esc(p.n) + '" width="900" height="900" onerror="EK_imgErr(this)">' +
       "</div><div class=\"ek-gallery__thumbs\">" +
-      [0, 1, 2].map(function (i) {
-        return '<button class="ek-thumb' + (i === 0 ? " is-on" : "") + '" data-img="' + i + '">' + imgTag(p, i, 300, p.n + " foto " + (i + 1)) +
-          '<span class="ek-thumb__n">Foto ' + (i + 1) + "</span></button>";
-      }).join("") + "</div>" +
-      '<div class="ek-row" style="gap:8px;margin-top:4px"><i class="bi bi-info-circle ek-muted"></i><small class="ek-muted">Toca la foto para ampliarla. Las 3 imágenes son del producto terminado.</small></div></div>');
+      (function () {
+        var nFotos = (p.imagenes && p.imagenes.length) ? Math.min(5, p.imagenes.length) : 3;
+        var h = "";
+        for (var i = 0; i < nFotos; i++) {
+          h += '<button class="ek-thumb' + (i === 0 ? " is-on" : "") + '" data-img="' + i + '">' + imgTag(p, i, 300, p.n + " foto " + (i + 1)) +
+            '<span class="ek-thumb__n">Foto ' + (i + 1) + "</span></button>";
+        }
+        return h;
+      })() + "</div>" +
+      '<div class="ek-row" style="gap:8px;margin-top:4px"><i class="bi bi-info-circle ek-muted"></i><small class="ek-muted">Toca la foto para ampliarla.</small></div></div>');
 
     enc.push('<div class="ek-buy"><span class="ek-pill ek-pill--rojo">' + (c0 ? c0.e + " " + esc(c0.n) : "Taller Creativo EK") + "</span>" +
       '<h1 class="ek-buy__title">' + esc(p.n) + "</h1>" +
