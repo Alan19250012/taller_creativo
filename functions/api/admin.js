@@ -11,7 +11,7 @@ import { json, cors, verifyJwt, tokenDe } from "../_lib.js";
 
 const TABLAS_PERMITIDAS = new Set([
   "Usuario", "Categoria", "Subcategoria", "Producto", "Resena", "Pedido",
-  "DetallePedido", "Factura", "Articulo", "Banner", "Configuracion", "Auditoria",
+  "DetallePedido", "Factura", "Articulo", "Banner", "Cupon", "Configuracion", "Auditoria",
   "_CategoriaToProducto", "_ProductoToSubcategoria", "_CategoriaToSubcategoria",
 ]);
 

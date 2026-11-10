@@ -92,7 +92,7 @@
     get: function (k, d) { try { var v = localStorage.getItem("ek_" + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
     set: function (k, v) { try { localStorage.setItem("ek_" + k, JSON.stringify(v)); } catch (e) { } }
   };
-  var CUPONES = {
+  var CUPONES = window.EK_CUPONES || {
     EK10: { tipo: "pct", val: 10, txt: "10% de descuento" },
     EK200: { tipo: "monto", val: 200, min: 1500, txt: "$200 de descuento en compras +$1,500" },
     ENVIOGRATIS: { tipo: "envio", txt: "Envío gratis" },

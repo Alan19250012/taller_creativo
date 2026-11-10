@@ -112,7 +112,7 @@ function emitir(ruta, cabecera, cuerpo) {
 async function main() {
   console.log("🔄 Sincronizando Supabase → archivos estáticos...\n");
 
-  const [categorias, subcategorias, productos, banners, articulos, resenas, config, relPC, relPS, relCS] =
+  const [categorias, subcategorias, productos, banners, articulos, resenas, config, cupones, relPC, relPS, relCS] =
     await Promise.all([
       pg("Categoria", "select=*&order=orden.asc"),
       pg("Subcategoria", "select=*&order=orden.asc"),
@@ -121,6 +121,7 @@ async function main() {
       pg("Articulo", "select=*&order=creadoEn.asc"),
       pg("Resena", "select=*&aprobada=eq.true&order=creadoEn.desc"),
       pg("Configuracion", "select=clave,valor"),
+      pg("Cupon", "select=*"),
       pg("_CategoriaToProducto", "select=A,B"),
       pg("_ProductoToSubcategoria", "select=A,B"),
       pg("_CategoriaToSubcategoria", "select=A,B"),
@@ -182,6 +183,12 @@ async function main() {
     p: prodSlug[r.productoId] || "", t: r.comentario,
   }));
 
+  // Cupones activos → { CODIGO: {tipo,val,min,txt} } (lo que espera el checkout)
+  const cuponesJS = {};
+  (cupones || []).forEach((c) => {
+    if (c.activo !== false) cuponesJS[c.codigo] = { tipo: c.tipo, val: c.valor, min: c.minimo, txt: c.texto || "" };
+  });
+
   const confMap = {};
   config.forEach((c) => (confMap[c.clave] = c.valor));
   let faq = [];
@@ -189,7 +196,7 @@ async function main() {
 
   emitir(join(RAIZ, "assets", "ek-data.js"),
     "/* GENERADO por build/sincronizar-supabase.mjs — NO editar a mano */\nwindow.EK_DATA = ",
-    JSON.stringify({ categorias: categoriasJS, banners: bannersJS, productos: productosJS, resenas: resenasJS, faq }, null, 1) + ";");
+    JSON.stringify({ categorias: categoriasJS, banners: bannersJS, productos: productosJS, resenas: resenasJS, faq }, null, 1) + ";\n\nwindow.EK_CUPONES = " + JSON.stringify(cuponesJS, null, 1) + ";");
 
   // ---- ek-config.js ----
   const EK_CONFIG = {};

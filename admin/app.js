@@ -131,6 +131,7 @@
     resenas: { titulo: "Reseñas", render: renderResenas },
     pedidos: { titulo: "Pedidos", render: renderPedidos },
     clientes: { titulo: "Clientes", render: renderClientes },
+    cupones: { titulo: "Cupones", render: renderCupones },
     configuracion: { titulo: "Configuración", render: renderConfiguracion },
   };
 
@@ -175,8 +176,8 @@
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
       var [prods, peds, res, users, cats, arts] = await Promise.all([
-        supa("GET", "/rest/v1/Producto?select=id"),
-        supa("GET", "/rest/v1/Pedido?select=id,estado"),
+        supa("GET", "/rest/v1/Producto?select=id,nombre,vendidos,precioMinorista&order=vendidos.desc"),
+        supa("GET", "/rest/v1/Pedido?select=id,estado,total"),
         supa("GET", "/rest/v1/Resena?select=id,aprobada"),
         supa("GET", "/rest/v1/Usuario?select=id"),
         supa("GET", "/rest/v1/Categoria?select=id"),
@@ -184,18 +185,25 @@
       ]);
       var pend = peds.filter(function (p) { return p.estado === "PENDIENTE"; }).length;
       var resPend = res.filter(function (r) { return !r.aprobada; }).length;
+      var ventas = peds.filter(function (p) { return p.estado !== "CANCELADO"; }).reduce(function (a, p) { return a + (p.total || 0); }, 0);
+      var top = prods.slice(0, 5);
       cont.innerHTML =
         '<div class="grid grid--stats">' +
-          stat(prods.length, "Productos", "bi-box-seam") +
+          stat(money(ventas), "Ventas totales", "bi-cash-stack") +
           stat(peds.length, "Pedidos", "bi-receipt") +
           stat(pend, "Pendientes", "bi-hourglass-split") +
           stat(users.length, "Clientes", "bi-people") +
+          stat(prods.length, "Productos", "bi-box-seam") +
           stat(resPend, "Reseñas por aprobar", "bi-star") +
-          stat(arts.filter(function (a) { return a.publicado; }).length, "Artículos de blog", "bi-journal-text") +
         "</div>" +
+        '<div class="card"><h2>Productos más vendidos</h2><p class="muted">Por piezas vendidas (se actualiza en tiempo real).</p>' +
+          '<table><thead><tr><th>Producto</th><th>Vendidos</th><th>Precio</th></tr></thead><tbody>' +
+          top.map(function (p) { return "<tr><td>" + esc(p.nombre) + "</td><td>" + nf(p.vendidos) + "</td><td>" + money(p.precioMinorista) + "</td></tr>"; }).join("") +
+          (top.length ? "" : '<tr><td colspan="3" class="empty">Sin datos</td></tr>') +
+          "</tbody></table></div>" +
         '<div class="card">' +
           "<h2>Cómo funciona</h2>" +
-          '<p class="muted">Los cambios que guardes aquí se escriben en Supabase. El botón <b>Publicar cambios</b> regenera los archivos estáticos (catálogo, categorías, banners, blog, configuración) y redeploya la tienda en Cloudflare Pages (1-3 min). El stock, las reseñas, la calificación y las ventas se actualizan <b>en tiempo real</b> sin publicar.</p>' +
+          '<p class="muted">Los cambios se escriben en Supabase. <b>Publicar cambios</b> regenera el catálogo/interfaz y redeploya (1-3 min). Stock, reseñas, calificación, ventas y pedidos se actualizan <b>en tiempo real</b>. El tráfico se mide con <b>Cloudflare Web Analytics</b> (Analytics & Logs en tu proyecto Pages), no con Supabase.</p>' +
           '<button class="btn btn--rojo" id="btn-publicar-2"><i class="bi bi-cloud-arrow-up"></i> Publicar cambios ahora</button>' +
         "</div>";
       $("#btn-publicar-2").onclick = function () { $("#btn-publicar").click(); };
@@ -728,6 +736,68 @@
           p_activo: !!f.get("activo"),
         });
         cerrarModal(); toast("Usuario guardado"); renderClientes();
+      } catch (err) { toast(err.message, false); }
+    });
+  }
+
+  /* ============================== CUPONES ============================== */
+  var cuponesCache = [];
+  async function renderCupones() {
+    var cont = $("#contenido");
+    try {
+      cuponesCache = await supa("GET", "/rest/v1/Cupon?select=*&order=codigo.asc");
+      cont.innerHTML =
+        '<div class="card"><div class="toolbar"><button class="btn" id="btn-nuevo-cupon"><i class="bi bi-plus-lg"></i> Nuevo cupón</button></div>' +
+        '<table><thead><tr><th>Código</th><th>Tipo</th><th>Valor</th><th>Mínimo</th><th>Estado</th><th></th></tr></thead><tbody>' +
+        cuponesCache.map(function (c) {
+          var tipoTxt = c.tipo === "pct" ? "Porcentaje" : (c.tipo === "monto" ? "Monto fijo" : "Envío gratis");
+          return "<tr><td><b>" + esc(c.codigo) + "</b><br><small class='muted'>" + esc(c.texto || "") + "</small></td>" +
+            "<td>" + tipoTxt + "</td>" +
+            "<td>" + (c.tipo === "envio" ? "—" : (c.tipo === "pct" ? c.valor + "%" : money(c.valor))) + "</td>" +
+            "<td>" + (c.minimo ? money(c.minimo) : "—") + "</td>" +
+            "<td>" + (c.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
+            '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + c.id + '"><i class="bi bi-pencil"></i></button>' +
+            '<button class="btn btn--ghost btn--sm" data-del="' + c.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+        }).join("") + (cuponesCache.length ? "" : '<tr><td colspan="6" class="empty">Sin cupones</td></tr>') + "</tbody></table></div>";
+      $("#btn-nuevo-cupon").onclick = function () { formCupon(null); };
+      $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formCupon(b.getAttribute("data-edit")); }; });
+      $$("[data-del]", cont).forEach(function (b) {
+        b.onclick = async function () {
+          if (!confirm("¿Eliminar este cupón?")) return;
+          try { await supa("DELETE", "/rest/v1/Cupon?id=eq." + b.getAttribute("data-del")); toast("Cupón eliminado"); renderCupones(); }
+          catch (e) { toast(e.message, false); }
+        };
+      });
+    } catch (e) { cont.innerHTML = errCard(e); }
+  }
+  function formCupon(id) {
+    var c = id ? cuponesCache.find(function (x) { return x.id === id; }) : null;
+    var body =
+      '<form id="f-cupon">' +
+      '<div class="row"><div class="field"><label>Código * <span class=hint>(sin espacios)</span></label>' + input("codigo", c ? c.codigo : "") + "</div>" +
+      '<div class="field"><label>Tipo</label>' + select("tipo", [{ v: "pct", l: "Porcentaje (%)" }, { v: "monto", l: "Monto fijo ($)" }, { v: "envio", l: "Envío gratis" }], c ? c.tipo : "pct") + "</div></div>" +
+      '<div class="row">' +
+        fld("Valor <span class=hint>(% o $ según el tipo)</span>", input("valor", c ? c.valor : 0, "number")) +
+        fld("Compra mínima <span class=hint>(0 = sin mínimo)</span>", input("minimo", c ? c.minimo : 0, "number")) +
+      "</div>" +
+      fld("Texto visible", input("texto", c ? c.texto : "")) +
+      check("activo", c ? c.activo !== false : true, "Activo") +
+      '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
+      "</form>";
+    modal(c ? "Editar cupón" : "Nuevo cupón", body);
+    $("#f-cupon").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var f = new FormData(e.target);
+      var datos = {
+        codigo: (f.get("codigo") || "").trim().toUpperCase(), tipo: f.get("tipo"),
+        valor: Number(f.get("valor")) || 0, minimo: Number(f.get("minimo")) || 0,
+        texto: f.get("texto") || null, activo: !!f.get("activo"),
+      };
+      if (!datos.codigo) { toast("El código es obligatorio", false); return; }
+      try {
+        if (c) await supa("PATCH", "/rest/v1/Cupon?id=eq." + c.id, datos);
+        else await supa("POST", "/rest/v1/Cupon", datos);
+        cerrarModal(); toast("Cupón guardado. Pulsa 'Publicar cambios' para activarlo en la tienda."); renderCupones();
       } catch (err) { toast(err.message, false); }
     });
   }
