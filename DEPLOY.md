@@ -114,6 +114,7 @@ Cloudflare hará el primer build (ejecuta el sync y publica). Al terminar tendr�
 - **Reseñas** — aprobar/ocultar/borrar.
 - **Pedidos** — ver detalle y cambiar estado.
 - **Clientes** — crear/editar usuarios y contraseñas (bcrypt, por RPC).
+- **Cupones** — códigos de descuento (%, monto fijo o envío gratis) aplicables en el carrito.
 - **Configuración** — datos de contacto, pagos, colores de marca, FAQ, etc.
 
 ---
