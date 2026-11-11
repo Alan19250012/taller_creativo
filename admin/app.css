@@ -88,6 +88,9 @@ a { color: var(--azul); }
 .stat { background: var(--panel); border-radius: var(--radius); box-shadow: var(--sombra); padding: 18px; }
 .stat b { font-size: 1.7rem; display: block; }
 .stat span { color: var(--gris); font-size: .85rem; }
+.stat--link { display: block; color: inherit; text-decoration: none; cursor: pointer; transition: transform .12s, box-shadow .12s; }
+.stat--link:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(16,24,40,.14); }
+.stat--link:hover b { color: var(--rojo); }
 
 table { width: 100%; border-collapse: collapse; }
 th, td { text-align: left; padding: 10px 10px; border-bottom: 1px solid var(--linea); vertical-align: middle; }

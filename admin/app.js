@@ -381,12 +381,12 @@
       var top = prods.slice(0, 5);
       cont.innerHTML =
         '<div class="grid grid--stats">' +
-          stat(money(ventas), "Ventas totales", "bi-cash-stack") +
-          stat(peds.length, "Pedidos", "bi-receipt") +
-          stat(pend, "Pendientes", "bi-hourglass-split") +
-          stat(users.length, "Clientes", "bi-people") +
-          stat(prods.length, "Productos", "bi-box-seam") +
-          stat(resPend, "Reseñas por aprobar", "bi-star") +
+          stat(ventas, "Ventas totales", "bi-cash-stack", "pedidos", true) +
+          stat(peds.length, "Pedidos", "bi-receipt", "pedidos") +
+          stat(pend, "Pendientes", "bi-hourglass-split", "pedidos") +
+          stat(users.length, "Clientes", "bi-people", "clientes") +
+          stat(prods.length, "Productos", "bi-box-seam", "productos") +
+          stat(resPend, "Reseñas por aprobar", "bi-star", "resenas") +
         "</div>" +
         '<div class="card"><h2>Productos más vendidos</h2><p class="muted">Por piezas vendidas (se actualiza en tiempo real).</p>' +
           '<table><thead><tr><th>Producto</th><th>Vendidos</th><th>Precio</th></tr></thead><tbody>' +
@@ -403,8 +403,12 @@
       cont.innerHTML = '<div class="card"><div class="empty">Error: ' + esc(e.message) + "</div></div>";
     }
   }
-  function stat(n, label, ico) {
-    return '<div class="stat"><b>' + nf(n) + "</b><span><i class='bi " + ico + "'></i> " + esc(label) + "</span></div>";
+  function stat(n, label, ico, sec, esDinero) {
+    var val = esDinero ? money(n) : nf(n);
+    var inner = "<b>" + val + "</b><span><i class='bi " + ico + "'></i> " + esc(label) + "</span>";
+    return sec
+      ? '<a class="stat stat--link" href="#/' + sec + '">' + inner + "</a>"
+      : '<div class="stat">' + inner + "</div>";
   }
 
   /* ============================== PRODUCTOS ============================== */
@@ -942,28 +946,65 @@
     var cont = $("#contenido");
     try {
       resenasCache = await supa("GET", "/rest/v1/Resena?select=*,Producto(nombre)&order=creadoEn.desc");
-      pintarResenas("TODAS");
+      pintarResenas({ aprobada: "TODAS", estrellas: "TODAS", producto: "TODOS", q: "", desde: "", hasta: "" });
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function pintarResenas(filtro) {
+  function pintarResenas(f) {
     var cont = $("#contenido");
-    var lista = filtro === "TODAS" ? resenasCache : resenasCache.filter(function (r) { return (filtro === "APROBADAS") === !!r.aprobada; });
+    var productos = [];
+    resenasCache.forEach(function (r) {
+      var nombre = (r.Producto && r.Producto.nombre) || "—";
+      if (productos.indexOf(nombre) === -1) productos.push(nombre);
+    });
+    var ql = (f.q || "").toLowerCase();
+    var lista = resenasCache.filter(function (r) {
+      if (f.aprobada === "APROBADAS" && !r.aprobada) return false;
+      if (f.aprobada === "PENDIENTES" && r.aprobada) return false;
+      if (f.estrellas !== "TODAS" && String(r.estrellas) !== f.estrellas) return false;
+      if (f.producto !== "TODOS" && ((r.Producto && r.Producto.nombre) || "—") !== f.producto) return false;
+      if (ql && (r.autor + " " + (r.ciudad || "") + " " + (r.comentario || "")).toLowerCase().indexOf(ql) === -1) return false;
+      var t = r.creadoEn ? new Date(r.creadoEn).getTime() : 0;
+      if (f.desde && t < new Date(f.desde).getTime()) return false;
+      if (f.hasta && t > new Date(f.hasta + "T23:59:59").getTime()) return false;
+      return true;
+    });
     cont.innerHTML =
       '<div class="card"><div class="toolbar">' +
-        '<span class="muted">Filtrar:</span>' +
-        '<select id="filtro-resenas" style="width:auto"><option value="TODAS">Todas</option><option value="APROBADAS">Aprobadas</option><option value="PENDIENTES">Pendientes</option></select>' +
+        '<input type="search" id="q-resenas" placeholder="Buscar autor, ciudad o texto…" value="' + esc(f.q) + '">' +
+        '<select id="f-prod-resenas" style="width:auto"><option value="TODOS">Todos los productos</option>' +
+          productos.map(function (p) { return '<option value="' + esc(p) + '">' + esc(p) + "</option>"; }).join("") +
+        "</select>" +
+        '<select id="f-estrellas" style="width:auto"><option value="TODAS">Todas las estrellas</option>' +
+          [5, 4, 3, 2, 1].map(function (n) { return '<option value="' + n + '">' + "★".repeat(n) + "☆".repeat(5 - n) + "</option>"; }).join("") +
+        "</select>" +
+        '<select id="f-aprobadas" style="width:auto"><option value="TODAS">Todas</option><option value="APROBADAS">Aprobadas</option><option value="PENDIENTES">Pendientes</option></select>' +
+        '<label class="muted" style="margin:0"><i class="bi bi-calendar3"></i> Desde</label><input type="date" id="f-desde-resenas" value="' + esc(f.desde) + '" style="width:auto">' +
+        '<label class="muted" style="margin:0">Hasta</label><input type="date" id="f-hasta-resenas" value="' + esc(f.hasta) + '" style="width:auto">' +
       "</div>" +
-      '<table><thead><tr><th>Autor</th><th>Producto</th><th>★</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      '<table><thead><tr><th>Autor</th><th>Producto</th><th>★</th><th>Fecha</th><th>Estado</th><th></th></tr></thead><tbody>' +
       lista.map(function (r) {
         return "<tr><td><b>" + esc(r.autor) + "</b><br><small class='muted'>" + esc(r.ciudad || "") + "</small></td>" +
           "<td>" + esc((r.Producto && r.Producto.nombre) || "—") + "</td>" +
           "<td>" + "★".repeat(r.estrellas) + "☆".repeat(5 - r.estrellas) + "</td>" +
+          "<td>" + fecha(r.creadoEn) + "</td>" +
           "<td>" + (r.aprobada ? '<span class="badge badge--on">Aprobada</span>' : '<span class="badge badge--pend">Pendiente</span>') + "</td>" +
           '<td class="actions"><button class="btn btn--ghost btn--sm" data-aprobar="' + r.id + '" data-val="' + (r.aprobada ? "0" : "1") + '">' + (r.aprobada ? "Ocultar" : "Aprobar") + "</button>" +
           '<button class="btn btn--ghost btn--sm" data-del="' + r.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
-      }).join("") + (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin reseñas en este filtro</td></tr>') + "</tbody></table></div>";
-    var sel = $("#filtro-resenas");
-    if (sel) { sel.value = filtro; sel.onchange = function () { pintarResenas(sel.value); }; }
+      }).join("") + (lista.length ? "" : '<tr><td colspan="6" class="empty">Sin reseñas en este filtro</td></tr>') + "</tbody></table></div>";
+    var qEl = $("#q-resenas"), prodEl = $("#f-prod-resenas"), estEl = $("#f-estrellas"), aprEl = $("#f-aprobadas"),
+        dEl = $("#f-desde-resenas"), hEl = $("#f-hasta-resenas");
+    function refrescar() {
+      pintarResenas({
+        aprobada: aprEl.value, estrellas: estEl.value, producto: prodEl.value,
+        q: qEl.value, desde: dEl.value, hasta: hEl.value,
+      });
+    }
+    if (qEl) qEl.addEventListener("input", refrescar);
+    if (prodEl) { prodEl.value = f.producto; prodEl.onchange = refrescar; }
+    if (estEl) { estEl.value = f.estrellas; estEl.onchange = refrescar; }
+    if (aprEl) { aprEl.value = f.aprobada; aprEl.onchange = refrescar; }
+    if (dEl) { dEl.value = f.desde; dEl.onchange = refrescar; }
+    if (hEl) { hEl.value = f.hasta; hEl.onchange = refrescar; }
     $$("[data-aprobar]", cont).forEach(function (b) {
       b.onclick = async function () {
         try {
@@ -983,54 +1024,106 @@
 
   /* ============================== PEDIDOS ============================== */
   var pedidosCache = [];
+  var pedidosDetalles = [];
+  var pedidosProductos = {};   // productoId → { nombre, personalizable }
+  var pedidosUsuarios = {};    // usuarioId → { nombre, telefono }
   var ESTADOS = ["PENDIENTE", "PAGADO", "ENVIADO", "ENTREGADO", "CANCELADO"];
+
   async function renderPedidos() {
     var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      pedidosCache = await supa("GET", "/rest/v1/Pedido?select=*&order=creadoEn.desc");
-      pintarPedidos("TODOS", "");
+      var [peds, dets, prods, users] = await Promise.all([
+        supa("GET", "/rest/v1/Pedido?select=*&order=creadoEn.desc"),
+        supa("GET", "/rest/v1/DetallePedido?select=pedidoId,productoId,nombreProducto,cantidad,talla"),
+        supa("GET", "/rest/v1/Producto?select=id,nombre,personalizable"),
+        supa("GET", "/rest/v1/Usuario?select=id,nombre,telefono"),
+      ]);
+      pedidosCache = peds;
+      pedidosDetalles = dets;
+      pedidosProductos = {};
+      prods.forEach(function (p) { pedidosProductos[p.id] = p; });
+      pedidosUsuarios = {};
+      users.forEach(function (u) { pedidosUsuarios[u.id] = u; });
+      pintarPedidos({ estado: "TODOS", q: "", desde: "", hasta: "", personalizado: "TODOS" });
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function pintarPedidos(filtro, q) {
+  function datosPedido(p) {
+    var dets = pedidosDetalles.filter(function (d) { return d.pedidoId === p.id; });
+    var personalizado = dets.some(function (d) {
+      var pr = pedidosProductos[d.productoId];
+      return pr && pr.personalizable;
+    });
+    var nombres = dets.map(function (d) {
+      return d.nombreProducto || (pedidosProductos[d.productoId] && pedidosProductos[d.productoId].nombre) || "Artículo";
+    });
+    var u = pedidosUsuarios[p.usuarioId];
+    return { dets: dets, personalizado: personalizado, productosTxt: nombres.join(", "), telefono: (u && u.telefono) || "" };
+  }
+  function pintarPedidos(f) {
     var cont = $("#contenido");
+    var ql = (f.q || "").toLowerCase();
     var lista = pedidosCache.filter(function (p) {
-      if (filtro !== "TODOS" && p.estado !== filtro) return false;
-      if (q && (p.cliente || "").toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+      if (f.estado !== "TODOS" && p.estado !== f.estado) return false;
+      var d = datosPedido(p);
+      if (ql && (p.cliente + " " + d.telefono + " " + d.productosTxt).toLowerCase().indexOf(ql) === -1) return false;
+      if (f.desde) { if (new Date(p.creadoEn).getTime() < new Date(f.desde).getTime()) return false; }
+      if (f.hasta) { if (new Date(p.creadoEn).getTime() > new Date(f.hasta + "T23:59:59").getTime()) return false; }
+      if (f.personalizado === "SI" && !d.personalizado) return false;
+      if (f.personalizado === "NO" && d.personalizado) return false;
       return true;
     });
     cont.innerHTML =
       '<div class="card"><div class="toolbar">' +
-        '<input type="search" id="q-pedidos" placeholder="Buscar por cliente…" value="' + esc(q) + '">' +
-        '<span class="muted">Estado:</span>' +
-        '<select id="filtro-pedidos" style="width:auto">' +
-          '<option value="TODOS">Todos</option>' + ESTADOS.map(function (e) { return '<option value="' + e + '">' + e + "</option>"; }).join("") +
+        '<input type="search" id="q-pedidos" placeholder="Buscar cliente, teléfono o producto…" value="' + esc(f.q) + '">' +
+        '<select id="filtro-pedidos" style="width:auto"><option value="TODOS">Todos los estados</option>' +
+          ESTADOS.map(function (e) { return '<option value="' + e + '">' + e + "</option>"; }).join("") +
         "</select>" +
+        '<label class="muted" style="margin:0"><i class="bi bi-calendar3"></i> Desde</label><input type="date" id="f-desde-pedidos" value="' + esc(f.desde) + '" style="width:auto">' +
+        '<label class="muted" style="margin:0">Hasta</label><input type="date" id="f-hasta-pedidos" value="' + esc(f.hasta) + '" style="width:auto">' +
+        '<select id="f-perso-pedidos" style="width:auto"><option value="TODOS">Todos</option><option value="SI">Con personalizado</option><option value="NO">Sin personalizado</option></select>' +
       "</div>" +
-      '<table><thead><tr><th>Pedido</th><th>Cliente</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      '<table><thead><tr><th>Pedido</th><th>Cliente</th><th>Teléfono</th><th>Productos</th><th>Total</th><th>Estado</th><th></th></tr></thead><tbody>' +
       lista.map(function (p) {
+        var d = datosPedido(p);
+        var prodTxt = d.productosTxt || "—";
+        if (prodTxt.length > 70) prodTxt = prodTxt.slice(0, 70) + "…";
         var cls = p.estado === "ENTREGADO" ? "on" : (p.estado === "CANCELADO" ? "off" : (p.estado === "ENVIADO" ? "env" : "pend"));
         return "<tr><td><small class='muted'>#" + esc(String(p.id).slice(0, 8)) + "</small><br><b>" + fecha(p.creadoEn) + "</b></td>" +
-          "<td>" + esc(p.cliente || "—") + "</td><td>" + money(p.total) + "</td>" +
+          "<td>" + esc(p.cliente || "—") + "</td>" +
+          "<td>" + esc(d.telefono || "—") + "</td>" +
+          "<td><small>" + esc(prodTxt) + "</small>" + (d.personalizado ? " <span class='tag'>✨ Personalizado</span>" : "") + "</td>" +
+          "<td>" + money(p.total) + "</td>" +
           '<td><span class="badge badge--' + cls + '">' + esc(p.estado) + "</span></td>" +
           '<td class="actions"><button class="btn btn--ghost btn--sm" data-ver="' + p.id + '"><i class="bi bi-eye"></i></button></td></tr>';
-      }).join("") + (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin pedidos en este estado</td></tr>') + "</tbody></table></div>";
-    var sel = $("#filtro-pedidos"), busq = $("#q-pedidos");
-    function refrescar() { pintarPedidos(sel.value, busq.value); }
-    if (sel) { sel.value = filtro; sel.onchange = refrescar; }
+      }).join("") + (lista.length ? "" : '<tr><td colspan="7" class="empty">Sin pedidos en este filtro</td></tr>') + "</tbody></table></div>";
+    var sel = $("#filtro-pedidos"), busq = $("#q-pedidos"), dEl = $("#f-desde-pedidos"), hEl = $("#f-hasta-pedidos"), pEl = $("#f-perso-pedidos");
+    function refrescar() {
+      pintarPedidos({ estado: sel.value, q: busq.value, desde: dEl.value, hasta: hEl.value, personalizado: pEl.value });
+    }
+    if (sel) { sel.value = f.estado; sel.onchange = refrescar; }
     if (busq) busq.addEventListener("input", refrescar);
+    if (dEl) { dEl.value = f.desde; dEl.onchange = refrescar; }
+    if (hEl) { hEl.value = f.hasta; hEl.onchange = refrescar; }
+    if (pEl) { pEl.value = f.personalizado; pEl.onchange = refrescar; }
     $$("[data-ver]", cont).forEach(function (b) { b.onclick = function () { verPedido(b.getAttribute("data-ver")); }; });
   }
   async function verPedido(id) {
     var p = pedidosCache.find(function (x) { return x.id === id; });
     var items = await supa("GET", "/rest/v1/DetallePedido?select=*&pedidoId=eq." + id).catch(function () { return []; });
+    var d = datosPedido(p);
     var body =
       '<p class="muted"><b>Pedido #' + esc(String(id).slice(0, 8)) + "</b> · " + fecha(p.creadoEn) + "</p>" +
       '<div class="row">' +
         fld("Cliente", input("cliente", p.cliente || "")) +
         '<div class="field"><label>Estado</label>' + select("estado", ESTADOS.map(function (e) { return { v: e, l: e }; }), p.estado) + "</div>" +
       "</div>" +
+      '<div class="row">' +
+        fld("Teléfono <span class=hint>(de la cuenta del cliente)</span>", '<input value="' + esc(d.telefono || "") + '" disabled>') +
+        fld("Método de pago", input("metodo", p.metodoPago || "")) +
+      "</div>" +
       fld("Dirección de envío", area("direccion", p.direccionEnvio || "", 2)) +
-      fld("Método de pago", input("metodo", p.metodoPago || "")) +
+      (d.personalizado ? '<p style="margin:0 0 10px"><span class="tag">✨ Incluye producto personalizado</span></p>' : "") +
       "<h3>Artículos</h3>" +
       (items.length
         ? '<table><thead><tr><th>Artículo</th><th>Cant.</th><th>Precio</th></tr></thead><tbody>' +
@@ -1055,52 +1148,65 @@
 
   /* ============================== CLIENTES (USUARIOS) ============================== */
   var clientesCache = [];
-  var ROLES = ["ADMINISTRADOR", "DISTRIBUIDOR", "CLIENTE"];
+  var clientesPedidos = [];
+  var ROLES_CLIENTES = ["DISTRIBUIDOR", "CLIENTE"];
   async function renderClientes() {
     var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      clientesCache = await supa("GET", "/rest/v1/Usuario?select=id,nombre,email,rol,telefono,activo&order=creadoEn.desc");
-      pintarClientes("TODOS", "");
+      var [usuarios, pedidos] = await Promise.all([
+        supa("GET", "/rest/v1/Usuario?select=id,nombre,email,rol,telefono,activo&order=creadoEn.desc"),
+        supa("GET", "/rest/v1/Pedido?select=id,usuarioId,estado,total,creadoEn&order=creadoEn.desc"),
+      ]);
+      // Las cuentas de administrador se gestionan en Configuración, no aquí.
+      clientesCache = usuarios.filter(function (u) { return u.rol !== "ADMINISTRADOR"; });
+      clientesPedidos = pedidos;
+      pintarClientes({ rol: "TODOS", q: "", pedidos: "TODOS" });
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function filaUsuario(u) {
-    return "<tr><td><b>" + esc(u.nombre) + "</b></td><td>" + esc(u.email) + "</td><td><span class='tag'>" + esc(u.rol) + "</span></td>" +
-      "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
-      '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
-      '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+  function resumenPedidosCliente(uid) {
+    var pedidos = clientesPedidos.filter(function (p) { return p.usuarioId === uid; });
+    return { pedidos: pedidos, total: pedidos.reduce(function (a, p) { return a + (p.total || 0); }, 0) };
   }
-  function pintarClientes(filtro, q) {
+  function pintarClientes(f) {
     var cont = $("#contenido");
-    // Administradores separados de clientes/distribuidores
-    var admins = clientesCache.filter(function (u) { return u.rol === "ADMINISTRADOR"; });
-    var noAdmins = clientesCache.filter(function (u) { return u.rol !== "ADMINISTRADOR"; });
-    var lista = noAdmins.filter(function (u) {
-      if (filtro !== "TODOS" && u.rol !== filtro) return false;
-      if (q && (u.nombre + " " + u.email).toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+    var ql = (f.q || "").toLowerCase();
+    var lista = clientesCache.filter(function (u) {
+      if (f.rol !== "TODOS" && u.rol !== f.rol) return false;
+      if (ql && (u.nombre + " " + u.email + " " + (u.telefono || "")).toLowerCase().indexOf(ql) === -1) return false;
+      var n = resumenPedidosCliente(u.id).pedidos.length;
+      if (f.pedidos === "CON" && n === 0) return false;
+      if (f.pedidos === "SIN" && n > 0) return false;
       return true;
     });
-    var tablaAdmins = admins.length
-      ? '<div class="card"><h2>👑 Cuenta de administrador</h2><p class="muted">Solo quien administra la tienda.</p>' +
-        '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
-        admins.map(filaUsuario).join("") + "</tbody></table></div>"
-      : "";
     cont.innerHTML =
-      tablaAdmins +
       '<div class="card"><div class="toolbar">' +
         '<button class="btn" id="btn-nuevo-cli"><i class="bi bi-plus-lg"></i> Nuevo cliente</button>' +
-        '<input type="search" id="q-clientes" placeholder="Buscar por nombre/correo…" value="' + esc(q) + '">' +
-        '<span class="muted">Rol:</span>' +
-        '<select id="filtro-clientes" style="width:auto"><option value="TODOS">Todos</option>' +
+        '<input type="search" id="q-clientes" placeholder="Buscar nombre, correo o teléfono…" value="' + esc(f.q) + '">' +
+        '<select id="filtro-clientes" style="width:auto"><option value="TODOS">Todos los roles</option>' +
           '<option value="DISTRIBUIDOR">Distribuidores</option><option value="CLIENTE">Clientes</option>' +
         "</select>" +
+        '<select id="filtro-pedidos-cli" style="width:auto"><option value="TODOS">Con o sin pedidos</option><option value="CON">Con pedidos</option><option value="SIN">Sin pedidos</option></select>' +
       "</div>" +
-      '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
-      lista.map(filaUsuario).join("") + "</tbody></table></div>";
+      '<table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Rol</th><th>Pedidos</th><th>Total gastado</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      lista.map(function (u) {
+        var res = resumenPedidosCliente(u.id);
+        return "<tr><td><b>" + esc(u.nombre) + "</b><br><small class='muted'>" + esc(u.email) + "</small></td>" +
+          "<td>" + esc(u.telefono || "—") + "</td>" +
+          "<td><span class='tag'>" + esc(u.rol) + "</span></td>" +
+          '<td><button class="btn btn--ghost btn--sm" data-historial="' + u.id + '" title="Ver historial de pedidos">' + res.pedidos.length + " pedidos</button></td>" +
+          "<td>" + money(res.total) + "</td>" +
+          "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
+          '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+      }).join("") + (lista.length ? "" : '<tr><td colspan="7" class="empty">Sin resultados</td></tr>') + "</tbody></table></div>";
     $("#btn-nuevo-cli").onclick = function () { formCliente(null); };
-    var sel = $("#filtro-clientes"), busq = $("#q-clientes");
-    function refrescar() { pintarClientes(sel.value, busq.value); }
-    if (sel) { sel.value = filtro; sel.onchange = refrescar; }
+    var sel = $("#filtro-clientes"), busq = $("#q-clientes"), pSel = $("#filtro-pedidos-cli");
+    function refrescar() { pintarClientes({ rol: sel.value, q: busq.value, pedidos: pSel.value }); }
+    if (sel) { sel.value = f.rol; sel.onchange = refrescar; }
     if (busq) busq.addEventListener("input", refrescar);
+    if (pSel) { pSel.value = f.pedidos; pSel.onchange = refrescar; }
+    $$("[data-historial]", cont).forEach(function (b) { b.onclick = function () { verHistorialCliente(b.getAttribute("data-historial")); }; });
     $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formCliente(b.getAttribute("data-edit")); }; });
     $$("[data-del]", cont).forEach(function (b) {
       b.onclick = async function () {
@@ -1110,19 +1216,39 @@
       };
     });
   }
+  function verHistorialCliente(uid) {
+    var u = clientesCache.find(function (x) { return x.id === uid; });
+    var res = resumenPedidosCliente(uid);
+    var body =
+      '<p class="muted">Historial de pedidos de <b>' + esc(u ? u.nombre : "") + "</b> (" + esc(u ? u.email : "") + ")</p>" +
+      (res.pedidos.length
+        ? '<table><thead><tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th>Total</th><th></th></tr></thead><tbody>' +
+          res.pedidos.map(function (p) {
+            var cls = p.estado === "ENTREGADO" ? "on" : (p.estado === "CANCELADO" ? "off" : (p.estado === "ENVIADO" ? "env" : "pend"));
+            return "<tr><td><small class='muted'>#" + esc(String(p.id).slice(0, 8)) + "</small></td><td>" + fecha(p.creadoEn) + "</td>" +
+              '<td><span class="badge badge--' + cls + '">' + esc(p.estado) + "</span></td><td>" + money(p.total) + "</td>" +
+              '<td><button class="btn btn--ghost btn--sm" data-ver-pedido="' + p.id + '"><i class="bi bi-eye"></i></button></td></tr>';
+          }).join("") + "</tbody></table>"
+        : '<div class="empty">Este cliente aún no tiene pedidos registrados.</div>') +
+      '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cerrar</button></div>';
+    modal("Historial de pedidos", body);
+    $$("#modal [data-ver-pedido]").forEach(function (b) {
+      b.onclick = function () { cerrarModal(); verPedido(b.getAttribute("data-ver-pedido")); };
+    });
+  }
   function formCliente(id) {
     var u = id ? clientesCache.find(function (x) { return x.id === id; }) : null;
     var body =
       '<form id="f-cli">' +
       fld("Nombre *", input("nombre", u ? u.nombre : "")) +
       '<div class="row"><div class="field"><label>Correo *</label>' + input("email", u ? u.email : "", "email") + "</div>" +
-      '<div class="field"><label>Rol</label>' + select("rol", ROLES.map(function (r) { return { v: r, l: r }; }), u ? u.rol : "CLIENTE") + "</div></div>" +
+      '<div class="field"><label>Rol</label>' + select("rol", ROLES_CLIENTES.map(function (r) { return { v: r, l: r }; }), u ? u.rol : "CLIENTE") + "</div></div>" +
       fld("Teléfono", input("telefono", u ? u.telefono : "")) +
       fld("Contraseña <span class=hint>" + (u ? "Déjala vacía para no cambiarla" : "Requerida al crear") + "</span>", input("password", "", "password")) +
       check("activo", u ? u.activo !== false : true, "Activo") +
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
-    modal(u ? "Editar usuario" : "Nuevo usuario", body);
+    modal(u ? "Editar cliente" : "Nuevo cliente", body);
     $("#f-cli").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
@@ -1132,7 +1258,7 @@
           p_password: f.get("password") || "", p_rol: f.get("rol"), p_telefono: f.get("telefono") || null,
           p_activo: !!f.get("activo"),
         });
-        cerrarModal(); toast("Usuario guardado"); renderClientes();
+        cerrarModal(); toast("Cliente guardado"); renderClientes();
       } catch (err) { toast(err.message, false); }
     });
   }
@@ -1455,10 +1581,68 @@
     { clave: "faq", label: "Preguntas frecuentes (JSON)", tipo: "json" },
   ];
   var configCache = [];
+  var adminsCache = [];
+
+  function pintarAdmins() {
+    var cont = $("#admins-card");
+    if (!cont) return;
+    var miId = usuario ? (usuario.sub || usuario.id) : null;
+    cont.innerHTML =
+      '<div class="toolbar"><button class="btn btn--sm" id="btn-nuevo-admin"><i class="bi bi-person-plus"></i> Nuevo administrador</button>' +
+      '<span class="muted">Estas cuentas pueden entrar al panel y gestionar la tienda.</span></div>' +
+      '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Teléfono</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      adminsCache.map(function (u) {
+        return "<tr><td><b>" + esc(u.nombre) + "</b></td><td>" + esc(u.email) + "</td><td>" + esc(u.telefono || "—") + "</td>" +
+          "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
+          (u.id === miId ? "" : '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button>') + "</td></tr>";
+      }).join("") + (adminsCache.length ? "" : '<tr><td colspan="5" class="empty">Sin cuentas de administrador</td></tr>') + "</tbody></table>";
+    $("#btn-nuevo-admin").onclick = function () { formAdmin(null); };
+    $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formAdmin(b.getAttribute("data-edit")); }; });
+    $$("[data-del]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        if (!confirm("¿Eliminar esta cuenta de administrador?")) return;
+        try { await supa("DELETE", "/rest/v1/Usuario?id=eq." + b.getAttribute("data-del")); toast("Administrador eliminado"); renderConfiguracion(); }
+        catch (e) { toast(e.message, false); }
+      };
+    });
+  }
+  function formAdmin(id) {
+    var u = id ? adminsCache.find(function (x) { return x.id === id; }) : null;
+    var body =
+      '<form id="f-admin">' +
+      fld("Nombre *", input("nombre", u ? u.nombre : "")) +
+      '<div class="row"><div class="field"><label>Correo *</label>' + input("email", u ? u.email : "", "email") + "</div>" +
+      '<div class="field"><label>Teléfono</label>' + input("telefono", u ? u.telefono : "") + "</div></div>" +
+      fld("Contraseña <span class=hint>" + (u ? "Déjala vacía para no cambiarla" : "Requerida al crear") + "</span>", input("password", "", "password")) +
+      check("activo", u ? u.activo !== false : true, "Activo") +
+      '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
+      "</form>";
+    modal(u ? "Editar administrador" : "Nuevo administrador", body);
+    $("#f-admin").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var f = new FormData(e.target);
+      try {
+        await supa("POST", "/rpc/ek_upsert_usuario", {
+          p_id: u ? u.id : null, p_nombre: f.get("nombre"), p_email: f.get("email"),
+          p_password: f.get("password") || "", p_rol: "ADMINISTRADOR", p_telefono: f.get("telefono") || null,
+          p_activo: !!f.get("activo"),
+        });
+        cerrarModal(); toast("Administrador guardado"); renderConfiguracion();
+      } catch (err) { toast(err.message, false); }
+    });
+  }
+
   async function renderConfiguracion() {
     var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      configCache = await supa("GET", "/rest/v1/Configuracion?select=id,clave,valor");
+      var [config, admins] = await Promise.all([
+        supa("GET", "/rest/v1/Configuracion?select=id,clave,valor"),
+        supa("GET", "/rest/v1/Usuario?select=id,nombre,email,telefono,activo&rol=eq.ADMINISTRADOR&order=creadoEn.asc"),
+      ]);
+      configCache = config;
+      adminsCache = admins;
       var mapa = {};
       configCache.forEach(function (c) { mapa[c.clave] = c.valor; });
       var campos = CFG_META.map(function (m) {
@@ -1468,7 +1652,9 @@
         if (m.tipo === "bool") return '<div class="field"><label>' + esc(m.label) + "</label>" + check(m.clave, v === "true", "Activado") + "</div>";
         return fld(m.label, '<input name="' + m.clave + '" type="' + (m.tipo === "number" ? "number" : "text") + '" value="' + esc(v) + '">');
       }).join("");
-      cont.innerHTML = '<form id="f-conf">' +
+      cont.innerHTML =
+        '<div class="card"><h2>👑 Cuentas de administrador</h2><p class="muted">Las cuentas que pueden entrar a este panel se gestionan aquí (no aparecen en Clientes).</p><div id="admins-card"></div></div>' +
+        '<form id="f-conf">' +
         '<div class="card"><h2>Logo y favicon</h2><p class="muted">Súbelos desde aquí; se aplican en la tienda al publicar.</p>' +
           '<div class="row">' +
             '<div class="field"><label>Logo</label><input type="file" id="up-logo" accept="image/*"><small class="hint" id="logo-estado"></small></div>' +
@@ -1476,6 +1662,7 @@
           '</div></div>' +
         '<div class="card"><h2>Datos de la tienda</h2><p class="muted">Estos valores se aplican a la interfaz al publicar.</p>' + campos +
         '<div class="modal__ft" style="margin-top:18px"><button class="btn btn--rojo" type="submit"><i class="bi bi-check-lg"></i> Guardar configuración</button></div></div></form>';
+      pintarAdmins();
       $("#f-conf").addEventListener("submit", async function (e) {
         e.preventDefault();
         var f = new FormData(e.target);
