@@ -1574,11 +1574,15 @@
       var items = t.lineas.map(function (l) {
         return { nombre: l.p.n, precio: l.p.p, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
       });
+      var u = usuarioLogueado();
       var base = location.origin + location.pathname;
       fetch("/api/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ items: items, success_url: base + "?pago=ok", cancel_url: base + "?pago=cancelado" }),
+        body: JSON.stringify({
+          items: items, success_url: base + "?pago=ok", cancel_url: base + "?pago=cancelado",
+          email: u ? u.email : "", usuarioId: u ? u.id : "",
+        }),
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d.ok && d.url) location.href = d.url;
         else toast(d.error || "No se pudo iniciar el pago", "bi-x-circle");
@@ -1807,25 +1811,29 @@
     });
   }
 
-  /* ---- Acceso de distribuidores (precios de mayoreo) ---- */
-  function initDistribuidor() {
+  /* ---- Acceso de usuarios (cuenta) ---- */
+  function usuarioLogueado() {
+    try { var j = localStorage.getItem("ek_usuario"); return j ? JSON.parse(j) : null; } catch (e) { return null; }
+  }
+  function initCuenta() {
     var acciones = $(".ek-actions");
     if (!acciones) return;
+    var u = usuarioLogueado();
     var boton = document.createElement("button");
     boton.type = "button";
-    boton.className = "ek-action";
-    boton.setAttribute("aria-label", esDistribuidor() ? "Cerrar sesión" : "Acceso distribuidores");
-    boton.title = esDistribuidor() ? "Cerrar sesión de distribuidor" : "Acceso distribuidores";
-    boton.innerHTML = '<i class="bi bi-' + (esDistribuidor() ? "box-arrow-right" : "briefcase") + '"></i>';
-    boton.onclick = function () { if (esDistribuidor()) logoutDistribuidor(); else abrirLoginDistribuidor(); };
+    boton.className = "ek-action ek-action--cuenta";
+    var nombre = u && u.nombre ? u.nombre.trim().split(/\s+/)[0] : "";
+    boton.innerHTML = '<i class="bi bi-' + (u ? "person-check" : "person") + '"></i><span class="ek-cuenta-nombre">' + (u ? esc(nombre) : "Iniciar sesión") + "</span>";
+    boton.title = u ? ("Sesión de " + u.nombre + " · clic para cerrar") : "Iniciar sesión";
+    boton.onclick = function () { if (u) logoutCuenta(); else abrirLogin(); };
     acciones.insertBefore(boton, acciones.firstChild);
   }
-  function abrirLoginDistribuidor() {
+  function abrirLogin() {
     var m = document.createElement("div");
     m.style.cssText = "position:fixed;inset:0;background:rgba(16,24,40,.65);z-index:99999;display:grid;place-items:center;padding:20px";
     m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:26px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(0,0,0,.35)">' +
-      '<h3 style="margin:0 0 4px">Acceso distribuidores</h3>' +
-      '<p style="color:#6b7280;font-size:.9rem;margin:0 0 16px">Entra para ver los precios de mayoreo.</p>' +
+      '<h3 style="margin:0 0 4px">Iniciar sesión</h3>' +
+      '<p style="color:#6b7280;font-size:.9rem;margin:0 0 16px">Entra con tu cuenta para ver tus precios y dar seguimiento a tus pedidos.</p>' +
       '<input id="dk-email" type="email" placeholder="Correo" autocomplete="username" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;font:inherit">' +
       '<input id="dk-pass" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px;font:inherit">' +
       '<div id="dk-err" style="color:#DA1D2A;font-size:.85rem;margin-bottom:10px"></div>' +
@@ -1835,10 +1843,11 @@
     document.body.appendChild(m);
     m.onclick = function (e) { if (e.target === m) m.remove(); };
     m.querySelector("#dk-close").onclick = function () { m.remove(); };
-    m.querySelector("#dk-enter").onclick = function () { entrarDistribuidor(m); };
-    m.querySelector("#dk-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") entrarDistribuidor(m); });
+    m.querySelector("#dk-enter").onclick = function () { entrarCuenta(m); };
+    m.querySelector("#dk-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") entrarCuenta(m); });
+    var inp = m.querySelector("#dk-email"); if (inp) inp.focus();
   }
-  async function entrarDistribuidor(m) {
+  async function entrarCuenta(m) {
     var email = (m.querySelector("#dk-email").value || "").trim();
     var pass = m.querySelector("#dk-pass").value || "";
     var err = m.querySelector("#dk-err");
@@ -1847,23 +1856,22 @@
     try {
       var res = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email, password: pass }) });
       var d = await res.json();
-      if (!d.ok) { err.textContent = d.error || "No autorizado"; return; }
-      if (d.usuario && (d.usuario.rol === "DISTRIBUIDOR" || d.usuario.rol === "ADMINISTRADOR")) {
-        localStorage.setItem("ek_rol", d.usuario.rol);
-        location.reload();
-      } else {
-        err.textContent = "Esta cuenta no es de distribuidor";
-      }
+      if (!d.ok || !d.usuario) { err.textContent = d.error || "Correo o contraseña incorrectos"; return; }
+      localStorage.setItem("ek_rol", d.usuario.rol);
+      localStorage.setItem("ek_usuario", JSON.stringify(d.usuario));
+      location.reload();
     } catch (e) { err.textContent = "Error de conexión"; }
   }
-  function logoutDistribuidor() {
+  function logoutCuenta() {
+    if (!confirm("¿Cerrar sesión?")) return;
     localStorage.removeItem("ek_rol");
+    localStorage.removeItem("ek_usuario");
     location.reload();
   }
 
   function arrancar() {
     initGlobal();
-    initDistribuidor();
+    initCuenta();
     initFAQ();
     initNav();
     initAcordeones(document);

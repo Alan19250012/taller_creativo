@@ -123,14 +123,24 @@ export async function onRequestPost(context) {
       const total = (session.amount_total || 0) / 100;
       const cliente = (session.customer_details && session.customer_details.name) || (session.customer_details && session.customer_details.email) || "Cliente";
       const email = (session.customer_details && session.customer_details.email) || session.customer_email || "";
+      const telefono = (session.customer_details && session.customer_details.phone) || null;
       const dir = session.customer_details && session.customer_details.address
         ? [session.customer_details.address.line1, session.customer_details.address.city, session.customer_details.address.postal_code].filter(Boolean).join(", ")
         : null;
 
+      // Vínculo con la cuenta del cliente: client_reference_id (id de Usuario) o, si no, por correo.
+      let usuarioId = session.client_reference_id || null;
+      if (!usuarioId && email) {
+        try {
+          const u = await pg(env, "Usuario?email=eq." + encodeURIComponent(email.trim().toLowerCase()) + "&select=id", "GET");
+          if (u && u[0] && u[0].id) usuarioId = u[0].id;
+        } catch (e) { /* sin enlace por correo */ }
+      }
+
       // 2) Pedido en Supabase
       const pedidoRows = await pg(env, "Pedido", "POST", {
         cliente, estado: "PAGADO", subtotal: total, impuesto: 0, envio: 0, total,
-        metodoPago: "Tarjeta (Stripe)", direccionEnvio: dir,
+        metodoPago: "Tarjeta (Stripe)", direccionEnvio: dir, usuarioId, telefono,
       });
       const pedidoId = pedidoRows && pedidoRows[0] && pedidoRows[0].id;
 

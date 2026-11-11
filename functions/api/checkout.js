@@ -15,6 +15,8 @@ export async function onRequestPost(context) {
   const items = Array.isArray(body.items) ? body.items : [];
   const success_url = body.success_url;
   const cancel_url = body.cancel_url;
+  const email = body.email || body.customer_email || "";
+  const usuarioId = body.usuarioId || "";
   if (!items.length) return cors(json({ ok: false, error: "Carrito vacío" }, 400));
   if (!env.STRIPE_SECRET_KEY) return cors(json({ ok: false, error: "STRIPE_SECRET_KEY no configurada" }, 500));
 
@@ -23,7 +25,11 @@ export async function onRequestPost(context) {
   params.set("payment_method_types[0]", "card");
   if (success_url) params.set("success_url", success_url);
   if (cancel_url) params.set("cancel_url", cancel_url);
-  if (body.customer_email) params.set("customer_email", body.customer_email);
+  if (email) params.set("customer_email", email);
+  // Vínculo con la cuenta del cliente (se recupera en el webhook vía client_reference_id)
+  if (usuarioId) params.set("client_reference_id", usuarioId);
+  // Pedir el teléfono del cliente en el Checkout de Stripe
+  params.set("phone_number_collection[enabled]", "true");
 
   items.forEach((it, i) => {
     const nombre = String(it.nombre || "Artículo").slice(0, 200);

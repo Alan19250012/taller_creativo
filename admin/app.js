@@ -1058,7 +1058,8 @@
       return d.nombreProducto || (pedidosProductos[d.productoId] && pedidosProductos[d.productoId].nombre) || "Artículo";
     });
     var u = pedidosUsuarios[p.usuarioId];
-    return { dets: dets, personalizado: personalizado, productosTxt: nombres.join(", "), telefono: (u && u.telefono) || "" };
+    var telefono = p.telefono || (u && u.telefono) || "";
+    return { dets: dets, personalizado: personalizado, productosTxt: nombres.join(", "), telefono: telefono };
   }
   function pintarPedidos(f) {
     var cont = $("#contenido");
@@ -1370,6 +1371,50 @@
       '<small class="muted">' + esc(String(c.contenido || "").replace(/<[^>]+>/g, "").slice(0, 90)) + "</small></div>";
   }
 
+  var constructorVerPreview = true;
+  // Vista previa en tamaño real de cada bloque (así se verá en la tienda).
+  function previewRealBloque(b) {
+    var c = b.config || {};
+    var tema = c.tema || "oscuro";
+    function grad() {
+      return tema === "azul" ? "linear-gradient(120deg,#244093,#162a66)" : tema === "rojo" ? "linear-gradient(120deg,#DA1D2A,#a31420)" : "linear-gradient(120deg,#1c2333,#0f1420)";
+    }
+    if (b.tipo === "hero" || b.tipo === "promo") {
+      return '<div style="border-radius:14px;padding:34px 28px;color:#fff;background:' + grad() + '">' +
+        (c.etiqueta ? '<span style="display:inline-block;background:rgba(255,255,255,.22);padding:3px 11px;border-radius:20px;font-size:.78rem;font-weight:700;margin-bottom:12px">' + esc(c.etiqueta) + "</span>" : "") +
+        '<div style="font-size:1.45rem;font-weight:800;line-height:1.2">' + esc(c.titulo || (b.tipo === "hero" ? "Banner principal" : "Promoción")) + "</div>" +
+        (c.subtitulo ? '<div style="opacity:.92;margin-top:8px;max-width:62ch;font-size:.95rem">' + esc(c.subtitulo) + "</div>" : "") +
+        (c.boton ? '<span style="display:inline-block;background:#fff;color:#1c2333;padding:9px 18px;border-radius:9px;font-weight:700;margin-top:16px;font-size:.9rem">' + esc(c.boton) + "</span>" : "") +
+        "</div>";
+    }
+    if (b.tipo === "productos") {
+      var n = Number(c.limite) || 8, cards = "", i;
+      for (i = 0; i < Math.min(n, 8); i++) cards += '<div style="border:1px dashed var(--linea);border-radius:10px;padding:14px;text-align:center;color:var(--gris)"><i class="bi bi-box-seam" style="font-size:1.5rem"></i><div style="font-size:.8rem;margin-top:4px">Producto</div></div>';
+      return '<div style="padding:20px;border:1px solid var(--linea);border-radius:14px;background:#fafbfc">' +
+        '<div style="font-weight:800;margin-bottom:14px">' + esc(c.titulo || "Productos") + ' <small class="muted">· muestra ' + n + " producto(s)</small></div>" +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">' + cards + "</div></div>";
+    }
+    if (b.tipo === "categorias") {
+      var n2 = Number(c.limite) || 10, cats = "", j;
+      for (j = 0; j < Math.min(n2, 6); j++) cats += '<div style="border:1px dashed var(--linea);border-radius:10px;padding:16px;text-align:center;color:var(--gris)"><i class="bi bi-tag" style="font-size:1.5rem"></i><div style="font-size:.8rem;margin-top:4px">Categoría</div></div>';
+      return '<div style="padding:20px;border:1px solid var(--linea);border-radius:14px;background:#fafbfc">' +
+        '<div style="font-weight:800;margin-bottom:14px">' + esc(c.titulo || "Categorías") + ' <small class="muted">· grupo ' + esc(c.grupo || "todas") + "</small></div>" +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">' + cats + "</div></div>";
+    }
+    return '<div style="padding:20px;border:1px solid var(--linea);border-radius:14px;background:#fff">' +
+      (c.titulo ? '<div style="font-weight:800;margin-bottom:8px">' + esc(c.titulo) + "</div>" : "") +
+      '<div style="color:#374151;line-height:1.75">' + (c.contenido || "") + "</div></div>";
+  }
+  function previewPagina() {
+    var bloques = (paginaCache && paginaCache.bloques) || [];
+    if (!bloques.length) return '<div class="empty">La página aún no tiene bloques personalizados. Añade uno abajo.</div>';
+    return bloques.map(function (b) {
+      var ancho = b.config && b.config.ancho ? Math.min(100, Math.max(40, Number(b.config.ancho))) : 100;
+      return '<div style="margin-bottom:18px"><div style="max-width:' + ancho + '%;margin:0 auto">' + previewRealBloque(b) + "</div>" +
+        '<div style="text-align:center;font-size:.74rem;color:var(--gris);margin-top:6px">' + esc(tipoL(b.tipo)) + " · ancho " + ancho + "%</div></div>";
+    }).join("");
+  }
+
   var paginaCache = null;
   async function renderConstructor() {
     var cont = $("#contenido");
@@ -1390,8 +1435,18 @@
     var bloques = (paginaCache && paginaCache.bloques) || [];
     cont.innerHTML =
       '<div class="card"><div class="toolbar">' +
+        '<button class="btn btn--ghost" id="btn-toggle-preview"><i class="bi bi-eye"></i> Vista previa</button>' +
         '<button class="btn" id="btn-add-bloque"><i class="bi bi-plus-lg"></i> Añadir bloque</button>' +
+        '<a class="btn btn--ghost" href="../index.html" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Ver tienda</a>' +
         '<span class="muted" style="margin-left:auto">Los cambios se ven en la tienda en tiempo real (sin publicar).</span>' +
+      "</div></div>" +
+      '<div class="card" id="ctor-preview-card"' + (constructorVerPreview ? "" : " hidden") + ">" +
+        '<h2>Estructura actual de la página</h2><p class="muted">Así se ven los bloques personalizados dentro de la home, en este orden (el ancho de cada bloque ya está aplicado).</p>' +
+        '<div id="ctor-preview">' + previewPagina() + "</div>" +
+      "</div>" +
+      '<div class="card"><div class="toolbar">' +
+        '<button class="btn btn--sm btn--ghost" id="btn-add-bloque2"><i class="bi bi-plus-lg"></i> Añadir bloque</button>' +
+        '<span class="muted">Usa ↑↓ para reordenar · ✏ para editar · 🗑 para eliminar.</span>' +
       "</div>" +
       (bloques.length
         ? bloques.map(function (b, i) {
@@ -1410,7 +1465,13 @@
         : '<div class="empty">Sin bloques todavía. Añade uno para empezar a personalizar la home.</div>') +
       "</div>";
 
+    $("#btn-toggle-preview").onclick = function () {
+      constructorVerPreview = !constructorVerPreview;
+      var pc = $("#ctor-preview-card");
+      if (pc) pc.hidden = !constructorVerPreview;
+    };
     $("#btn-add-bloque").onclick = function () { elegirTipoBloque(); };
+    var btnAdd2 = $("#btn-add-bloque2"); if (btnAdd2) btnAdd2.onclick = function () { elegirTipoBloque(); };
     $$("[data-subir]", cont).forEach(function (b) { b.onclick = function () { moverBloque(+b.getAttribute("data-subir"), -1); }; });
     $$("[data-bajar]", cont).forEach(function (b) { b.onclick = function () { moverBloque(+b.getAttribute("data-bajar"), 1); }; });
     $$("[data-editar]", cont).forEach(function (b) { b.onclick = function () { formBloque(+b.getAttribute("data-editar")); }; });

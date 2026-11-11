@@ -148,6 +148,9 @@ ul{margin:0;padding:0;list-style:none}
   font-size:.7rem;font-weight:800;border:2px solid #fff;font-family:var(--fuente)}
 .ek-action__count.bump{animation:ek-pop .5s ease}
 .ek-burger{display:none}
+/* Botón de cuenta / inicio de sesión en la cabecera */
+.ek-action--cuenta{width:auto;height:46px;padding:0 16px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:700}
+.ek-action--cuenta .ek-cuenta-nombre{max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* =========================== 6. NAVEGACIÓN =========================== */
 .ek-navbar{background:#fff;border-bottom:1px solid var(--linea);position:sticky;top:var(--ek-h);z-index:55}
@@ -967,6 +970,8 @@ body.ek-lock{overflow:hidden}
   .ek-logo img{height:54px;max-width:170px}
   .ek-logo{padding-block:2px}
   .ek-action{width:42px;height:42px;font-size:1.1rem}
+  .ek-action--cuenta{width:42px;height:42px;padding:0}
+  .ek-action--cuenta .ek-cuenta-nombre{display:none}
   .ek-nav__link{padding:12px 12px;font-size:.88rem}
 }
 
