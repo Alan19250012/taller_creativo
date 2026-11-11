@@ -210,6 +210,12 @@
   }
   function initGlobal() {
     pintarContador(false);
+    // Logo y favicon desde la configuración (se cambian desde el panel)
+    if (C.logo) $$(".ek-logo img").forEach(function (img) { img.src = C.logo; });
+    if (C.favicon32 || C.favicon) {
+      var fav = document.querySelector("link[rel='icon']");
+      if (fav) fav.href = C.favicon32 || C.favicon;
+    }
     var hd = $(".ek-header"), bar = $("#ek-progressbar"), top = $("#ek-totop");
 
     /* Mide la cabecera real para que la barra de categorías quede justo debajo.
@@ -1055,8 +1061,8 @@
       if (!aside) return;
       var html = "";
       /* --- Categorías con sus subcategorías (acordeón) --- */
-      var temps = CATS.filter(function (c) { return c.g === "temporada"; });
-      var prods = CATS.filter(function (c) { return c.g === "producto"; });
+      var temps = CATS.filter(function (c) { return c.g === "temporada" && c.sidebar !== false; });
+      var prods = CATS.filter(function (c) { return c.g === "producto" && c.sidebar !== false; });
       html += '<div class="ek-side"><div class="ek-side__hd">Temporada <i class="bi bi-chevron-down"></i></div><div class="ek-side__bd">' +
         acordeonCategorias("filtro", temps) + "</div></div>";
       html += '<div class="ek-side"><div class="ek-side__hd">Tipo de producto <i class="bi bi-chevron-down"></i></div><div class="ek-side__bd">' +
@@ -1652,8 +1658,8 @@
       '<button class="ek-action" data-toggle-sidebar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button></div>' +
       '<div class="ek-side__tope"><i class="bi bi-grid-3x3-gap-fill"></i> Todas las categorías' +
         '<span class="ek-cat__c">' + P.length + "</span></div>" +
-      bloque(CATS.filter(function (c) { return c.g === "temporada"; }), "Por temporada") +
-      bloque(CATS.filter(function (c) { return c.g === "producto"; }), "Por tipo de producto") +
+      bloque(CATS.filter(function (c) { return c.g === "temporada" && c.sidebar !== false; }), "Por temporada") +
+      bloque(CATS.filter(function (c) { return c.g === "producto" && c.sidebar !== false; }), "Por tipo de producto") +
       '<div class="ek-side"><div class="ek-side__hd">Ayuda <i class="bi bi-chevron-down"></i></div><div class="ek-side__bd">' +
         '<a class="ek-cat" href="tienda.html"><span class="ek-cat__e">🛍️</span> Todo el catálogo</a>' +
         '<a class="ek-cat" href="tienda.html?etiqueta=promo"><span class="ek-cat__e">🔥</span> Ofertas</a>' +

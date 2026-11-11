@@ -574,18 +574,48 @@
     try {
       categoriasCache = await supa("GET", "/rest/v1/Categoria?select=*&order=orden.asc");
       cont.innerHTML =
-        '<div class="card"><div class="toolbar"><button class="btn" id="btn-nueva-cat"><i class="bi bi-plus-lg"></i> Nueva categoría</button></div>' +
-        '<table><thead><tr><th>Nombre</th><th>Grupo</th><th>Nav</th><th>Orden</th><th></th></tr></thead><tbody>' +
+        '<div class="card"><div class="toolbar"><button class="btn" id="btn-nueva-cat"><i class="bi bi-plus-lg"></i> Nueva categoría</button>' +
+        '<span class="muted">Usa ↑↓ para ordenar; activa "Menú" o "Lateral" para mostrar la categoría en cada barra.</span></div>' +
+        '<table><thead><tr><th>Nombre</th><th>Grupo</th><th>Menú</th><th>Lateral</th><th>Orden</th><th></th></tr></thead><tbody>' +
         categoriasCache.map(function (c) {
           return "<tr><td><b>" + esc(c.nombre) + "</b> " + esc(c.emoji || "") + '<br><small class="muted">' + esc(c.slug) + "</small></td>" +
             "<td>" + (c.grupo === "temporada" ? "🎄 Temporada" : "🛍 Producto") + "</td>" +
-            "<td>" + (c.enNav ? '<span class="badge badge--on">Sí</span>' : '<span class="badge badge--off">No</span>') + "</td>" +
-            "<td>" + c.orden + "</td>" +
+            '<td><button class="btn btn--sm ' + (c.enNav ? "btn--ok" : "btn--ghost") + '" data-toggle="enNav" data-id="' + c.id + '">' + (c.enNav ? "Sí" : "No") + "</button></td>" +
+            '<td><button class="btn btn--sm ' + (c.enSidebar !== false ? "btn--ok" : "btn--ghost") + '" data-toggle="enSidebar" data-id="' + c.id + '">' + (c.enSidebar !== false ? "Sí" : "No") + "</button></td>" +
+            '<td><button class="btn btn--ghost btn--sm" data-mover="' + c.id + '" data-dir="-1"><i class="bi bi-arrow-up"></i></button>' +
+            '<button class="btn btn--ghost btn--sm" data-mover="' + c.id + '" data-dir="1"><i class="bi bi-arrow-down"></i></button></td>' +
             '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + c.id + '"><i class="bi bi-pencil"></i></button>' +
             '<button class="btn btn--ghost btn--sm" data-del="' + c.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
         }).join("") + "</tbody></table></div>";
       $("#btn-nueva-cat").onclick = function () { formCategoria(null); };
       $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formCategoria(b.getAttribute("data-edit")); }; });
+      $$("[data-toggle]", cont).forEach(function (b) {
+        b.onclick = async function () {
+          var id = b.getAttribute("data-id"), campo = b.getAttribute("data-toggle");
+          var c = categoriasCache.find(function (x) { return x.id === id; });
+          if (!c) return;
+          var nuevo = !(c[campo] !== false);
+          try {
+            var d = {}; d[campo] = nuevo;
+            await supa("PATCH", "/rest/v1/Categoria?id=eq." + id, d);
+            toast("Categoría actualizada"); renderCategorias();
+          } catch (e) { toast(e.message, false); }
+        };
+      });
+      $$("[data-mover]", cont).forEach(function (b) {
+        b.onclick = async function () {
+          var id = b.getAttribute("data-mover"), dir = +b.getAttribute("data-dir");
+          var idx = categoriasCache.findIndex(function (x) { return x.id === id; });
+          var j = idx + dir;
+          if (j < 0 || j >= categoriasCache.length) return;
+          var tmp = categoriasCache[idx].orden; categoriasCache[idx].orden = categoriasCache[j].orden; categoriasCache[j].orden = tmp;
+          try {
+            await supa("PATCH", "/rest/v1/Categoria?id=eq." + categoriasCache[idx].id, { orden: categoriasCache[idx].orden });
+            await supa("PATCH", "/rest/v1/Categoria?id=eq." + categoriasCache[j].id, { orden: categoriasCache[j].orden });
+            renderCategorias();
+          } catch (e) { toast(e.message, false); }
+        };
+      });
       $$("[data-del]", cont).forEach(function (b) {
         b.onclick = async function () {
           if (!confirm("¿Eliminar esta categoría?")) return;
@@ -612,6 +642,7 @@
       fld("Descripción", area("descripcion", c ? c.descripcion : "", 2)) +
       fld("Palabras clave (imágenes)", input("keywords", c ? c.keywords : "")) +
       check("enNav", c ? c.enNav !== false : true, "Mostrar en la barra de navegación") +
+      check("enSidebar", c ? c.enSidebar !== false : true, "Mostrar en la barra lateral") +
       check("activo", c ? c.activo !== false : true, "Activa") +
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
@@ -623,7 +654,7 @@
         nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")),
         descripcion: f.get("descripcion") || null, grupo: f.get("grupo"), emoji: f.get("emoji") || "🎁",
         epoca: f.get("epoca") || null, orden: Number(f.get("orden")) || 0,
-        keywords: f.get("keywords") || null, enNav: !!f.get("enNav"), activo: !!f.get("activo"),
+        keywords: f.get("keywords") || null, enNav: !!f.get("enNav"), enSidebar: !!f.get("enSidebar"), activo: !!f.get("activo"),
       };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
       try {
@@ -1330,7 +1361,13 @@
         if (m.tipo === "bool") return '<div class="field"><label>' + esc(m.label) + "</label>" + check(m.clave, v === "true", "Activado") + "</div>";
         return fld(m.label, '<input name="' + m.clave + '" type="' + (m.tipo === "number" ? "number" : "text") + '" value="' + esc(v) + '">');
       }).join("");
-      cont.innerHTML = '<form id="f-conf"><div class="card"><h2>Datos de la tienda</h2><p class="muted">Estos valores se aplican a la interfaz al publicar.</p>' + campos +
+      cont.innerHTML = '<form id="f-conf">' +
+        '<div class="card"><h2>Logo y favicon</h2><p class="muted">Súbelos desde aquí; se aplican en la tienda al publicar.</p>' +
+          '<div class="row">' +
+            '<div class="field"><label>Logo</label><input type="file" id="up-logo" accept="image/*"><small class="hint" id="logo-estado"></small></div>' +
+            '<div class="field"><label>Favicon (ícono de la pestaña)</label><input type="file" id="up-favicon" accept="image/*"><small class="hint" id="favicon-estado"></small></div>' +
+          '</div></div>' +
+        '<div class="card"><h2>Datos de la tienda</h2><p class="muted">Estos valores se aplican a la interfaz al publicar.</p>' + campos +
         '<div class="modal__ft" style="margin-top:18px"><button class="btn btn--rojo" type="submit"><i class="bi bi-check-lg"></i> Guardar configuración</button></div></div></form>';
       $("#f-conf").addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -1349,6 +1386,31 @@
           toast("Configuración guardada. Pulsa 'Publicar cambios' para aplicarla a la tienda.");
         } catch (err) { toast(err.message, false); }
       });
+      // Subida de logo y favicon
+      function subirLogoFavicon(input, estadoId, camposDestino) {
+        var file = input.files[0];
+        if (!file) return;
+        var estado = $("#" + estadoId);
+        if (estado) estado.textContent = "Subiendo…";
+        var lector = new FileReader();
+        lector.onload = async function () {
+          try {
+            var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "logo" }) });
+            var d = await res.json();
+            if (d.ok && d.url) {
+              camposDestino.forEach(function (n) {
+                var inp = document.querySelector('#f-conf [name="' + n + '"]');
+                if (inp) inp.value = d.url;
+              });
+              if (estado) estado.textContent = "✔ Subido";
+            } else if (estado) estado.textContent = "Error: " + (d.error || "desconocido");
+          } catch (e) { if (estado) estado.textContent = "Error de conexión"; }
+        };
+        lector.readAsDataURL(file);
+      }
+      var upLogo = $("#up-logo"), upFav = $("#up-favicon");
+      if (upLogo) upLogo.addEventListener("change", function () { subirLogoFavicon(upLogo, "logo-estado", ["logo"]); });
+      if (upFav) upFav.addEventListener("change", function () { subirLogoFavicon(upFav, "favicon-estado", ["favicon", "favicon32", "appleIcon"]); });
     } catch (e) { cont.innerHTML = errCard(e); }
   }
 

@@ -163,7 +163,8 @@ async function main() {
   // ---- ek-data.js ----
   const categoriasJS = categorias.map((c) => ({
     s: c.slug, n: c.nombre, g: c.grupo || "producto", e: c.emoji || "🎁",
-    orden: c.orden, nav: c.enNav !== false, kw: c.keywords || "", d: c.descripcion || "",
+    orden: c.orden, nav: c.enNav !== false, sidebar: c.enSidebar !== false,
+    kw: c.keywords || "", d: c.descripcion || "",
     epoca: c.epoca || undefined,
   }));
 
