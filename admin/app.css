@@ -168,6 +168,11 @@ textarea { min-height: 90px; resize: vertical; }
 .var-row { display: grid; grid-template-columns: 1fr 1fr 80px 90px 40px; gap: 8px; margin-bottom: 8px; align-items: center; }
 .var-row input { padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; }
 
+/* Bloques del constructor visual */
+.ctor-item { border: 1px solid var(--linea); border-radius: 12px; padding: 12px; margin-bottom: 14px; background: #fff; }
+.ctor-preview { margin-bottom: 10px; }
+.ctor-bar { display: flex; align-items: center; gap: 8px; }
+
 /* Bloques del blog (texto/imagen) */
 .blq { border: 1px solid var(--linea); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #fff; }
 .blq-head { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }

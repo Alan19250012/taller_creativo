@@ -1213,6 +1213,36 @@
     var t = c.titulo || c.subtitulo || c.boton || "";
     return t ? esc(t).slice(0, 60) : "—";
   }
+  // Vista previa en miniatura de cada bloque (para verlo antes de editar)
+  function previewBloque(b) {
+    var c = b.config || {};
+    var tema = c.tema || "oscuro";
+    function grad() {
+      return tema === "azul" ? "#244093,#162a66" : tema === "rojo" ? "#DA1D2A,#a31420" : "#1c2333,#0f1420";
+    }
+    if (b.tipo === "hero" || b.tipo === "promo") {
+      return '<div style="border-radius:10px;padding:16px;color:#fff;background:linear-gradient(120deg,' + grad() + ')">' +
+        (c.etiqueta ? '<small style="opacity:.85">' + esc(c.etiqueta) + "</small><br>" : "") +
+        '<b style="font-size:1.1rem">' + esc(c.titulo || "Título") + "</b>" +
+        (c.subtitulo ? '<div style="font-size:.85rem;opacity:.92;margin-top:2px">' + esc(c.subtitulo) + "</div>" : "") +
+        (c.boton ? '<span style="display:inline-block;background:#fff;color:#1c2333;padding:4px 10px;border-radius:6px;font-size:.8rem;margin-top:8px">' + esc(c.boton) + "</span>" : "") +
+        "</div>";
+    }
+    if (b.tipo === "productos") {
+      return '<div style="border:1px solid var(--linea);border-radius:10px;padding:12px;background:#fafbfc">' +
+        '<b>' + esc(c.titulo || "Destacados") + "</b><br>" +
+        '<small class="muted">Muestra ' + (c.limite || 8) + " productos" +
+          (c.categoria ? " de <b>" + esc(c.categoria) + "</b>" : "") + (c.subcategoria ? " (" + esc(c.subcategoria) + ")" : "") + "</small></div>";
+    }
+    if (b.tipo === "categorias") {
+      return '<div style="border:1px solid var(--linea);border-radius:10px;padding:12px;background:#fafbfc">' +
+        '<b>' + esc(c.titulo || "Categorías") + "</b><br>" +
+        '<small class="muted">Grupo <b>' + esc(c.grupo || "todas") + "</b> · " + (c.limite || 10) + " categorías</small></div>";
+    }
+    return '<div style="border:1px solid var(--linea);border-radius:10px;padding:12px;background:#fafbfc">' +
+      (c.titulo ? "<b>" + esc(c.titulo) + "</b><br>" : "") +
+      '<small class="muted">' + esc(String(c.contenido || "").replace(/<[^>]+>/g, "").slice(0, 90)) + "</small></div>";
+  }
 
   var paginaCache = null;
   async function renderConstructor() {
@@ -1239,13 +1269,16 @@
       "</div>" +
       (bloques.length
         ? bloques.map(function (b, i) {
-            return '<div class="ek-row" style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--linea)">' +
-              '<i class="bi ' + (tipoIcono(b.tipo) || "bi-bounding-box") + '" style="font-size:1.2rem;color:var(--azul)"></i>' +
-              '<div style="flex:1"><b>' + esc(tipoL(b.tipo)) + '</b><br><small class="muted">' + resumenBloque(b) + "</small></div>" +
-              '<button class="btn btn--ghost btn--sm" data-subir="' + i + '"' + (i === 0 ? " disabled" : "") + '><i class="bi bi-arrow-up"></i></button>' +
-              '<button class="btn btn--ghost btn--sm" data-bajar="' + i + '"' + (i === bloques.length - 1 ? " disabled" : "") + '><i class="bi bi-arrow-down"></i></button>' +
-              '<button class="btn btn--ghost btn--sm" data-editar="' + i + '"><i class="bi bi-pencil"></i></button>' +
-              '<button class="btn btn--ghost btn--sm" data-del-bloque="' + i + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button>' +
+            return '<div class="ctor-item">' +
+              '<div class="ctor-preview">' + previewBloque(b) + "</div>" +
+              '<div class="ctor-bar">' +
+                '<i class="bi ' + (tipoIcono(b.tipo) || "bi-bounding-box") + '" style="color:var(--azul)"></i>' +
+                '<div style="flex:1"><b>' + esc(tipoL(b.tipo)) + '</b> <small class="muted">· ' + resumenBloque(b) + "</small></div>" +
+                '<button class="btn btn--ghost btn--sm" data-subir="' + i + '"' + (i === 0 ? " disabled" : "") + ' title="Subir"><i class="bi bi-arrow-up"></i></button>' +
+                '<button class="btn btn--ghost btn--sm" data-bajar="' + i + '"' + (i === bloques.length - 1 ? " disabled" : "") + ' title="Bajar"><i class="bi bi-arrow-down"></i></button>' +
+                '<button class="btn btn--ghost btn--sm" data-editar="' + i + '" title="Editar"><i class="bi bi-pencil"></i></button>' +
+                '<button class="btn btn--ghost btn--sm" data-del-bloque="' + i + '" style="color:var(--rojo)" title="Eliminar"><i class="bi bi-trash3"></i></button>' +
+              "</div>" +
             "</div>";
           }).join("")
         : '<div class="empty">Sin bloques todavía. Añade uno para empezar a personalizar la home.</div>') +
