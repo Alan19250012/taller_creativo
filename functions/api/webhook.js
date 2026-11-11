@@ -137,10 +137,13 @@ export async function onRequestPost(context) {
         } catch (e) { /* sin enlace por correo */ }
       }
 
+      // Código único de pedido (generado automáticamente)
+      const codigo = "EK-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+
       // 2) Pedido en Supabase
       const pedidoRows = await pg(env, "Pedido", "POST", {
         cliente, estado: "PAGADO", subtotal: total, impuesto: 0, envio: 0, total,
-        metodoPago: "Tarjeta (Stripe)", direccionEnvio: dir, usuarioId, telefono,
+        metodoPago: "Tarjeta (Stripe)", direccionEnvio: dir, usuarioId, telefono, codigo,
       });
       const pedidoId = pedidoRows && pedidoRows[0] && pedidoRows[0].id;
 

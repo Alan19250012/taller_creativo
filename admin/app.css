@@ -168,8 +168,10 @@ textarea { min-height: 90px; resize: vertical; }
 .gal-item--vacio:hover { border-color: var(--azul); color: var(--azul); }
 
 /* Filas de variantes (talla | color | stock | precio) */
-.var-row { display: grid; grid-template-columns: 1fr 1fr 80px 90px 40px; gap: 8px; margin-bottom: 8px; align-items: center; }
+.var-row { display: grid; grid-template-columns: 1fr 1fr 70px 80px 84px 40px; gap: 8px; margin-bottom: 8px; align-items: center; }
 .var-row input { padding: 8px 10px; border: 1px solid var(--linea); border-radius: 8px; font: inherit; }
+.var-img { display: flex; align-items: center; }
+.var-img .btn { padding: 4px 8px; }
 
 /* Bloques del constructor visual */
 .ctor-item { border: 1px solid var(--linea); border-radius: 12px; padding: 12px; margin-bottom: 14px; background: #fff; }

@@ -243,24 +243,45 @@
     pintar();
     return { getUrls: function () { return lista.filter(Boolean); } };
   }
-  // Editor de variantes (talla | color | stock | precio) en filas, sin escribir comas ni pipes.
+  // Editor de variantes (talla | color | stock | precio | foto) en filas.
   function initVariantes(variantesIniciales) {
     var cont = $("#variantes");
     if (!cont) return { getValor: function () { return []; } };
     var lista = (variantesIniciales || []).map(function (v) {
-      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "" };
+      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "", imagen: v.imagen || "" };
     });
     function pintar() {
       cont.innerHTML = lista.map(function (v, i) {
+        var mini = v.imagen
+          ? '<img src="' + esc(v.imagen) + '" style="width:30px;height:30px;object-fit:cover;border-radius:6px" alt="">'
+          : '<i class="bi bi-image"></i>';
         return '<div class="var-row" data-i="' + i + '">' +
           '<input class="var-talla" placeholder="Talla" value="' + esc(v.talla) + '">' +
           '<input class="var-color" placeholder="Color" value="' + esc(v.color) + '">' +
           '<input class="var-stock" type="number" placeholder="Stock" value="' + esc(v.stock) + '">' +
           '<input class="var-precio" type="number" placeholder="Precio" value="' + esc(v.precio) + '">' +
+          '<div class="var-img">' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-foto="' + i + '" title="Foto de esta talla/color">' + mini + "</button>" +
+            '<input type="file" class="var-file" accept="image/*" data-i="' + i + '" hidden>' +
+            '<input type="hidden" class="var-imagen" value="' + esc(v.imagen) + '">' +
+          "</div>" +
           '<button type="button" class="btn btn--sm btn--ghost" data-quitar="' + i + '" style="color:var(--rojo)" title="Quitar"><i class="bi bi-x-lg"></i></button>' +
           "</div>";
       }).join("") +
         '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar variante</button>';
+    }
+    function subirFoto(idx, file) {
+      if (!file) return;
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "variantes" }) });
+          var d = await res.json();
+          if (d.ok && d.url) { lista[idx].imagen = d.url; pintar(); }
+          else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
     }
     cont.addEventListener("input", function (e) {
       var fila = e.target.closest(".var-row");
@@ -274,14 +295,21 @@
     cont.addEventListener("click", function (e) {
       var b = e.target.closest("button");
       if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "" }); pintar(); }
+      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", imagen: "" }); pintar(); }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+      else if (b.hasAttribute("data-foto")) { cont.querySelector('.var-file[data-i="' + b.getAttribute("data-foto") + '"]').click(); }
+    });
+    cont.addEventListener("change", function (e) {
+      var f = e.target.closest(".var-file");
+      if (!f) return;
+      subirFoto(+f.getAttribute("data-i"), f.files[0]);
+      f.value = "";
     });
     pintar();
     return {
       getValor: function () {
         return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
-          return { talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null };
+          return { talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null, imagen: v.imagen || null };
         });
       },
     };
@@ -492,7 +520,7 @@
     if (p) {
       actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=B&A=eq." + p.id).catch(function () { return []; }))
         .map(function (r) { return r.B; });
-      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio&productoId=eq." + p.id).catch(function () { return []; });
+      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,imagen&productoId=eq." + p.id).catch(function () { return []; });
     }
     var variantesTxt = variantes.map(function (v) { return [v.talla || "", v.color || "", v.stock, v.precio || ""].join(" | "); }).join("\n");
     var body =
@@ -631,7 +659,7 @@
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
         var varRows = variantesEditor ? variantesEditor.getValor() : [];
         for (var j = 0; j < varRows.length; j++) {
-          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio });
+          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, imagen: varRows[j].imagen || null });
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");
         renderProductos();
@@ -1090,7 +1118,7 @@
         var prodTxt = d.productosTxt || "—";
         if (prodTxt.length > 70) prodTxt = prodTxt.slice(0, 70) + "…";
         var cls = p.estado === "ENTREGADO" ? "on" : (p.estado === "CANCELADO" ? "off" : (p.estado === "ENVIADO" ? "env" : "pend"));
-        return "<tr><td><small class='muted'>#" + esc(String(p.id).slice(0, 8)) + "</small><br><b>" + fecha(p.creadoEn) + "</b></td>" +
+        return "<tr><td><small class='muted'>" + esc(p.codigo || ("#" + String(p.id).slice(0, 8))) + "</small><br><b>" + fecha(p.creadoEn) + "</b></td>" +
           "<td>" + esc(p.cliente || "—") + "</td>" +
           "<td>" + esc(d.telefono || "—") + "</td>" +
           "<td><small>" + esc(prodTxt) + "</small>" + (d.personalizado ? " <span class='tag'>✨ Personalizado</span>" : "") + "</td>" +
@@ -1114,7 +1142,7 @@
     var items = await supa("GET", "/rest/v1/DetallePedido?select=*&pedidoId=eq." + id).catch(function () { return []; });
     var d = datosPedido(p);
     var body =
-      '<p class="muted"><b>Pedido #' + esc(String(id).slice(0, 8)) + "</b> · " + fecha(p.creadoEn) + "</p>" +
+      '<p class="muted"><b>Pedido ' + esc(p.codigo || ("#" + String(id).slice(0, 8))) + "</b> · " + fecha(p.creadoEn) + "</p>" +
       '<div class="row">' +
         fld("Cliente", input("cliente", p.cliente || "")) +
         '<div class="field"><label>Estado</label>' + select("estado", ESTADOS.map(function (e) { return { v: e, l: e }; }), p.estado) + "</div>" +
@@ -1157,7 +1185,7 @@
     try {
       var [usuarios, pedidos] = await Promise.all([
         supa("GET", "/rest/v1/Usuario?select=id,nombre,email,rol,telefono,activo&order=creadoEn.desc"),
-        supa("GET", "/rest/v1/Pedido?select=id,usuarioId,estado,total,creadoEn&order=creadoEn.desc"),
+        supa("GET", "/rest/v1/Pedido?select=id,usuarioId,estado,total,creadoEn,codigo&order=creadoEn.desc"),
       ]);
       // Las cuentas de administrador se gestionan en Configuración, no aquí.
       clientesCache = usuarios.filter(function (u) { return u.rol !== "ADMINISTRADOR"; });
@@ -1226,7 +1254,7 @@
         ? '<table><thead><tr><th>Pedido</th><th>Fecha</th><th>Estado</th><th>Total</th><th></th></tr></thead><tbody>' +
           res.pedidos.map(function (p) {
             var cls = p.estado === "ENTREGADO" ? "on" : (p.estado === "CANCELADO" ? "off" : (p.estado === "ENVIADO" ? "env" : "pend"));
-            return "<tr><td><small class='muted'>#" + esc(String(p.id).slice(0, 8)) + "</small></td><td>" + fecha(p.creadoEn) + "</td>" +
+            return "<tr><td><small class='muted'>" + esc(p.codigo || ("#" + String(p.id).slice(0, 8))) + "</small></td><td>" + fecha(p.creadoEn) + "</td>" +
               '<td><span class="badge badge--' + cls + '">' + esc(p.estado) + "</span></td><td>" + money(p.total) + "</td>" +
               '<td><button class="btn btn--ghost btn--sm" data-ver-pedido="' + p.id + '"><i class="bi bi-eye"></i></button></td></tr>';
           }).join("") + "</tbody></table>"

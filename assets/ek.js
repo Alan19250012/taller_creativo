@@ -1396,7 +1396,8 @@
 
     /* Interacciones */
     var talla = p.t[0], color = p.col[0];
-    // Variante seleccionada (stock y precio por talla/color, si están definidos)
+    var mainDefault = imgURL(p, 0, 900);
+    // Variante seleccionada (stock, precio y foto por talla/color, si están definidos)
     function varianteSeleccionada() {
       var vs = p.variantes || [];
       for (var i = 0; i < vs.length; i++) {
@@ -1406,6 +1407,8 @@
     }
     function actualizarStockUI() {
       var v = varianteSeleccionada();
+      var mimg = document.getElementById("ek-main-img");
+      if (mimg) mimg.src = (v && v.imagen) ? v.imagen : mainDefault;
       if (!v) return;
       var max = document.getElementById("ek-live-max");
       if (max) max.textContent = "Máx. " + nf(v.stock);
@@ -1424,6 +1427,8 @@
     $$("#ek-colores .ek-chip").forEach(function (b) {
       b.onclick = function () { $$("#ek-colores .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); color = b.getAttribute("data-c"); $("#ek-color-sel").textContent = color; actualizarStockUI(); };
     });
+    // Aplica la variante inicial (stock, precio y foto) si coincide con la selección por defecto.
+    actualizarStockUI();
     $$("[data-q]").forEach(function (b) {
       b.onclick = function () { var i = $("#ek-cant"), v = Math.max(1, Math.min(p.st || 1, (+i.value || 1) + (+b.getAttribute("data-q")))); i.value = v; };
     });
@@ -1811,9 +1816,14 @@
     });
   }
 
-  /* ---- Acceso de usuarios (cuenta) ---- */
+  /* ---- Acceso de usuarios (cuenta + registro) ---- */
   function usuarioLogueado() {
     try { var j = localStorage.getItem("ek_usuario"); return j ? JSON.parse(j) : null; } catch (e) { return null; }
+  }
+  function guardarSesion(u, token) {
+    localStorage.setItem("ek_rol", u.rol);
+    localStorage.setItem("ek_usuario", JSON.stringify(u));
+    if (token) localStorage.setItem("ek_token", token);
   }
   function initCuenta() {
     var acciones = $(".ek-actions");
@@ -1824,27 +1834,43 @@
     boton.className = "ek-action ek-action--cuenta";
     var nombre = u && u.nombre ? u.nombre.trim().split(/\s+/)[0] : "";
     boton.innerHTML = '<i class="bi bi-' + (u ? "person-check" : "person") + '"></i><span class="ek-cuenta-nombre">' + (u ? esc(nombre) : "Iniciar sesión") + "</span>";
-    boton.title = u ? ("Sesión de " + u.nombre + " · clic para cerrar") : "Iniciar sesión";
-    boton.onclick = function () { if (u) logoutCuenta(); else abrirLogin(); };
+    boton.title = u ? ("Cuenta de " + u.nombre + " · ir a mi cuenta") : "Iniciar sesión";
+    boton.onclick = function () { if (u) location.href = "cuenta.html"; else abrirLogin(); };
     acciones.insertBefore(boton, acciones.firstChild);
   }
   function abrirLogin() {
     var m = document.createElement("div");
     m.style.cssText = "position:fixed;inset:0;background:rgba(16,24,40,.65);z-index:99999;display:grid;place-items:center;padding:20px";
-    m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:26px;width:100%;max-width:360px;box-shadow:0 24px 60px rgba(0,0,0,.35)">' +
-      '<h3 style="margin:0 0 4px">Iniciar sesión</h3>' +
-      '<p style="color:#6b7280;font-size:.9rem;margin:0 0 16px">Entra con tu cuenta para ver tus precios y dar seguimiento a tus pedidos.</p>' +
+    m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:26px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.35)">' +
+      '<h3 style="margin:0 0 4px" id="dk-titulo">Iniciar sesión</h3>' +
+      '<p style="color:#6b7280;font-size:.9rem;margin:0 0 16px" id="dk-sub">Entra con tu cuenta para ver tus precios y dar seguimiento a tus pedidos.</p>' +
+      '<div id="dk-reg" style="display:none">' +
+        '<input id="dk-nombre" type="text" placeholder="Nombre" autocomplete="name" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;font:inherit">' +
+        '<input id="dk-tel" type="tel" placeholder="Teléfono (opcional)" autocomplete="tel" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;font:inherit">' +
+      "</div>" +
       '<input id="dk-email" type="email" placeholder="Correo" autocomplete="username" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:10px;font:inherit">' +
       '<input id="dk-pass" type="password" placeholder="Contraseña" autocomplete="current-password" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;margin-bottom:14px;font:inherit">' +
       '<div id="dk-err" style="color:#DA1D2A;font-size:.85rem;margin-bottom:10px"></div>' +
       '<button id="dk-enter" style="width:100%;background:#DA1D2A;color:#fff;border:0;padding:12px;border-radius:8px;font-weight:700;cursor:pointer;font:inherit">Entrar</button>' +
+      '<div style="text-align:center;margin-top:10px;font-size:.88rem"><a href="#" id="dk-cambia" style="color:#244093;font-weight:700;text-decoration:none">Crear cuenta</a></div>' +
       '<button id="dk-close" style="width:100%;background:none;border:0;padding:8px;color:#6b7280;margin-top:4px;cursor:pointer;font:inherit">Cancelar</button>' +
       "</div>";
     document.body.appendChild(m);
+    var modo = "login";
+    function pintarModo() {
+      var reg = modo === "registro";
+      m.querySelector("#dk-titulo").textContent = reg ? "Crear cuenta" : "Iniciar sesión";
+      m.querySelector("#dk-sub").textContent = reg ? "Regístrate para dar seguimiento a tus pedidos." : "Entra con tu cuenta para ver tus precios y dar seguimiento a tus pedidos.";
+      m.querySelector("#dk-reg").style.display = reg ? "block" : "none";
+      m.querySelector("#dk-enter").textContent = reg ? "Registrarme" : "Entrar";
+      m.querySelector("#dk-cambia").textContent = reg ? "Inicia sesión" : "Crear cuenta";
+    }
+    m.querySelector("#dk-cambia").onclick = function (e) { e.preventDefault(); modo = modo === "login" ? "registro" : "login"; pintarModo(); m.querySelector("#dk-err").textContent = ""; };
     m.onclick = function (e) { if (e.target === m) m.remove(); };
     m.querySelector("#dk-close").onclick = function () { m.remove(); };
-    m.querySelector("#dk-enter").onclick = function () { entrarCuenta(m); };
-    m.querySelector("#dk-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") entrarCuenta(m); });
+    m.querySelector("#dk-enter").onclick = function () { if (modo === "login") entrarCuenta(m); else registrarCuenta(m); };
+    m.querySelector("#dk-pass").addEventListener("keydown", function (e) { if (e.key === "Enter") { if (modo === "login") entrarCuenta(m); else registrarCuenta(m); } });
+    pintarModo();
     var inp = m.querySelector("#dk-email"); if (inp) inp.focus();
   }
   async function entrarCuenta(m) {
@@ -1857,17 +1883,35 @@
       var res = await fetch("/api/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: email, password: pass }) });
       var d = await res.json();
       if (!d.ok || !d.usuario) { err.textContent = d.error || "Correo o contraseña incorrectos"; return; }
-      localStorage.setItem("ek_rol", d.usuario.rol);
-      localStorage.setItem("ek_usuario", JSON.stringify(d.usuario));
+      guardarSesion(d.usuario, d.token);
+      location.reload();
+    } catch (e) { err.textContent = "Error de conexión"; }
+  }
+  async function registrarCuenta(m) {
+    var nombre = (m.querySelector("#dk-nombre").value || "").trim();
+    var email = (m.querySelector("#dk-email").value || "").trim();
+    var tel = (m.querySelector("#dk-tel").value || "").trim();
+    var pass = m.querySelector("#dk-pass").value || "";
+    var err = m.querySelector("#dk-err");
+    err.textContent = "";
+    if (!nombre || !email || !pass) { err.textContent = "Completa nombre, correo y contraseña"; return; }
+    try {
+      var res = await fetch("/api/registro", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nombre: nombre, email: email, telefono: tel, password: pass }) });
+      var d = await res.json();
+      if (!d.ok || !d.usuario) { err.textContent = d.error || "No se pudo crear la cuenta"; return; }
+      guardarSesion(d.usuario, d.token);
       location.reload();
     } catch (e) { err.textContent = "Error de conexión"; }
   }
   function logoutCuenta() {
-    if (!confirm("¿Cerrar sesión?")) return;
     localStorage.removeItem("ek_rol");
     localStorage.removeItem("ek_usuario");
-    location.reload();
+    localStorage.removeItem("ek_token");
+    location.href = "index.html";
   }
+  window.EK_logout = logoutCuenta;
+  window.EK_addCart = addCart;
+  window.EK_abrirLogin = abrirLogin;
 
   function arrancar() {
     initGlobal();

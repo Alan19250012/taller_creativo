@@ -40,6 +40,6 @@ export async function onRequestPost(context) {
   return cors(json({
     ok: true,
     token,
-    usuario: { id: data.id, nombre: data.nombre, email: data.email, rol: data.rol },
+    usuario: { id: data.id, nombre: data.nombre, email: data.email, rol: data.rol, telefono: data.telefono || null },
   }));
 }

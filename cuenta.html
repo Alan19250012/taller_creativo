@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mi cuenta · Taller Creativo EK</title>
+<meta name="description" content="Revisa tu historial de pedidos, tu carrito y vuelve a pedir tus artículos favoritos.">
+<meta name="robots" content="index,follow">
+<meta name="author" content="Taller Creativo EK">
+<meta name="theme-color" content="#DA1D2A">
+<meta name="ek-version" content="ff14695883-2026-10-05">
+<link rel="canonical" href="https://tallercreativoek.com/cuenta.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Taller Creativo EK">
+<meta property="og:title" content="Mi cuenta · Taller Creativo EK">
+<meta property="og:description" content="Historial de pedidos y carrito.">
+<meta property="og:image" content="img/banner/og-taller-creativo-ek.jpg">
+<meta property="og:url" content="https://tallercreativoek.com/cuenta.html">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="icon" href="img/favicon/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="img/favicon/favicon-32x32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="img/favicon/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+<link rel="preload" href="assets/ek.css?v=ff14695883" as="style">
+<link rel="stylesheet" href="assets/ek.css?v=ff14695883">
+</head><body>
+
+<div id="ek-progressbar" class="ek-progressbar"></div>
+<button class="ek-totop" id="ek-totop" aria-label="Volver arriba"><i class="bi bi-arrow-up"></i></button>
+
+<div class="ek-topbar">
+  <div class="ek-topbar__track" id="ek-cinta">
+    <span class="ek-topbar__item">🎄 Navidad · Nov-Dic</span>
+    <span class="ek-topbar__item">🚚 Envío gratis desde $999</span>
+    <span class="ek-topbar__item">🎓 Promo graduación: 1 pin gratis por oso</span>
+    <span class="ek-topbar__item">🎁 Botella personalizada + llavero GRATIS</span>
+  </div>
+</div>
+
+<header class="ek-header">
+  <div class="ek-container ek-header__inner">
+    <a class="ek-logo" href="index.html" aria-label="Taller Creativo EK, inicio">
+      <img src="img/logo/logo-taller-creativo-ek.png" alt="Taller Creativo EK" width="116" height="54" onerror="this.onerror=null;this.src='https://placehold.co/300x140/DA1D2A/FFFFFF?text=Taller+Creativo+EK'">
+    </a>
+    <form class="ek-search" data-buscador role="search" action="tienda.html" method="get">
+      <i class="bi bi-search ek-search__ico"></i>
+      <input type="search" name="q" placeholder="Buscar: porta uvas, oso de graduación, taza mágica…" aria-label="Buscar artículos" autocomplete="off">
+      <button class="ek-search__btn" type="submit">Buscar</button>
+    </form>
+    <div class="ek-actions">
+      <a class="ek-action" href="https://wa.me/525562208987" target="_blank" rel="noopener" title="WhatsApp" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+      <a class="ek-action" href="tienda.html?fav=1" title="Mis favoritos" aria-label="Favoritos"><i class="bi bi-heart"></i><span class="ek-action__count ek-hide" data-fav-count>0</span></a>
+      <a class="ek-action" href="carrito.html" title="Carrito" aria-label="Carrito"><i class="bi bi-cart3"></i><span class="ek-action__count ek-hide" data-cart-count>0</span></a>
+      <button class="ek-action ek-burger" data-toggle-sidebar aria-label="Menú de categorías"><i class="bi bi-list"></i></button>
+    </div>
+  </div>
+</header>
+
+<nav class="ek-navbar" aria-label="Categorías principales">
+  <div class="ek-container ek-navbar__inner">
+    <button class="ek-navarrow" id="ek-nav-prev" type="button" aria-label="Desplazar categorías a la izquierda"><i class="bi bi-chevron-left"></i></button>
+    <div class="ek-navwrap">
+      <div class="ek-navscroll" id="ek-navscroll">
+        <div class="ek-nav__item"><a class="ek-nav__link" href="index.html">🎨 Inicio</a></div>
+        <div class="ek-nav__item"><a class="ek-nav__link" href="tienda.html">🛍️ Todo el catálogo</a></div>
+        <div class="ek-nav__item"><a class="ek-nav__link" href="contacto.html">📞 Contacto</a></div>
+      </div>
+    </div>
+    <button class="ek-navarrow" id="ek-nav-next" type="button" aria-label="Desplazar categorías a la derecha"><i class="bi bi-chevron-right"></i></button>
+  </div>
+</nav>
+
+<div class="ek-overlay" id="ek-overlay"></div>
+
+<main>
+  <div class="ek-container" style="padding-top:22px">
+    <nav class="ek-crumbs" aria-label="Ruta">
+      <a href="index.html">Inicio</a> <i class="bi bi-chevron-right"></i> <span>Mi cuenta</span>
+    </nav>
+
+    <div class="ek-between" style="margin:8px 0 22px;gap:14px;flex-wrap:wrap">
+      <div>
+        <span class="ek-sec__kicker">Mi cuenta</span>
+        <h1 style="font-size:clamp(1.6rem,3.4vw,2.4rem);margin:0">Hola, <span id="cuenta-nombre">…</span> 👋</h1>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <a class="ek-btn ek-btn--ghost" href="carrito.html"><i class="bi bi-cart3"></i> Mi carrito</a>
+        <button class="ek-btn ek-btn--rojo" id="cuenta-logout" type="button"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
+      </div>
+    </div>
+
+    <div class="ek-grid ek-grid--3" id="cuenta-datos" style="margin-bottom:24px"></div>
+
+    <h2 style="margin:0 0 14px">Mis pedidos 🧾</h2>
+    <div id="cuenta-pedidos"></div>
+  </div>
+</main>
+
+<footer class="ek-footer">
+  <div class="ek-container">
+    <div class="ek-footer__cta" data-aos="zoom-in">
+      <div>
+        <h3>¿Listo para tu pedido?</h3>
+        <p>Te contestamos en minutos por WhatsApp con precio, tiempo de entrega y vista previa de tu diseño.</p>
+      </div>
+      <a class="ek-btn ek-btn--blanco ek-btn--lg" href="https://wa.me/525562208987?text=Hola%2C%20quiero%20hacer%20un%20pedido" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Escribir por WhatsApp</a>
+    </div>
+    <div class="ek-footer__cols">
+      <div class="ek-footer__col">
+        <div class="ek-footer__logo">
+          <img src="img/logo/logo-taller-creativo-ek.png" alt="Taller Creativo EK" width="116" height="54">
+        </div>
+        <p style="font-size:.9rem">Detalles personalizados que dejan huella. Decoración en MDF, impresión DTF UV y regalos hechos a mano en México.</p>
+        <div class="ek-social">
+          <a class="wa" href="https://wa.me/525562208987" target="_blank" rel="noopener" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <a class="fb" href="https://www.facebook.com/Reqr2" target="_blank" rel="noopener" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+          <a class="ig" href="https://www.instagram.com/tallercreativoek" target="_blank" rel="noopener" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+          <a class="ml" href="mailto:tallercreativoek@gmail.com" aria-label="Correo"><i class="bi bi-envelope-fill"></i></a>
+        </div>
+      </div>
+      <div class="ek-footer__col">
+        <h4>Temporada</h4>
+        <ul>
+          <li><a href="categoria.html?cat=navidad">🎄 Navidad</a></li>
+          <li><a href="categoria.html?cat=ano-nuevo">🍇 Año Nuevo</a></li>
+          <li><a href="categoria.html?cat=amor-amistad">💘 Amor y Amistad</a></li>
+          <li><a href="categoria.html?cat=graduacion">🎓 Graduación</a></li>
+          <li><a href="categoria.html?cat=dia-madres">💐 Día de las Madres</a></li>
+        </ul>
+      </div>
+      <div class="ek-footer__col">
+        <h4>Productos</h4>
+        <ul>
+          <li><a href="categoria.html?cat=mdf">🪵 Decoración MDF</a></li>
+          <li><a href="categoria.html?cat=dtf-uv">🖨️ DTF UV y Maquila</a></li>
+          <li><a href="categoria.html?cat=tazas-termos">☕ Tazas y Termos</a></li>
+          <li><a href="categoria.html?cat=lamparas">💡 Lámparas LED</a></li>
+          <li><a href="tienda.html">🛍️ Todo el catálogo</a></li>
+        </ul>
+      </div>
+      <div class="ek-footer__col">
+        <h4>Contacto</h4>
+        <ul>
+          <li><a href="https://wa.me/525562208987" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> +52 556 220 8987</a></li>
+          <li><a href="mailto:tallercreativoek@gmail.com"><i class="bi bi-envelope"></i> tallercreativoek@gmail.com</a></li>
+          <li><i class="bi bi-clock"></i> Lun a Sáb · 9:00 a 19:00 h</li>
+          <li><i class="bi bi-geo-alt"></i> Ciudad de México · Envíos a todo el país</li>
+        </ul>
+      </div>
+    </div>
+    <div class="ek-footer__bottom">
+      <span>© <span id="ek-anio">2025</span> Taller Creativo EK · Todos los derechos reservados.</span>
+      <div class="ek-pay"><span>SPEI</span><span>Mercado Pago</span><span>Clip</span><span>Visa</span><span>Mastercard</span><span>Efectivo</span><span>3, 6 y 9 MSI</span></div>
+    </div>
+    <div class="ek-legal">
+      Los precios están expresados en pesos mexicanos (MXN) e incluyen impuestos. Taller Creativo EK · Ciudad de México, México.
+    </div>
+  </div>
+</footer>
+
+<a class="ek-wa-float" href="https://wa.me/525562208987?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20productos" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <i class="bi bi-whatsapp"></i><span>¿Te ayudamos?</span>
+</a>
+
+<script src="assets/ek-config.js?v=ff14695883" defer></script>
+<script src="assets/ek-imagenes.js?v=ff14695883" defer></script>
+<script src="assets/ek-subcategorias.js?v=ff14695883" defer></script>
+<script src="assets/ek-data.js?v=ff14695883" defer></script>
+<script src="assets/ek-blog-data.js?v=ff14695883" defer></script>
+<script src="assets/ek-blog.js?v=ff14695883" defer></script>
+<script src="assets/ek-supabase.js?v=ff14695883" defer></script>
+<script src="assets/ek-live.js?v=ff14695883" defer></script>
+<script src="assets/ek.js?v=ff14695883" defer></script>
+
+<script>
+(function () {
+  "use strict";
+  function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); }
+  function money(n) { return "$" + Number(n || 0).toLocaleString("es-MX"); }
+  function fecha(iso) {
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleString("es-MX", { day: "2-digit", month: "short", year: "numeric" }); }
+    catch (e) { return iso; }
+  }
+
+  var u = null, token = "";
+  try {
+    u = JSON.parse(localStorage.getItem("ek_usuario") || "null");
+    token = localStorage.getItem("ek_token") || "";
+  } catch (e) { }
+
+  var nombreEl = document.getElementById("cuenta-nombre");
+  var datosEl = document.getElementById("cuenta-datos");
+  var pedidosEl = document.getElementById("cuenta-pedidos");
+
+  var lo = document.getElementById("cuenta-logout");
+  if (lo) lo.onclick = function () { if (window.EK_logout) window.EK_logout(); };
+
+  if (!u || !token) {
+    if (nombreEl) nombreEl.textContent = "";
+    if (datosEl) datosEl.innerHTML =
+      '<div class="ek-buy" style="grid-column:1/-1"><i class="bi bi-person-lock" style="font-size:1.9rem;color:var(--azul)"></i>' +
+      '<h3 style="margin-top:10px">No has iniciado sesión</h3>' +
+      '<p class="ek-muted" style="font-size:.92rem">Inicia sesión o crea tu cuenta para ver tu historial de pedidos y volver a pedir.</p>' +
+      '<button class="ek-btn ek-btn--rojo" id="cuenta-login" type="button"><i class="bi bi-box-arrow-in-right"></i> Iniciar sesión / registrarme</button></div>';
+    if (pedidosEl) pedidosEl.innerHTML = "";
+    var lb = document.getElementById("cuenta-login");
+    if (lb) lb.onclick = function () { if (window.EK_abrirLogin) window.EK_abrirLogin(); };
+    return;
+  }
+
+  if (nombreEl) nombreEl.textContent = u.nombre || "";
+  if (datosEl) datosEl.innerHTML =
+    '<div class="ek-buy"><i class="bi bi-envelope" style="font-size:1.7rem;color:var(--rojo)"></i><h3>Correo</h3><p class="ek-muted">' + esc(u.email || "—") + '</p></div>' +
+    '<div class="ek-buy"><i class="bi bi-telephone" style="font-size:1.7rem;color:var(--wa-osc, #128C7E)"></i><h3>Teléfono</h3><p class="ek-muted">' + esc(u.telefono || "—") + '</p></div>' +
+    '<div class="ek-buy"><i class="bi bi-person-badge" style="font-size:1.7rem;color:var(--azul)"></i><h3>Rol</h3><p class="ek-muted">' + esc(u.rol || "Cliente") + '</p></div>';
+
+  fetch("/api/mis-pedidos", { headers: { authorization: "Bearer " + token } })
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      if (!d.ok) {
+        pedidosEl.innerHTML = '<div class="ek-empty"><p>La sesión venció. Vuelve a iniciar sesión.</p></div>';
+        return;
+      }
+      var pedidos = d.pedidos || [];
+      if (!pedidos.length) {
+        pedidosEl.innerHTML = '<div class="ek-empty"><i class="bi bi-receipt"></i><h3>Aún no tienes pedidos</h3>' +
+          '<p class="ek-muted">Cuando compres con tu cuenta, aquí verás tu historial.</p>' +
+          '<a class="ek-btn ek-btn--rojo" href="tienda.html"><i class="bi bi-bag"></i> Ver catálogo</a></div>';
+        return;
+      }
+      pedidosEl.innerHTML = pedidos.map(function (p) {
+        var items = (p.items || []).map(function (i) {
+          return '<div style="display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px dashed var(--linea)">' +
+            '<span>' + esc(i.nombre || "Artículo") + (i.talla ? ' <span class="ek-pill">' + esc(i.talla) + '</span>' : '') + ' × ' + i.cantidad + '</span>' +
+            '<b>' + money((i.precio || 0) * (i.cantidad || 1)) + '</b></div>';
+        }).join("");
+        return '<div class="ek-buy" style="margin-bottom:14px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">' +
+            '<b>' + esc(p.codigo || ("#" + String(p.id).slice(0, 8))) + '</b>' +
+            '<span class="ek-pill">' + esc(p.estado || "—") + '</span>' +
+          '</div>' +
+          '<p class="ek-muted" style="margin:4px 0 10px">' + fecha(p.creadoEn) + ' · Total ' + money(p.total) + '</p>' +
+          items +
+          '<div style="margin-top:12px">' +
+            '<button class="ek-btn ek-btn--rojo ek-btn--sm" data-reordenar="' + p.id + '" type="button"><i class="bi bi-arrow-repeat"></i> Pedir de nuevo</button>' +
+          '</div>' +
+        '</div>';
+      }).join("");
+
+      pedidosEl.querySelectorAll("[data-reordenar]").forEach(function (b) {
+        b.onclick = function () {
+          var ped = pedidos.find(function (x) { return x.id === b.getAttribute("data-reordenar"); });
+          if (!ped) return;
+          (ped.items || []).forEach(function (i) {
+            if (i.slug && window.EK_addCart) window.EK_addCart(i.slug, i.talla || "", "", i.cantidad || 1);
+          });
+          location.href = "carrito.html";
+        };
+      });
+    })
+    .catch(function () {
+      pedidosEl.innerHTML = '<div class="ek-empty"><p>Error de conexión.</p></div>';
+    });
+})();
+</script>
+</body>
+</html>
