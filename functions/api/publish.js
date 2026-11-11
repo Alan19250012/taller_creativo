@@ -10,7 +10,8 @@ export async function onRequestPost(context) {
   }
 
   if (!env.DEPLOY_HOOK_URL) {
-    return cors(json({ ok: false, error: "DEPLOY_HOOK_URL no está configurado" }, 500));
+    // En desarrollo local no hay Deploy Hook: regenera los archivos a mano.
+    return cors(json({ ok: false, error: "Sin Deploy Hook configurado. En local ejecuta: node build/sincronizar-supabase.mjs" }, 200));
   }
 
   try {

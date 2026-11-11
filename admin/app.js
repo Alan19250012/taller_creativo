@@ -203,11 +203,11 @@
     var lista = (urlsIniciales || []).slice(0, 5);
     function pintar() {
       cont.innerHTML = lista.map(function (u, i) {
-        if (!u) return '<div class="gal-item gal-item--vacio" data-i="' + i + '"><i class="bi bi-image"></i></div>' +
+        if (!u) return '<div class="gal-item gal-item--vacio" data-subir="' + i + '" title="Subir imagen" style="cursor:pointer"><i class="bi bi-cloud-arrow-up"></i><small>Subir</small></div>' +
           '<input type="file" accept="image/*" data-file="' + i + '" style="display:none">';
         return '<div class="gal-item" data-i="' + i + '"><img src="' + esc(u) + '" alt="Imagen ' + (i + 1) + '" onerror="this.style.opacity=.2">' +
           '<div class="gal-item__ops">' +
-            '<button type="button" class="btn btn--sm" data-subir="' + i + '" title="Subir"><i class="bi bi-upload"></i></button>' +
+            '<button type="button" class="btn btn--sm" data-subir="' + i + '" title="Reemplazar"><i class="bi bi-upload"></i></button>' +
             '<button type="button" class="btn btn--sm" data-quitar="' + i + '" title="Quitar" style="color:var(--rojo)"><i class="bi bi-x-lg"></i></button>' +
           "</div></div>" +
           '<input type="file" accept="image/*" data-file="' + i + '" style="display:none">';
@@ -229,11 +229,12 @@
       lector.readAsDataURL(file);
     }
     cont.addEventListener("click", function (e) {
+      var subir = e.target.closest("[data-subir]");
+      if (subir) { cont.querySelector('[data-file="' + subir.getAttribute("data-subir") + '"]').click(); return; }
       var b = e.target.closest("button");
       if (!b) return;
       if (b.hasAttribute("data-agregar")) { lista.push(""); pintar(); }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
-      else if (b.hasAttribute("data-subir")) { cont.querySelector('[data-file="' + b.getAttribute("data-subir") + '"]').click(); }
     });
     cont.addEventListener("change", function (e) {
       var f = e.target.closest("[data-file]");
@@ -957,27 +958,39 @@
       pintarClientes("TODOS", "");
     } catch (e) { cont.innerHTML = errCard(e); }
   }
+  function filaUsuario(u) {
+    return "<tr><td><b>" + esc(u.nombre) + "</b></td><td>" + esc(u.email) + "</td><td><span class='tag'>" + esc(u.rol) + "</span></td>" +
+      "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
+      '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
+      '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+  }
   function pintarClientes(filtro, q) {
     var cont = $("#contenido");
-    var lista = clientesCache.filter(function (u) {
+    // Administradores separados de clientes/distribuidores
+    var admins = clientesCache.filter(function (u) { return u.rol === "ADMINISTRADOR"; });
+    var noAdmins = clientesCache.filter(function (u) { return u.rol !== "ADMINISTRADOR"; });
+    var lista = noAdmins.filter(function (u) {
       if (filtro !== "TODOS" && u.rol !== filtro) return false;
       if (q && (u.nombre + " " + u.email).toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
       return true;
     });
+    var tablaAdmins = admins.length
+      ? '<div class="card"><h2>👑 Cuenta de administrador</h2><p class="muted">Solo quien administra la tienda.</p>' +
+        '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
+        admins.map(filaUsuario).join("") + "</tbody></table></div>"
+      : "";
     cont.innerHTML =
+      tablaAdmins +
       '<div class="card"><div class="toolbar">' +
         '<button class="btn" id="btn-nuevo-cli"><i class="bi bi-plus-lg"></i> Nuevo cliente</button>' +
         '<input type="search" id="q-clientes" placeholder="Buscar por nombre/correo…" value="' + esc(q) + '">' +
         '<span class="muted">Rol:</span>' +
-        '<select id="filtro-clientes" style="width:auto"><option value="TODOS">Todos</option>' + ROLES.map(function (r) { return '<option value="' + r + '">' + r + "</option>"; }).join("") + "</select>" +
+        '<select id="filtro-clientes" style="width:auto"><option value="TODOS">Todos</option>' +
+          '<option value="DISTRIBUIDOR">Distribuidores</option><option value="CLIENTE">Clientes</option>' +
+        "</select>" +
       "</div>" +
       '<table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
-      lista.map(function (u) {
-        return "<tr><td><b>" + esc(u.nombre) + "</b></td><td>" + esc(u.email) + "</td><td><span class='tag'>" + esc(u.rol) + "</span></td>" +
-          "<td>" + (u.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Inactivo</span>') + "</td>" +
-          '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + u.id + '"><i class="bi bi-pencil"></i></button>' +
-          '<button class="btn btn--ghost btn--sm" data-del="' + u.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
-      }).join("") + "</tbody></table></div>";
+      lista.map(filaUsuario).join("") + "</tbody></table></div>";
     $("#btn-nuevo-cli").onclick = function () { formCliente(null); };
     var sel = $("#filtro-clientes"), busq = $("#q-clientes");
     function refrescar() { pintarClientes(sel.value, busq.value); }
@@ -1205,8 +1218,13 @@
         '<div class="field"><label>Tema</label>' + select("tema", [{ v: "rojo", l: "Rojo" }, { v: "azul", l: "Azul" }, { v: "oscuro", l: "Oscuro" }], c.tema || "rojo") + "</div>";
     }
     var body = '<form id="f-bloque">' + cuerpo +
+      '<div class="field"><label>Ancho del bloque · <b id="bloque-ancho-val">' + (c.ancho || 100) + '%</b></label>' +
+      '<input type="range" name="ancho" id="bloque-ancho" min="40" max="100" step="5" value="' + (c.ancho || 100) + '">' +
+      '<span class="hint">Mínimo 40% · Máximo 100% (para que no se rompa la página).</span></div>' +
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar bloque</button></div></form>';
     modal((editando ? "Editar bloque · " : "Nuevo bloque · ") + tipoL(b.tipo), body);
+    var anchoEl = $("#bloque-ancho");
+    if (anchoEl) anchoEl.addEventListener("input", function () { $("#bloque-ancho-val").textContent = anchoEl.value + "%"; });
     $("#f-bloque").addEventListener("submit", function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
@@ -1216,6 +1234,7 @@
       if (b.tipo === "categorias") conf = { titulo: f.get("titulo") || "Categorías", grupo: f.get("grupo"), limite: Number(f.get("limite")) || 10 };
       if (b.tipo === "texto") conf = { titulo: f.get("titulo") || null, contenido: f.get("contenido") || "" };
       if (b.tipo === "promo") conf = { titulo: f.get("titulo"), subtitulo: f.get("subtitulo") || null, boton: f.get("boton") || null, enlace: f.get("enlace") || null, tema: f.get("tema") };
+      conf.ancho = Math.min(100, Math.max(40, Number(f.get("ancho")) || 100));
       if (!conf.titulo && (b.tipo === "hero" || b.tipo === "promo")) { toast("El título es obligatorio", false); return; }
       if (editando) paginaCache.bloques[index] = { tipo: b.tipo, config: conf };
       else paginaCache.bloques.push({ tipo: b.tipo, config: conf });

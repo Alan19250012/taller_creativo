@@ -160,7 +160,9 @@ textarea { min-height: 90px; resize: vertical; }
 .gal-item__ops { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(16,24,40,.55); opacity: 0; transition: opacity .15s; }
 .gal-item:hover .gal-item__ops { opacity: 1; }
 .gal-item__ops .btn { background: #fff; color: #1c2333; }
-.gal-item--vacio { display: grid; place-items: center; color: #9ca3af; font-size: 1.6rem; }
+.gal-item--vacio { display: grid; place-items: center; align-content: center; gap: 4px; color: #9ca3af; font-size: 1.4rem; }
+.gal-item--vacio small { font-size: .7rem; font-weight: 600; }
+.gal-item--vacio:hover { border-color: var(--azul); color: var(--azul); }
 
 /* Filas de variantes (talla | color | stock | precio) */
 .var-row { display: grid; grid-template-columns: 1fr 1fr 80px 90px 40px; gap: 8px; margin-bottom: 8px; align-items: center; }

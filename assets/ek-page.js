@@ -101,7 +101,11 @@
 
   function render(bloques) {
     inyectarEstilos();
-    cont.innerHTML = (bloques || []).map(function (b) { return (RENDER[b.tipo] || bTexto)(b); }).join("");
+    cont.innerHTML = (bloques || []).map(function (b) {
+      var html = (RENDER[b.tipo] || bTexto)(b);
+      var ancho = b.config && b.config.ancho ? Math.min(100, Math.max(40, Number(b.config.ancho))) : 100;
+      return '<div style="max-width:' + ancho + '%;margin:0 auto">' + html + "</div>";
+    }).join("");
     // Las tarjetas reutilizan .ek-reveal (ocultas hasta .is-in); como se pintan
     // después del arranque, las forzamos visibles.
     cont.querySelectorAll(".ek-reveal").forEach(function (el) { el.classList.add("is-in"); });
