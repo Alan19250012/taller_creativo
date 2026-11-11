@@ -286,6 +286,74 @@
       },
     };
   }
+  // Constructor por bloques para el blog (texto e imágenes)
+  function initBlogBloques(inicial) {
+    var cont = $("#blog-bloques");
+    if (!cont) return { getHTML: function () { return ""; }, getBloques: function () { return []; } };
+    var lista = (inicial || []).map(function (b) { return { tipo: b.tipo || "texto", texto: b.texto || "", url: b.url || "", alt: b.alt || "" }; });
+    function pintar() {
+      cont.innerHTML = lista.map(function (b, i) {
+        var cuerpo = b.tipo === "imagen"
+          ? '<div class="row"><div class="field"><label>URL de la imagen</label><input class="blq-url" value="' + esc(b.url) + '"></div>' +
+            '<div class="field"><label>Texto alternativo</label><input class="blq-alt" value="' + esc(b.alt) + '"></div></div>' +
+            '<div style="display:flex;align-items:center;gap:8px"><input type="file" class="blq-file" accept="image/*" style="display:none" data-i="' + i + '">' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-subir="' + i + '"><i class="bi bi-upload"></i> Subir imagen</button></div>' +
+            (b.url ? '<img src="' + esc(b.url) + '" style="max-width:160px;max-height:140px;display:block;margin-top:8px;border-radius:8px">' : "")
+          : '<textarea class="blq-texto" rows="4" placeholder="Escribe un párrafo…">' + esc(b.texto) + "</textarea>";
+        return '<div class="blq" data-i="' + i + '">' +
+          '<div class="blq-head"><b>' + (b.tipo === "imagen" ? "🖼 Imagen" : "📝 Texto") + "</b>" +
+            '<button type="button" class="btn btn--ghost btn--sm" data-mover="' + i + '" data-dir="-1"><i class="bi bi-arrow-up"></i></button>' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-mover="' + i + '" data-dir="1"><i class="bi bi-arrow-down"></i></button>' +
+            '<button type="button" class="btn btn--ghost btn--sm" data-del="' + i + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></div>' + cuerpo + "</div>";
+      }).join("") +
+        '<div style="display:flex;gap:8px;margin-top:10px">' +
+          '<button type="button" class="btn btn--sm btn--ghost" data-add="texto"><i class="bi bi-plus-lg"></i> Texto</button>' +
+          '<button type="button" class="btn btn--sm btn--ghost" data-add="imagen"><i class="bi bi-plus-lg"></i> Imagen</button>' +
+        "</div>";
+    }
+    function idx(el) { return +el.closest(".blq").getAttribute("data-i"); }
+    cont.addEventListener("input", function (e) {
+      if (e.target.classList.contains("blq-texto")) lista[idx(e.target)].texto = e.target.value;
+      else if (e.target.classList.contains("blq-url")) lista[idx(e.target)].url = e.target.value;
+      else if (e.target.classList.contains("blq-alt")) lista[idx(e.target)].alt = e.target.value;
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      if (b.hasAttribute("data-add")) { lista.push({ tipo: b.getAttribute("data-add"), texto: "", url: "", alt: "" }); pintar(); }
+      else if (b.hasAttribute("data-del")) { lista.splice(+b.getAttribute("data-del"), 1); pintar(); }
+      else if (b.hasAttribute("data-mover")) {
+        var i = +b.getAttribute("data-mover"), j = i + (+b.getAttribute("data-dir"));
+        if (j >= 0 && j < lista.length) { var t = lista[i]; lista[i] = lista[j]; lista[j] = t; pintar(); }
+      }
+      else if (b.hasAttribute("data-subir")) { cont.querySelector('.blq-file[data-i="' + b.getAttribute("data-subir") + '"]').click(); }
+    });
+    cont.addEventListener("change", function (e) {
+      var f = e.target.closest(".blq-file");
+      if (!f || !f.files[0]) return;
+      var i = +f.getAttribute("data-i");
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: f.files[0].name, tipo: "blog" }) });
+          var d = await res.json();
+          if (d.ok && d.url) { lista[i].url = d.url; pintar(); }
+          else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(f.files[0]);
+    });
+    pintar();
+    return {
+      getBloques: function () { return lista; },
+      getHTML: function () {
+        return lista.map(function (b) {
+          if (b.tipo === "imagen") return b.url ? '<p><img src="' + esc(b.url) + '" alt="' + esc(b.alt || "") + '" style="max-width:100%"></p>' : "";
+          return String(b.texto || "").split(/\n+/).filter(function (p) { return p.trim(); }).map(function (p) { return "<p>" + p + "</p>"; }).join("");
+        }).join("");
+      },
+    };
+  }
   function arrSplit(v) { return (v || []).join(", "); }
   function arrJoin(txt) {
     return String(txt || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
@@ -830,7 +898,7 @@
       '<div class="row"><div class="field"><label>Título *</label>' + input("titulo", a ? a.titulo : "") + "</div>" +
       '<div class="field"><label>Slug</label>' + input("slug", a ? a.slug : "") + "</div></div>" +
       fld("Resumen", area("resumen", a ? a.resumen : "", 2)) +
-      fld("Contenido (HTML)", area("contenido", a ? a.contenido : "", 12)) +
+      fld("Contenido <span class=hint>(agrega bloques de texto e imagen)</span>", '<div id="blog-bloques"></div>') +
       '<div class="row row--3">' +
         fld("Autor", input("autor", a ? a.autor : "Taller Creativo EK")) +
         fld("Categoría", input("categoria", a ? a.categoria : "")) +
@@ -844,12 +912,18 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(a ? "Editar artículo" : "Nuevo artículo", body);
+    // Constructor por bloques
+    var bloquesIniciales = a && a.bloques && a.bloques.length
+      ? a.bloques
+      : [{ tipo: "texto", texto: a && a.contenido ? a.contenido.replace(/<[^>]+>/g, "").trim() : "" }];
+    var editorBlog = initBlogBloques(bloquesIniciales);
     $("#f-blog").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
       var datos = {
         titulo: f.get("titulo"), slug: f.get("slug") || slugify(f.get("titulo")), resumen: f.get("resumen") || null,
-        contenido: f.get("contenido") || "", autor: f.get("autor") || null, categoria: f.get("categoria") || null,
+        contenido: editorBlog ? editorBlog.getHTML() : "", bloques: editorBlog ? editorBlog.getBloques() : [],
+        autor: f.get("autor") || null, categoria: f.get("categoria") || null,
         minutos: Number(f.get("minutos")) || 5, fecha: f.get("fecha") || null, keywords: f.get("keywords") || null,
         publicado: !!f.get("publicado"), actualizadoEn: new Date().toISOString(),
       };
