@@ -484,7 +484,7 @@
   }
 
   function cajaAutor(p) {
-    return '<div class="ek-card" style="max-width:760px;margin:22px auto 0">' +
+    return '<div class="ek-card" style="max-width:var(--blog-ancho,900px);margin:22px auto 0">' +
       '<div class="ek-card__body">' +
         '<div class="ek-row" style="gap:12px">' +
           '<span style="width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--degradado-2);color:#fff;font-weight:900;font-size:1.15rem;flex-shrink:0">EK</span>' +
