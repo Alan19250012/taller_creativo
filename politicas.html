@@ -77,12 +77,14 @@
   ];
   var cont = document.getElementById("politicas");
   if (cont) {
-    cont.innerHTML = SEC.map(function (s) {
+    var visibles = SEC.filter(function (s) { return C[s.clave + "_activa"] !== "false"; });
+    cont.innerHTML = visibles.map(function (s) {
       var contenido = C[s.clave] || ("<p>" + s.fallback + "</p>");
       return '<section id="' + s.id + '" class="ek-buy" style="margin-bottom:16px">' +
         '<h2 style="display:flex;align-items:center;gap:10px;font-size:1.25rem"><i class="bi ' + s.icono + '" style="color:var(--rojo)"></i> ' + s.titulo + "</h2>" +
         '<div style="color:#374151;line-height:1.75">' + contenido + "</div></section>";
     }).join("");
+    if (!visibles.length) cont.innerHTML = '<div class="ek-empty"><p>Pronto publicaremos nuestras políticas. Gracias por tu paciencia.</p></div>';
   }
 })();
 </script>

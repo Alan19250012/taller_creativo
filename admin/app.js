@@ -1802,6 +1802,32 @@
     politica_devoluciones: "<p>Aceptamos cambios por defecto de fabricación. Avísanos dentro de los 7 días posteriores a la entrega enviando una foto del producto. Los artículos personalizados no tienen devolución salvo defecto de fábrica.</p>",
     politica_terminos: "<p>Al realizar un pedido aceptas los términos y condiciones. Los precios están en pesos mexicanos e incluyen impuestos. Los artículos de temporada están sujetos a disponibilidad.</p>",
   };
+  function insertAtCursor(ta, txt) {
+    var s = ta.selectionStart || 0, e = ta.selectionEnd || 0;
+    ta.value = ta.value.slice(0, s) + txt + ta.value.slice(e);
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = s + txt.length;
+  }
+  function envolver(ta, antes, despues) {
+    var s = ta.selectionStart || 0, e = ta.selectionEnd || 0;
+    var sel = ta.value.slice(s, e) || "texto";
+    ta.value = ta.value.slice(0, s) + antes + sel + despues + ta.value.slice(e);
+    ta.focus();
+    ta.selectionStart = s + antes.length;
+    ta.selectionEnd = s + antes.length + sel.length;
+  }
+  function subirImagenPolitica(ta, file) {
+    var lector = new FileReader();
+    lector.onload = async function () {
+      try {
+        var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "politicas" }) });
+        var d = await res.json();
+        if (d.ok && d.url) insertAtCursor(ta, '\n<img src="' + d.url + '" alt="" style="max-width:100%;border-radius:8px">\n');
+        else toast(d.error || "Error al subir", false);
+      } catch (e) { toast("Error de conexión", false); }
+    };
+    lector.readAsDataURL(file);
+  }
   async function renderPoliticas() {
     var cont = $("#contenido");
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
@@ -1810,29 +1836,61 @@
       var mapa = {};
       config.forEach(function (c) { mapa[c.clave] = c.valor; });
       var campos = POLITICAS.map(function (p) {
+        var activa = mapa[p.clave + "_activa"] !== "false";
         return '<details open class="cfg-grupo"><summary><i class="bi bi-chevron-right"></i> ' + esc(p.label) + '</summary><div>' +
-          '<button type="button" class="btn btn--sm btn--ghost" data-plantilla="' + p.clave + '"><i class="bi bi-magic"></i> Cargar plantilla de ejemplo</button>' +
-          '<textarea name="' + p.clave + '" rows="8" style="margin-top:10px">' + esc(mapa[p.clave] || "") + "</textarea></div></details>";
+          '<label class="check"><input type="checkbox" name="' + p.clave + '_activa"' + (activa ? " checked" : "") + '> Mostrar esta política en la tienda</label>' +
+          '<div class="ph-bar">' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-b="<b>|</b>"><i class="bi bi-type-bold"></i></button>' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-b="<i>|</i>"><i class="bi bi-type-italic"></i></button>' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-b="<p>|</p>"><i class="bi bi-paragraph"></i></button>' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-b="<ul><li>|</li></ul>"><i class="bi bi-list-ul"></i></button>' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-imagen><i class="bi bi-image"></i> Imagen</button>' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-plantilla="' + p.clave + '"><i class="bi bi-magic"></i> Plantilla</button>' +
+          "</div>" +
+          '<textarea name="' + p.clave + '" rows="9">' + esc(mapa[p.clave] || "") + "</textarea>" +
+          '<input type="file" class="ph-file" accept="image/*" style="display:none">' +
+        "</div></details>";
       }).join("");
       cont.innerHTML = '<form id="f-politicas"><div class="card"><h2>Políticas de la tienda</h2>' +
-        '<p class="muted">Cada política se muestra en la página <b>/politicas.html</b> (enlazada desde el pie de página). Usa HTML o pega texto simple.</p>' + campos +
+        '<p class="muted">Se muestran en <b>/politicas.html</b> (pie de página). Usa los botones para dar formato o insertar imágenes.</p>' + campos +
         '<div class="modal__ft" style="margin-top:18px"><button class="btn btn--rojo" type="submit"><i class="bi bi-check-lg"></i> Guardar políticas</button></div></div></form>';
-      $$("[data-plantilla]", cont).forEach(function (b) {
-        b.onclick = function () {
-          var clave = b.getAttribute("data-plantilla");
-          var ta = cont.querySelector('textarea[name="' + clave + '"]');
-          if (ta) ta.value = PLANTILLAS_POLITICAS[clave] || "";
-        };
+
+      cont.addEventListener("click", function (e) {
+        var b = e.target.closest("button");
+        if (!b) return;
+        var det = b.closest("details");
+        var ta = det ? det.querySelector("textarea") : null;
+        if (b.hasAttribute("data-b") && ta) {
+          var partes = b.getAttribute("data-b").split("|");
+          envolver(ta, partes[0], partes[1] || "");
+        } else if (b.hasAttribute("data-imagen") && det) {
+          det.querySelector(".ph-file").click();
+        } else if (b.hasAttribute("data-plantilla") && ta) {
+          ta.value = PLANTILLAS_POLITICAS[b.getAttribute("data-plantilla")] || "";
+        }
       });
+      cont.addEventListener("change", function (e) {
+        var f = e.target.closest(".ph-file");
+        if (!f) return;
+        var det = f.closest("details");
+        var ta = det ? det.querySelector("textarea") : null;
+        if (ta && f.files[0]) { subirImagenPolitica(ta, f.files[0]); f.value = ""; }
+      });
+
       $("#f-politicas").addEventListener("submit", async function (e) {
         e.preventDefault();
         var f = new FormData(e.target);
         try {
           for (var i = 0; i < POLITICAS.length; i++) {
             var p = POLITICAS[i];
-            var existe = config.find(function (c) { return c.clave === p.clave; });
-            if (existe) await supa("PATCH", "/rest/v1/Configuracion?id=eq." + existe.id, { valor: f.get(p.clave) || "" });
-            else await supa("POST", "/rest/v1/Configuracion", { clave: p.clave, valor: f.get(p.clave) || "" });
+            var claves = [p.clave, p.clave + "_activa"];
+            for (var j = 0; j < claves.length; j++) {
+              var k = claves[j];
+              var val = k === p.clave ? (f.get(k) || "") : (f.get(k) ? "true" : "false");
+              var existe = config.find(function (c) { return c.clave === k; });
+              if (existe) await supa("PATCH", "/rest/v1/Configuracion?id=eq." + existe.id, { valor: val });
+              else await supa("POST", "/rest/v1/Configuracion", { clave: k, valor: val });
+            }
           }
           toast("Políticas guardadas. Pulsa 'Publicar cambios' para aplicarlas.");
         } catch (err) { toast(err.message, false); }
@@ -1930,6 +1988,129 @@
     });
   }
 
+  var editoresJSON = {};
+
+  function initEditorTalleres(mapa) {
+    var cont = $("#editor-talleres");
+    if (!cont) return;
+    var lista = [];
+    try { lista = JSON.parse(mapa.talleres || "[]"); } catch (e) { lista = []; }
+    if (!Array.isArray(lista)) lista = [];
+    function pintar() {
+      cont.innerHTML = lista.map(function (v, i) {
+        return '<div class="cfg-fila"><input class="talleres-val" data-i="' + i + '" value="' + esc(v) + '" placeholder="Ej. Ciudad de México">' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '"><i class="bi bi-x-lg"></i></button></div>';
+      }).join("") + '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar taller</button>';
+    }
+    cont.addEventListener("input", function (e) {
+      var t = e.target.closest(".talleres-val"); if (t) lista[+t.getAttribute("data-i")] = t.value;
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push(""); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+    });
+    pintar();
+    editoresJSON.talleres = { getJSON: function () { return JSON.stringify(lista.filter(function (x) { return String(x).trim() !== ""; })); } };
+  }
+
+  function initEditorHotlink(mapa) {
+    var cont = $("#editor-hotlink");
+    if (!cont) return;
+    var obj = {};
+    try { obj = JSON.parse(mapa.hotlink || "{}"); } catch (e) { obj = {}; }
+    var campos = [
+      { k: "base", l: "Base de imágenes (URL)", ph: "https://loremflickr.com" },
+      { k: "respaldo", l: "Respaldo (URL)", ph: "https://placehold.co" },
+      { k: "respaldoColor", l: "Color de respaldo", ph: "DA1D2A/FFFFFF" },
+      { k: "kwDefault", l: "Palabras clave por defecto", ph: "handmade,craft" },
+    ];
+    cont.innerHTML = campos.map(function (c) {
+      return '<div class="field"><label>' + esc(c.l) + '</label><input name="hotlink-' + c.k + '" value="' + esc(obj[c.k] || "") + '" placeholder="' + esc(c.ph) + '"></div>';
+    }).join("");
+    editoresJSON.hotlink = { getJSON: function () {
+      var out = {};
+      campos.forEach(function (c) { var v = cont.querySelector('[name="hotlink-' + c.k + '"]').value.trim(); if (v) out[c.k] = v; });
+      return JSON.stringify(out);
+    } };
+  }
+
+  function initEditorPagos(mapa) {
+    var cont = $("#editor-pagos");
+    if (!cont) return;
+    var obj = {};
+    try { obj = JSON.parse(mapa.pagos || "{}"); } catch (e) { obj = {}; }
+    var spei = obj.spei || {};
+    var metodos = Array.isArray(obj.metodos) ? obj.metodos.slice() : [];
+    if (!metodos.length) {
+      [["Mercado Pago", obj.mercadopago], ["Clip", obj.clip], ["PayPal", obj.paypal]].forEach(function (m) {
+        if (m[1]) metodos.push({ nombre: m[0], url: m[1] });
+      });
+    }
+    function pintar() {
+      var h = '<div class="field"><label>SPEI · Banco</label><input name="pagos-spei-banco" value="' + esc(spei.banco || "") + '"></div>' +
+        '<div class="row">' +
+          '<div class="field"><label>SPEI · Titular</label><input name="pagos-spei-titular" value="' + esc(spei.titular || "") + '"></div>' +
+          '<div class="field"><label>SPEI · CLABE</label><input name="pagos-spei-clabe" value="' + esc(spei.clabe || "") + '"></div>' +
+        "</div>" +
+        '<div class="field"><label>SPEI · Tarjeta</label><input name="pagos-spei-tarjeta" value="' + esc(spei.tarjeta || "") + '"></div>' +
+        '<div class="field"><label>Otros métodos de pago</label></div>';
+      metodos.forEach(function (m, i) {
+        h += '<div class="cfg-fila"><input class="pagos-m-nombre" data-i="' + i + '" value="' + esc(m.nombre || "") + '" placeholder="Nombre">' +
+          '<input class="pagos-m-url" data-i="' + i + '" value="' + esc(m.url || "") + '" placeholder="Enlace o descripción">' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '"><i class="bi bi-x-lg"></i></button></div>';
+      });
+      h += '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar método</button>';
+      cont.innerHTML = h;
+    }
+    cont.addEventListener("input", function (e) {
+      var t = e.target;
+      if (t.classList.contains("pagos-m-nombre")) metodos[+t.getAttribute("data-i")].nombre = t.value;
+      else if (t.classList.contains("pagos-m-url")) metodos[+t.getAttribute("data-i")].url = t.value;
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-agregar")) { metodos.push({ nombre: "", url: "" }); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { metodos.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+    });
+    pintar();
+    editoresJSON.pagos = { getJSON: function () {
+      function g(n) { var el = cont.querySelector('[name="' + n + '"]'); return el ? el.value.trim() : ""; }
+      return JSON.stringify({
+        spei: { banco: g("pagos-spei-banco"), titular: g("pagos-spei-titular"), clabe: g("pagos-spei-clabe"), tarjeta: g("pagos-spei-tarjeta") },
+        metodos: metodos.filter(function (m) { return (m.nombre || "").trim(); }),
+      });
+    } };
+  }
+
+  function initEditorFAQ(mapa) {
+    var cont = $("#editor-faq");
+    if (!cont) return;
+    var lista = [];
+    try { lista = JSON.parse(mapa.faq || "[]"); } catch (e) { lista = []; }
+    if (!Array.isArray(lista)) lista = [];
+    function pintar() {
+      cont.innerHTML = lista.map(function (f, i) {
+        return '<div class="cfg-faq" data-i="' + i + '">' +
+          '<input class="faq-p" data-i="' + i + '" value="' + esc(f.p || "") + '" placeholder="Pregunta">' +
+          '<textarea class="faq-r" data-i="' + i + '" rows="2" placeholder="Respuesta">' + esc(f.r || "") + '</textarea>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '" style="color:var(--rojo)"><i class="bi bi-x-lg"></i></button></div>';
+      }).join("") + '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar pregunta</button>';
+    }
+    cont.addEventListener("input", function (e) {
+      var p = e.target.closest(".faq-p"), r = e.target.closest(".faq-r");
+      if (p) lista[+p.getAttribute("data-i")].p = p.value;
+      if (r) lista[+r.getAttribute("data-i")].r = r.value;
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push({ p: "", r: "" }); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+    });
+    pintar();
+    editoresJSON.faq = { getJSON: function () { return JSON.stringify(lista.filter(function (f) { return (f.p || "").trim(); })); } };
+  }
+
   async function renderConfiguracion() {
     var cont = $("#contenido");
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
@@ -1945,7 +2126,12 @@
       function campoHTML(m) {
         var v = mapa[m.clave] !== undefined ? mapa[m.clave] : "";
         if (m.tipo === "area") return fld(m.label, '<textarea name="' + m.clave + '" rows="3">' + esc(v) + "</textarea>");
-        if (m.tipo === "json") return fld(m.label + " <span class=hint>(JSON válido)</span>", '<textarea name="' + m.clave + '" rows="5">' + esc(v) + "</textarea>");
+        if (m.tipo === "json") {
+          if (["pagos", "talleres", "hotlink", "faq"].indexOf(m.clave) > -1) {
+            return '<div class="field"><label>' + esc(m.label) + '</label><div id="editor-' + m.clave + '"></div><input type="hidden" name="' + m.clave + '"></div>';
+          }
+          return fld(m.label + " <span class=hint>(JSON válido)</span>", '<textarea name="' + m.clave + '" rows="5">' + esc(v) + "</textarea>");
+        }
         if (m.tipo === "bool") return '<div class="field"><label>' + esc(m.label) + "</label>" + check(m.clave, v === "true", "Activado") + "</div>";
         return fld(m.label, '<input name="' + m.clave + '" type="' + (m.tipo === "number" ? "number" : "text") + '" value="' + esc(v) + '">');
       }
@@ -1970,6 +2156,10 @@
         '<div class="card"><h2>Datos de la tienda</h2><p class="muted">Estos valores se aplican a la interfaz al publicar.</p>' + campos +
         '<div class="modal__ft" style="margin-top:18px"><button class="btn btn--rojo" type="submit"><i class="bi bi-check-lg"></i> Guardar configuración</button></div></div></form>';
       pintarAdmins();
+      initEditorTalleres(mapa);
+      initEditorHotlink(mapa);
+      initEditorPagos(mapa);
+      initEditorFAQ(mapa);
       $("#f-conf").addEventListener("submit", async function (e) {
         e.preventDefault();
         var f = new FormData(e.target);
@@ -1977,7 +2167,10 @@
           for (var i = 0; i < CFG_META.length; i++) {
             var m = CFG_META[i];
             var val = f.get(m.clave) || "";
-            if (m.tipo === "json") { try { val = JSON.stringify(JSON.parse(val)); } catch (err) { toast("JSON inválido en: " + m.clave, false); return; } }
+            if (m.tipo === "json") {
+              if (editoresJSON[m.clave]) val = editoresJSON[m.clave].getJSON();
+              else { try { val = JSON.stringify(JSON.parse(val)); } catch (err) { toast("JSON inválido en: " + m.clave, false); return; } }
+            }
             if (m.tipo === "number") val = String(Number(val) || 0);
             if (m.tipo === "bool") val = f.get(m.clave) ? "true" : "false";
             var existe = configCache.find(function (c) { return c.clave === m.clave; });
