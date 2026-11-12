@@ -500,6 +500,16 @@
     return n;
   }
 
+  /* ---- Franja superior (cinta de avisos) editable desde Configuración ---- */
+  function initCinta() {
+    var track = $("#ek-cinta");
+    if (!track) return;
+    var items = (C.cinta && C.cinta.length) ? C.cinta : null;
+    if (!items) return;   // si no hay avisos configurados, se mantiene el HTML fijo
+    var html = items.map(function (t) { return '<span class="ek-topbar__item">' + esc(t) + "</span>"; }).join("");
+    track.innerHTML = html + html;   // duplicado para que el bucle sea continuo
+  }
+
   /* ============ BARRA PRINCIPAL DESLIZABLE + SUBMENÚS ============
      Como la barra de Personal Creations: se arrastra, se desliza con las flechas
      y cada categoría principal abre su panel de SUBCATEGORÍAS.              */
@@ -1931,6 +1941,7 @@
 
   function arrancar() {
     initGlobal();
+    initCinta();
     initCuenta();
     initFAQ();
     initNav();

@@ -90,7 +90,7 @@ function badge(p) {
 }
 
 // Tipos de las claves de configuración (para reconstruir EK_CONFIG)
-const CFG_JSON = new Set(["pagos", "hotlink", "colores", "talleres"]);
+const CFG_JSON = new Set(["pagos", "hotlink", "colores", "talleres", "cinta"]);
 const CFG_NUM = new Set(["iva", "envio", "envioGratisDesde", "porPagina", "particulasMax"]);
 const CFG_BOOL = new Set(["particulas", "aos", "animaciones"]);
 function tipificar(clave, valor) {

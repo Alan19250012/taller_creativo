@@ -1954,6 +1954,7 @@
     { clave: "logo", label: "Ruta del logo", tipo: "text", g: "Identidad" },
     { clave: "favicon", label: "Favicon", tipo: "text", g: "Identidad" },
     { clave: "colores", label: "Colores de marca (JSON)", tipo: "json", g: "Identidad" },
+    { clave: "cinta", label: "Avisos de la barra superior (la que se mueve)", tipo: "json", g: "Barra superior" },
     { clave: "whatsapp", label: "WhatsApp (52 + 10 dígitos)", tipo: "text", g: "Contacto" },
     { clave: "whatsappBonito", label: "WhatsApp (formato bonito)", tipo: "text", g: "Contacto" },
     { clave: "email", label: "Correo principal", tipo: "text", g: "Contacto" },
@@ -2060,6 +2061,31 @@
     });
     pintar();
     editoresJSON.talleres = { getJSON: function () { return JSON.stringify(lista.filter(function (x) { return String(x).trim() !== ""; })); } };
+  }
+
+  function initEditorCinta(mapa) {
+    var cont = $("#editor-cinta");
+    if (!cont) return;
+    var lista = [];
+    try { lista = JSON.parse(mapa.cinta || "[]"); } catch (e) { lista = []; }
+    if (!Array.isArray(lista)) lista = [];
+    function pintar() {
+      cont.innerHTML = lista.map(function (v, i) {
+        return '<div class="cfg-fila"><input class="cinta-val" data-i="' + i + '" value="' + esc(v) + '" placeholder="Ej. 🎄 Navidad · Nov-Dic">' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '"><i class="bi bi-x-lg"></i></button></div>';
+      }).join("") + '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar aviso</button>' +
+      '<p class="hint" style="margin-top:6px">Estos textos se muestran deslizándose en la franja superior de la tienda.</p>';
+    }
+    cont.addEventListener("input", function (e) {
+      var t = e.target.closest(".cinta-val"); if (t) lista[+t.getAttribute("data-i")] = t.value;
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push(""); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+    });
+    pintar();
+    editoresJSON.cinta = { getJSON: function () { return JSON.stringify(lista.filter(function (x) { return String(x).trim() !== ""; })); } };
   }
 
   function initEditorHotlink(mapa) {
@@ -2175,7 +2201,7 @@
         var v = mapa[m.clave] !== undefined ? mapa[m.clave] : "";
         if (m.tipo === "area") return fld(m.label, '<textarea name="' + m.clave + '" rows="3">' + esc(v) + "</textarea>");
         if (m.tipo === "json") {
-          if (["pagos", "talleres", "hotlink", "faq"].indexOf(m.clave) > -1) {
+          if (["pagos", "talleres", "hotlink", "faq", "cinta"].indexOf(m.clave) > -1) {
             return '<div class="field"><label>' + esc(m.label) + '</label><div id="editor-' + m.clave + '"></div><input type="hidden" name="' + m.clave + '"></div>';
           }
           return fld(m.label + " <span class=hint>(JSON válido)</span>", '<textarea name="' + m.clave + '" rows="5">' + esc(v) + "</textarea>");
@@ -2208,6 +2234,7 @@
       initEditorHotlink(mapa);
       initEditorPagos(mapa);
       initEditorFAQ(mapa);
+      initEditorCinta(mapa);
       $("#f-conf").addEventListener("submit", async function (e) {
         e.preventDefault();
         var f = new FormData(e.target);
