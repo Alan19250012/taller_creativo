@@ -1593,6 +1593,20 @@
   }
 
   var constructorVerPreview = true;
+  var constructorCats = [];
+  var constructorProds = [];
+  var constructorProdCats = {};   // productoId → [catSlug]
+  var constructorProdSubs = {};   // productoId → [subSlug]
+
+  function previewProducto(p) {
+    var img = (p.imagenes && p.imagenes[0]) || p.imagen || "";
+    return '<div style="border:1px solid var(--linea);border-radius:10px;overflow:hidden;background:#fff">' +
+      (img ? '<div style="aspect-ratio:1;background:#eef0f5"><img src="' + esc(img) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'"></div>'
+           : '<div style="aspect-ratio:1;display:grid;place-items:center;color:var(--gris);font-size:1.4rem"><i class="bi bi-box-seam"></i></div>') +
+      '<div style="padding:8px"><div style="font-size:.78rem;font-weight:600;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(p.nombre) + '</div>' +
+      '<div style="color:var(--rojo);font-weight:800;font-size:.82rem">$' + Number(p.precioMinorista || 0).toLocaleString("es-MX") + '</div></div></div>';
+  }
+
   // Vista previa en tamaño real de cada bloque (así se verá en la tienda).
   function previewRealBloque(b) {
     var c = b.config || {};
@@ -1609,18 +1623,33 @@
         "</div>";
     }
     if (b.tipo === "productos") {
-      var n = Number(c.limite) || 8, cards = "", i;
-      for (i = 0; i < Math.min(n, 8); i++) cards += '<div style="border:1px dashed var(--linea);border-radius:10px;padding:14px;text-align:center;color:var(--gris)"><i class="bi bi-box-seam" style="font-size:1.5rem"></i><div style="font-size:.8rem;margin-top:4px">Producto</div></div>';
+      var n = Number(c.limite) || 8;
+      var lista = constructorProds.filter(function (p) {
+        var cats = constructorProdCats[p.id] || [];
+        var subs = constructorProdSubs[p.id] || [];
+        if (c.categoria && cats.indexOf(c.categoria) === -1) return false;
+        if (c.subcategoria && subs.indexOf(c.subcategoria) === -1) return false;
+        return true;
+      }).sort(function (a, x) { return (x.vendidos || 0) - (a.vendidos || 0); }).slice(0, Math.min(n, 8));
+      var cards = lista.map(previewProducto).join("") ||
+        '<div style="grid-column:1/-1;color:var(--gris);font-size:.85rem;padding:10px">Sin productos en este filtro.</div>';
       return '<div style="padding:20px;border:1px solid var(--linea);border-radius:14px;background:#fafbfc">' +
-        '<div style="font-weight:800;margin-bottom:14px">' + esc(c.titulo || "Productos") + ' <small class="muted">· muestra ' + n + " producto(s)</small></div>" +
+        '<div style="font-weight:800;margin-bottom:14px">' + esc(c.titulo || "Productos") + ' <small class="muted">· ' + lista.length + ' producto(s)</small></div>' +
         '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">' + cards + "</div></div>";
     }
     if (b.tipo === "categorias") {
-      var n2 = Number(c.limite) || 10, cats = "", j;
-      for (j = 0; j < Math.min(n2, 6); j++) cats += '<div style="border:1px dashed var(--linea);border-radius:10px;padding:16px;text-align:center;color:var(--gris)"><i class="bi bi-tag" style="font-size:1.5rem"></i><div style="font-size:.8rem;margin-top:4px">Categoría</div></div>';
+      var n2 = Number(c.limite) || 10;
+      var listaC = constructorCats.filter(function (x) {
+        return !(c.grupo && c.grupo !== "todas" && x.grupo !== c.grupo);
+      }).sort(function (a, x) { return (a.orden || 0) - (x.orden || 0); }).slice(0, Math.min(n2, 6));
+      var tiles = listaC.map(function (x) {
+        return '<div style="border:1px solid var(--linea);border-radius:10px;overflow:hidden;background:#fff">' +
+          (x.imagen ? '<div style="aspect-ratio:16/10;background:#eef0f5"><img src="' + esc(x.imagen) + '" alt="" style="width:100%;height:100%;object-fit:cover;display:block" onerror="this.style.display=\'none\'"></div>' : "") +
+          '<div style="padding:8px;text-align:center;font-size:.82rem;font-weight:600">' + esc(x.nombre) + "</div></div>";
+      }).join("") || '<div style="grid-column:1/-1;color:var(--gris);font-size:.85rem;padding:10px">Sin categorías.</div>';
       return '<div style="padding:20px;border:1px solid var(--linea);border-radius:14px;background:#fafbfc">' +
         '<div style="font-weight:800;margin-bottom:14px">' + esc(c.titulo || "Categorías") + ' <small class="muted">· grupo ' + esc(c.grupo || "todas") + "</small></div>" +
-        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">' + cats + "</div></div>";
+        '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px">' + tiles + "</div></div>";
     }
     return '<div style="padding:20px;border:1px solid var(--linea);border-radius:14px;background:#fff">' +
       (c.titulo ? '<div style="font-weight:800;margin-bottom:8px">' + esc(c.titulo) + "</div>" : "") +
@@ -1629,10 +1658,11 @@
   function previewPagina() {
     var bloques = (paginaCache && paginaCache.bloques) || [];
     if (!bloques.length) return '<div class="empty">La página aún no tiene bloques personalizados. Añade uno abajo.</div>';
-    return bloques.map(function (b) {
+    return bloques.map(function (b, i) {
       var ancho = b.config && b.config.ancho ? Math.min(100, Math.max(40, Number(b.config.ancho))) : 100;
-      return '<div style="margin-bottom:18px"><div style="max-width:' + ancho + '%;margin:0 auto">' + previewRealBloque(b) + "</div>" +
-        '<div style="text-align:center;font-size:.74rem;color:var(--gris);margin-top:6px">' + esc(tipoL(b.tipo)) + " · ancho " + ancho + "%</div></div>";
+      return '<div class="ctor-prevblock" data-editar-preview="' + i + '" title="Clic para editar este bloque">' +
+        '<div style="max-width:' + ancho + '%;margin:0 auto">' + previewRealBloque(b) + "</div>" +
+        '<div style="text-align:center;font-size:.74rem;color:var(--gris);margin-top:6px">' + esc(tipoL(b.tipo)) + " · ancho " + ancho + "% · clic para editar</div></div>";
     }).join("");
   }
 
@@ -1641,13 +1671,30 @@
     var cont = $("#contenido");
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      var rows = await supa("GET", "/rest/v1/Pagina?slug=eq.inicio&select=*");
+      var [rows, cats, prods, subs, relCat, relSub] = await Promise.all([
+        supa("GET", "/rest/v1/Pagina?slug=eq.inicio&select=*"),
+        supa("GET", "/rest/v1/Categoria?select=id,nombre,slug,imagen,grupo,orden&order=orden.asc").catch(function () { return []; }),
+        supa("GET", "/rest/v1/Producto?select=id,nombre,slug,imagen,imagenes,precioMinorista,vendidos").catch(function () { return []; }),
+        supa("GET", "/rest/v1/Subcategoria?select=id,slug").catch(function () { return []; }),
+        supa("GET", "/rest/v1/_CategoriaToProducto?select=A,B").catch(function () { return []; }),
+        supa("GET", "/rest/v1/_ProductoToSubcategoria?select=A,B").catch(function () { return []; }),
+      ]);
       var pagina = rows && rows[0];
       if (!pagina) {
         var creado = await supa("POST", "/rest/v1/Pagina", { slug: "inicio", nombre: "Página de inicio", bloques: [] });
         pagina = creado[0];
       }
       paginaCache = pagina;
+      constructorCats = cats;
+      constructorProds = prods;
+      var catIdSlug = {}, subIdSlug = {};
+      cats.forEach(function (c) { catIdSlug[c.id] = c.slug; });
+      subs.forEach(function (s) { subIdSlug[s.id] = s.slug; });
+      constructorProdCats = {};
+      constructorProdSubs = {};
+      prods.forEach(function (p) { constructorProdCats[p.id] = []; constructorProdSubs[p.id] = []; });
+      relCat.forEach(function (r) { var s = catIdSlug[r.A]; if (s && constructorProdCats[r.B]) constructorProdCats[r.B].push(s); });
+      relSub.forEach(function (r) { var s = subIdSlug[r.B]; if (s && constructorProdSubs[r.A]) constructorProdSubs[r.A].push(s); });
       pintarConstructor();
     } catch (e) { cont.innerHTML = errCard(e); }
   }
@@ -1696,6 +1743,7 @@
     $$("[data-subir]", cont).forEach(function (b) { b.onclick = function () { moverBloque(+b.getAttribute("data-subir"), -1); }; });
     $$("[data-bajar]", cont).forEach(function (b) { b.onclick = function () { moverBloque(+b.getAttribute("data-bajar"), 1); }; });
     $$("[data-editar]", cont).forEach(function (b) { b.onclick = function () { formBloque(+b.getAttribute("data-editar")); }; });
+    $$("[data-editar-preview]", cont).forEach(function (b) { b.onclick = function () { formBloque(+b.getAttribute("data-editar-preview")); }; });
     $$("[data-del-bloque]", cont).forEach(function (b) {
       b.onclick = function () {
         if (!confirm("¿Eliminar este bloque?")) return;
