@@ -511,11 +511,18 @@
 
     cont.innerHTML = principales.map(function (c) {
       var subs = subsDeCat(c.s), tiene = subs.length > 0;
-      return '<div class="ek-nav__item' + (activo === c.s ? " is-open" : "") + '">' +
+      var primer = P.filter(function (p) { return p.c.indexOf(c.s) > -1; })[0];
+      var imgCat = c.img || (primer ? imgURL(primer, 0, 400) : "");
+      var imgProd = primer ? imgURL(primer, 0, 200) : "";
+      return '<div class="ek-nav__item">' +
         '<a class="ek-nav__link' + (activo === c.s ? " is-active" : "") + '" href="categoria.html?cat=' + c.s + '"' +
           (tiene ? ' aria-haspopup="true" data-consubs="' + c.s + '"' : "") + ">" +
           c.e + " " + esc(c.n) + (tiene ? ' <i class="bi bi-chevron-down ek-caret"></i>' : "") + "</a>" +
         (tiene ? '<div class="ek-subnav" role="menu">' +
+          '<div class="ek-subnav__media">' +
+            (imgCat ? '<div class="ek-subnav__cat"><img src="' + imgCat + '" alt="' + esc(c.n) + '" loading="lazy" onerror="this.style.display=\'none\'"></div>' : "") +
+            (primer ? '<div class="ek-subnav__prod"><img src="' + imgProd + '" alt="' + esc(primer.n) + '" loading="lazy" onerror="this.style.display=\'none\'"><div><b>' + esc(primer.n) + '</b><small>' + money(primer.p) + '</small></div></div>' : "") +
+          "</div>" +
           '<p class="ek-subnav__t"><i class="bi bi-grid-3x3-gap-fill"></i> ' + esc(c.n) + "</p>" +
           '<div class="ek-subnav__grid">' + subs.map(function (s) {
             return '<a class="ek-subnav__a" role="menuitem" href="categoria.html?cat=' + c.s + "&sub=" + s.s + '">' + iconoSub(s) + ' ' +
@@ -529,16 +536,6 @@
       '<div class="ek-nav__item"><a class="ek-nav__link" href="tienda.html">🛍️ Todo</a></div>' +
       '<div class="ek-nav__item"><a class="ek-nav__link" href="blog.html">📝 Blog</a></div>' +
       '<div class="ek-nav__item"><a class="ek-nav__link" href="contacto.html">📞 Contacto</a></div>';
-
-    // Posiciona el panel de la categoría activa (si la hay) para que NO quede
-    // en la esquina superior izquierda (bug al navegar a una categoría).
-    var itemActivo = $(".ek-nav__item.is-open", cont);
-    if (itemActivo) {
-      var panelActivo = $(".ek-subnav", itemActivo);
-      if (panelActivo) {
-        setTimeout(function () { colocarPanel(itemActivo, panelActivo); }, 0);
-      }
-    }
 
     var prev = $("#ek-nav-prev"), next = $("#ek-nav-next");
     function paso() { return Math.max(180, cont.clientWidth * 0.7); }
