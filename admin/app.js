@@ -736,9 +736,17 @@
         '<div class="field"><label>Emoji</label>' + input("emoji", c ? c.emoji : "🎁") + "</div>" +
       "</div>" +
       '<div class="row">' +
-        fld("Época <span class=hint>(ej. Nov · Dic)</span>", input("epoca", c ? c.epoca : "")) +
+        '<div class="field"><label>Época <span class=hint>(elige o escribe)</span></label>' +
+          '<input name="epoca" list="epocas-lista" value="' + esc(c ? c.epoca : "") + '">' +
+          '<datalist id="epocas-lista">' +
+            ["Todo el año", "Navidad · Nov-Dic", "Año Nuevo · Dic-Ene", "Amor y Amistad · Feb", "Día de las Madres · May", "Día del Padre · Jun", "Graduación · Jun-Jul", "Día de Muertos · Oct-Nov", "Primavera", "Verano", "Otoño", "Invierno"].map(function (x) { return '<option value="' + esc(x) + '">'; }).join("") +
+          "</datalist></div>" +
         fld("Orden", input("orden", c ? c.orden : 0, "number")) +
       "</div>" +
+      fld("Imagen de la categoría <span class=hint>(se muestra al entrar a la categoría)</span>",
+        '<input type="file" id="up-cat-img" accept="image/*">' +
+        '<input type="hidden" name="imagen" id="cat-imagen" value="' + esc(c ? (c.imagen || "") : "") + '">' +
+        '<img id="cat-preview" style="max-width:200px;max-height:120px;margin-top:8px;border-radius:8px;' + (c && c.imagen ? "" : "display:none") + '" src="' + esc(c ? (c.imagen || "") : "") + '">') +
       fld("Descripción", area("descripcion", c ? c.descripcion : "", 2)) +
       fld("Palabras clave (imágenes)", input("keywords", c ? c.keywords : "")) +
       check("enNav", c ? c.enNav !== false : true, "Mostrar en la barra de navegación") +
@@ -747,13 +755,28 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(c ? "Editar categoría" : "Nueva categoría", body);
+    $("#up-cat-img").addEventListener("change", function () {
+      var file = this.files[0]; if (!file) return;
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "categorias" }) });
+          var d = await res.json();
+          if (d.ok && d.url) {
+            $("#cat-imagen").value = d.url;
+            var pv = $("#cat-preview"); if (pv) { pv.src = d.url; pv.style.display = ""; }
+          } else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
+    });
     $("#f-cat").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
       var datos = {
         nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")),
         descripcion: f.get("descripcion") || null, grupo: f.get("grupo"), emoji: f.get("emoji") || "🎁",
-        epoca: f.get("epoca") || null, orden: Number(f.get("orden")) || 0,
+        epoca: f.get("epoca") || null, orden: Number(f.get("orden")) || 0, imagen: f.get("imagen") || null,
         keywords: f.get("keywords") || null, enNav: !!f.get("enNav"), enSidebar: !!f.get("enSidebar"), activo: !!f.get("activo"),
       };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
@@ -766,29 +789,66 @@
   }
 
   /* ============================== SUBCATEGORÍAS ============================== */
+  var ICONOS_BS = ["bi-tag","bi-star","bi-heart","bi-gift","bi-flower1","bi-tree","bi-snow","bi-cup-hot","bi-lamp","bi-house","bi-people","bi-briefcase","bi-backpack","bi-mortarboard","bi-balloon","bi-chat-heart","bi-palette","bi-brush","bi-scissors","bi-tools","bi-truck","bi-box-seam","bi-phone","bi-camera","bi-music-note","bi-controller","bi-trophy","bi-gem","bi-egg","bi-cake2"];
   var subcategoriasCache = [];
+  var subcatsCats = [];
+  var subcatsRel = {};   // subId → [nombre de categoría]
   async function renderSubcategorias() {
     var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      subcategoriasCache = await supa("GET", "/rest/v1/Subcategoria?select=*&order=orden.asc");
-      cont.innerHTML =
-        '<div class="card"><div class="toolbar"><button class="btn" id="btn-nueva-sub"><i class="bi bi-plus-lg"></i> Nueva subcategoría</button></div>' +
-        '<table><thead><tr><th>Nombre</th><th>Slug</th><th>Orden</th><th></th></tr></thead><tbody>' +
-        subcategoriasCache.map(function (s) {
-          return "<tr><td><b>" + esc(s.nombre) + "</b></td><td>" + esc(s.slug) + "</td><td>" + s.orden + "</td>" +
-            '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + s.id + '"><i class="bi bi-pencil"></i></button>' +
-            '<button class="btn btn--ghost btn--sm" data-del="' + s.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
-        }).join("") + "</tbody></table></div>";
-      $("#btn-nueva-sub").onclick = function () { formSubcategoria(null); };
-      $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formSubcategoria(b.getAttribute("data-edit")); }; });
-      $$("[data-del]", cont).forEach(function (b) {
-        b.onclick = async function () {
-          if (!confirm("¿Eliminar esta subcategoría?")) return;
-          try { await supa("DELETE", "/rest/v1/Subcategoria?id=eq." + b.getAttribute("data-del")); toast("Subcategoría eliminada"); renderSubcategorias(); }
-          catch (e) { toast(e.message, false); }
-        };
-      });
+      var [subs, cats, rel] = await Promise.all([
+        supa("GET", "/rest/v1/Subcategoria?select=*&order=nombre.asc"),
+        supa("GET", "/rest/v1/Categoria?select=id,nombre&order=nombre.asc"),
+        supa("GET", "/rest/v1/_CategoriaToSubcategoria?select=A,B"),
+      ]);
+      subcategoriasCache = subs;
+      subcatsCats = cats;
+      var catNombre = {};
+      cats.forEach(function (c) { catNombre[c.id] = c.nombre; });
+      subcatsRel = {};
+      subs.forEach(function (s) { subcatsRel[s.id] = []; });
+      rel.forEach(function (r) { if (subcatsRel[r.B] && catNombre[r.A]) subcatsRel[r.B].push(catNombre[r.A]); });
+      pintarSubcategorias("", "TODAS");
     } catch (e) { cont.innerHTML = errCard(e); }
+  }
+  function pintarSubcategorias(q, catFiltro) {
+    var cont = $("#contenido");
+    var lista = subcategoriasCache.filter(function (s) {
+      if (q && (s.nombre + " " + s.slug).toLowerCase().indexOf(q.toLowerCase()) === -1) return false;
+      if (catFiltro !== "TODAS" && (subcatsRel[s.id] || []).indexOf(catFiltro) === -1) return false;
+      return true;
+    });
+    cont.innerHTML =
+      '<div class="card"><div class="toolbar">' +
+        '<button class="btn" id="btn-nueva-sub"><i class="bi bi-plus-lg"></i> Nueva subcategoría</button>' +
+        '<input type="search" id="q-subs" placeholder="Buscar subcategoría…" value="' + esc(q) + '">' +
+        '<select id="filtro-subs-cat" style="width:auto"><option value="TODAS">Todas las categorías</option>' +
+          subcatsCats.map(function (c) { return '<option value="' + esc(c.nombre) + '">' + esc(c.nombre) + "</option>"; }).join("") +
+        "</select>" +
+      "</div>" +
+      '<table><thead><tr><th>Nombre</th><th>Categorías</th><th>Orden</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      lista.map(function (s) {
+        var cats = (subcatsRel[s.id] || []).map(function (n) { return '<span class="tag">' + esc(n) + "</span>"; }).join(" ") || '<span class="muted">—</span>';
+        return "<tr><td><b>" + esc(s.nombre) + "</b><br><small class='muted'>" + esc(s.slug) + "</small></td>" +
+          "<td>" + cats + "</td><td>" + s.orden + "</td>" +
+          "<td>" + (s.activo !== false ? '<span class="badge badge--on">Activa</span>' : '<span class="badge badge--off">Inactiva</span>') + "</td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + s.id + '"><i class="bi bi-pencil"></i></button>' +
+          '<button class="btn btn--ghost btn--sm" data-del="' + s.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+      }).join("") + (lista.length ? "" : '<tr><td colspan="5" class="empty">Sin resultados</td></tr>') + "</tbody></table></div>";
+    $("#btn-nueva-sub").onclick = function () { formSubcategoria(null); };
+    var qEl = $("#q-subs"), cEl = $("#filtro-subs-cat");
+    function refrescar() { pintarSubcategorias(qEl.value, cEl.value); }
+    if (qEl) qEl.addEventListener("input", refrescar);
+    if (cEl) { cEl.value = catFiltro; cEl.onchange = refrescar; }
+    $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formSubcategoria(b.getAttribute("data-edit")); }; });
+    $$("[data-del]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        if (!confirm("¿Eliminar esta subcategoría?")) return;
+        try { await supa("DELETE", "/rest/v1/Subcategoria?id=eq." + b.getAttribute("data-del")); toast("Subcategoría eliminada"); renderSubcategorias(); }
+        catch (e) { toast(e.message, false); }
+      };
+    });
   }
   async function formSubcategoria(id) {
     var cats = await supa("GET", "/rest/v1/Categoria?select=id,nombre&order=nombre.asc").catch(function () { return []; });
@@ -803,9 +863,15 @@
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", s ? s.nombre : "") + "</div>" +
       '<div class="field"><label>Slug</label>' + input("slug", s ? s.slug : "") + "</div></div>" +
       '<div class="row">' +
-        fld("Icono Bootstrap <span class=hint>(ej. bi-star)</span>", input("icono", s ? s.icono : "bi-tag")) +
+        '<div class="field"><label>Icono de Bootstrap</label><select name="icono" style="width:100%">' +
+          ICONOS_BS.map(function (ico) { return '<option value="' + ico + '"' + ((s ? s.icono : "bi-tag") === ico ? " selected" : "") + ">" + ico + "</option>"; }).join("") +
+        "</select></div>" +
         fld("Orden", input("orden", s ? s.orden : 0, "number")) +
       "</div>" +
+      fld("O sube tu propio icono <span class=hint>(PNG o SVG · recomendado 64×64 px · fondo transparente · máx 256 px)</span>",
+        '<input type="file" id="up-sub-icono" accept="image/png,image/svg+xml">' +
+        '<input type="hidden" name="iconoImagen" id="sub-iconoImagen" value="' + esc(s ? (s.iconoImagen || "") : "") + '">' +
+        '<img id="sub-icono-preview" style="width:40px;height:40px;object-fit:contain;margin-top:8px;' + (s && s.iconoImagen ? "" : "display:none") + '" src="' + esc(s ? (s.iconoImagen || "") : "") + '">') +
       fld("Categorías donde aparece", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
@@ -813,10 +879,25 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(s ? "Editar subcategoría" : "Nueva subcategoría", body);
+    $("#up-sub-icono").addEventListener("change", function () {
+      var file = this.files[0]; if (!file) return;
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "iconos" }) });
+          var d = await res.json();
+          if (d.ok && d.url) {
+            $("#sub-iconoImagen").value = d.url;
+            var pv = $("#sub-icono-preview"); if (pv) { pv.src = d.url; pv.style.display = ""; }
+          } else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
+    });
     $("#f-sub").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
-      var datos = { nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")), icono: f.get("icono") || "bi-tag", orden: Number(f.get("orden")) || 0, activo: !!f.get("activo") };
+      var datos = { nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")), icono: f.get("icono") || "bi-tag", iconoImagen: f.get("iconoImagen") || null, orden: Number(f.get("orden")) || 0, activo: !!f.get("activo") };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
       try {
         var sid;
@@ -832,44 +913,124 @@
 
   /* ============================== BANNERS ============================== */
   var bannersCache = [];
+  var bannersCats = [];
+  var bannersSubs = [];
   async function renderBanners() {
     var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      bannersCache = await supa("GET", "/rest/v1/Banner?select=*&order=orden.asc");
-      cont.innerHTML =
-        '<div class="card"><div class="toolbar"><button class="btn" id="btn-nuevo-ban"><i class="bi bi-plus-lg"></i> Nuevo banner</button></div>' +
-        '<table><thead><tr><th>Título</th><th>Tema</th><th>Orden</th><th>Estado</th><th></th></tr></thead><tbody>' +
-        bannersCache.map(function (b) {
-          return "<tr><td><b>" + esc(b.titulo) + '</b><br><small class="muted">' + esc(b.boton || "") + "</small></td>" +
-            "<td>" + (b.tema === "azul" ? "🔵 Azul" : "🔴 Rojo") + "</td><td>" + b.orden + "</td>" +
-            "<td>" + (b.activo ? '<span class="badge badge--on">Activo</span>' : '<span class="badge badge--off">Oculto</span>') + "</td>" +
-            '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + b.id + '"><i class="bi bi-pencil"></i></button>' +
-            '<button class="btn btn--ghost btn--sm" data-del="' + b.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
-        }).join("") + "</tbody></table></div>";
-      $("#btn-nuevo-ban").onclick = function () { formBanner(null); };
-      $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formBanner(b.getAttribute("data-edit")); }; });
-      $$("[data-del]", cont).forEach(function (b) {
-        b.onclick = async function () {
-          if (!confirm("¿Eliminar este banner?")) return;
-          try { await supa("DELETE", "/rest/v1/Banner?id=eq." + b.getAttribute("data-del")); toast("Banner eliminado"); renderBanners(); }
-          catch (e) { toast(e.message, false); }
-        };
-      });
+      var [banners, cats, subs] = await Promise.all([
+        supa("GET", "/rest/v1/Banner?select=*&order=orden.asc"),
+        supa("GET", "/rest/v1/Categoria?select=id,nombre,slug&order=nombre.asc"),
+        supa("GET", "/rest/v1/Subcategoria?select=id,nombre,slug&order=nombre.asc"),
+      ]);
+      bannersCache = banners;
+      bannersCats = cats;
+      bannersSubs = subs;
+      pintarBanners();
     } catch (e) { cont.innerHTML = errCard(e); }
   }
-  function formBanner(id) {
+  function nombreBannerEnlace(b) {
+    var link = b.enlace || "";
+    var catM = /cat=([\w-]+)/.exec(link);
+    var subM = /sub=([\w-]+)/.exec(link);
+    if (subM) { var s = bannersSubs.find(function (x) { return x.slug === subM[1]; }); if (s) return "Subcategoría: " + s.nombre; }
+    if (catM) { var c = bannersCats.find(function (x) { return x.slug === catM[1]; }); if (c) return "Categoría: " + c.nombre; }
+    return link || "—";
+  }
+  function pintarBanners() {
+    var cont = $("#contenido");
+    var activos = bannersCache.filter(function (b) { return b.activo; }).length;
+    cont.innerHTML =
+      '<div class="card"><div class="toolbar">' +
+        '<button class="btn" id="btn-nuevo-ban"><i class="bi bi-plus-lg"></i> Nuevo banner</button>' +
+        '<span class="muted">Activos: <b>' + activos + '</b> / 11 · ↑↓ ordena · clic en el estado para activar/ocultar.</span>' +
+      "</div>" +
+      '<table><thead><tr><th>Banner</th><th>Enlaza a</th><th>Tema</th><th>Orden</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      bannersCache.map(function (b, i) {
+        return "<tr><td><b>" + esc(b.titulo) + '</b><br><small class="muted">' + esc(b.boton || "") + "</small></td>" +
+          "<td><small>" + esc(nombreBannerEnlace(b)) + "</small></td>" +
+          "<td>" + (b.tema === "azul" ? "🔵 Azul" : "🔴 Rojo") + "</td>" +
+          '<td><button class="btn btn--ghost btn--sm" data-mover="' + b.id + '" data-dir="-1"' + (i === 0 ? " disabled" : "") + '><i class="bi bi-arrow-up"></i></button>' +
+          '<button class="btn btn--ghost btn--sm" data-mover="' + b.id + '" data-dir="1"' + (i === bannersCache.length - 1 ? " disabled" : "") + '><i class="bi bi-arrow-down"></i></button></td>' +
+          '<td><button class="btn btn--sm ' + (b.activo ? "btn--ok" : "btn--ghost") + '" data-toggle="' + b.id + '">' + (b.activo ? "Activo" : "Oculto") + "</button></td>" +
+          '<td class="actions"><button class="btn btn--ghost btn--sm" data-edit="' + b.id + '"><i class="bi bi-pencil"></i></button>' +
+          '<button class="btn btn--ghost btn--sm" data-del="' + b.id + '" style="color:var(--rojo)"><i class="bi bi-trash3"></i></button></td></tr>';
+      }).join("") + (bannersCache.length ? "" : '<tr><td colspan="6" class="empty">Sin banners</td></tr>') + "</tbody></table></div>";
+
+    $("#btn-nuevo-ban").onclick = function () { formBanner(null); };
+    $$("[data-edit]", cont).forEach(function (b) { b.onclick = function () { formBanner(b.getAttribute("data-edit")); }; });
+    $$("[data-toggle]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        var id = b.getAttribute("data-toggle");
+        var ban = bannersCache.find(function (x) { return x.id === id; });
+        if (!ban) return;
+        if (!ban.activo) {
+          var nAct = bannersCache.filter(function (x) { return x.activo; }).length;
+          if (nAct >= 11) { toast("Solo puedes tener 11 banners activos. Desactiva uno primero.", false); return; }
+        }
+        try {
+          await supa("PATCH", "/rest/v1/Banner?id=eq." + id, { activo: !ban.activo });
+          toast("Banner actualizado"); renderBanners();
+        } catch (e) { toast(e.message, false); }
+      };
+    });
+    $$("[data-mover]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        var id = b.getAttribute("data-mover"), dir = +b.getAttribute("data-dir");
+        var idx = bannersCache.findIndex(function (x) { return x.id === id; });
+        var j = idx + dir;
+        if (j < 0 || j >= bannersCache.length) return;
+        var tmp = bannersCache[idx].orden; bannersCache[idx].orden = bannersCache[j].orden; bannersCache[j].orden = tmp;
+        try {
+          await supa("PATCH", "/rest/v1/Banner?id=eq." + bannersCache[idx].id, { orden: bannersCache[idx].orden });
+          await supa("PATCH", "/rest/v1/Banner?id=eq." + bannersCache[j].id, { orden: bannersCache[j].orden });
+          renderBanners();
+        } catch (e) { toast(e.message, false); }
+      };
+    });
+    $$("[data-del]", cont).forEach(function (b) {
+      b.onclick = async function () {
+        if (!confirm("¿Eliminar este banner?")) return;
+        try { await supa("DELETE", "/rest/v1/Banner?id=eq." + b.getAttribute("data-del")); toast("Banner eliminado"); renderBanners(); }
+        catch (e) { toast(e.message, false); }
+      };
+    });
+  }
+  async function formBanner(id) {
     var b = id ? bannersCache.find(function (x) { return x.id === id; }) : null;
+    var cats = bannersCats.length ? bannersCats : await supa("GET", "/rest/v1/Categoria?select=id,nombre,slug&order=nombre.asc").catch(function () { return []; });
+    var subs = bannersSubs.length ? bannersSubs : await supa("GET", "/rest/v1/Subcategoria?select=id,nombre,slug&order=nombre.asc").catch(function () { return []; });
+    var link = (b && b.enlace) || "";
+    var subM = /sub=([\w-]+)/.exec(link);
+    var catM = /cat=([\w-]+)/.exec(link);
+    var tipoEnlace = subM ? "sub" : (catM ? "cat" : "ninguno");
     var body =
       '<form id="f-ban">' +
       fld("Título *", input("titulo", b ? b.titulo : "")) +
       fld("Subtítulo", area("subtitulo", b ? b.subtitulo : "", 2)) +
+      fld("Imagen del banner <span class=hint>(súbela aquí; si la dejas vacía se usa una foto automática)</span>",
+        '<input type="file" id="up-banner-img" accept="image/*">' +
+        '<input type="hidden" name="imagen" id="banner-imagen" value="' + esc(b ? (b.imagen || "") : "") + '">' +
+        '<img id="banner-preview" style="max-width:200px;max-height:120px;margin-top:8px;border-radius:8px;' + (b && b.imagen ? "" : "display:none") + '" src="' + esc(b ? (b.imagen || "") : "") + '">') +
       '<div class="row">' +
         fld("Texto del botón", input("boton", b ? b.boton : "Ver más")) +
-        fld("Enlace <span class=hint>(ej. categoria.html?cat=navidad)</span>", input("enlace", b ? b.enlace : "")) +
+        '<div class="field"><label>Enlaza a</label><select id="banner-tipo" style="width:100%">' +
+          '<option value="ninguno"' + (tipoEnlace === "ninguno" ? " selected" : "") + '>Sin enlace</option>' +
+          '<option value="cat"' + (tipoEnlace === "cat" ? " selected" : "") + '>Categoría</option>' +
+          '<option value="sub"' + (tipoEnlace === "sub" ? " selected" : "") + '>Subcategoría</option>' +
+        "</select></div>" +
       "</div>" +
+      '<div id="banner-cat" style="display:none"><div class="field"><label>Categoría</label><select name="cat" style="width:100%"><option value="">— Elige —</option>' +
+        cats.map(function (c) { return '<option value="' + esc(c.slug) + '"' + (catM && catM[1] === c.slug ? " selected" : "") + '>' + esc(c.nombre) + "</option>"; }).join("") +
+      "</select></div></div>" +
+      '<div id="banner-sub" style="display:none"><div class="field"><label>Subcategoría</label><select name="sub" style="width:100%"><option value="">— Elige —</option>' +
+        subs.map(function (s) { return '<option value="' + esc(s.slug) + '"' + (subM && subM[1] === s.slug ? " selected" : "") + '>' + esc(s.nombre) + "</option>"; }).join("") +
+      "</select></div></div>" +
+      '<input type="hidden" name="enlace" id="banner-enlace" value="' + esc(link) + '">' +
       '<div class="row">' +
         fld("Etiqueta <span class=hint>(ej. 🎄 Navidad)</span>", input("etiqueta", b ? b.etiqueta : "")) +
-        fld("Palabras clave (imagen)", input("keywords", b ? b.keywords : "")) +
+        fld("Palabras clave <span class=hint>(solo si no subes imagen)</span>", input("keywords", b ? b.keywords : "")) +
       "</div>" +
       '<div class="row">' +
         '<div class="field"><label>Tema</label>' + select("tema", [{ v: "rojo", l: "Rojo" }, { v: "azul", l: "Azul" }], b ? b.tema : "rojo") + "</div>" +
@@ -879,13 +1040,45 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(b ? "Editar banner" : "Nuevo banner", body);
+
+    function actualizarEnlace() {
+      var t = $("#banner-tipo").value;
+      $("#banner-cat").style.display = t === "cat" ? "" : "none";
+      $("#banner-sub").style.display = t === "sub" ? "" : "none";
+      var enlace = "";
+      if (t === "cat") { var c = $('select[name="cat"]').value; if (c) enlace = "categoria.html?cat=" + c; }
+      else if (t === "sub") { var s = $('select[name="sub"]').value; if (s) enlace = "categoria.html?sub=" + s; }
+      $("#banner-enlace").value = enlace;
+    }
+    $("#banner-tipo").onchange = actualizarEnlace;
+    $('select[name="cat"]').onchange = actualizarEnlace;
+    $('select[name="sub"]').onchange = actualizarEnlace;
+    actualizarEnlace();
+
+    // Subir imagen del banner
+    $("#up-banner-img").addEventListener("change", function () {
+      var file = this.files[0]; if (!file) return;
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "banners" }) });
+          var d = await res.json();
+          if (d.ok && d.url) {
+            $("#banner-imagen").value = d.url;
+            var pv = $("#banner-preview"); if (pv) { pv.src = d.url; pv.style.display = ""; }
+          } else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
+    });
+
     $("#f-ban").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
       var datos = {
         titulo: f.get("titulo"), subtitulo: f.get("subtitulo") || null, boton: f.get("boton") || "Ver más",
         enlace: f.get("enlace") || null, etiqueta: f.get("etiqueta") || null, keywords: f.get("keywords") || null,
-        tema: f.get("tema"), orden: Number(f.get("orden")) || 0, activo: !!f.get("activo"),
+        imagen: f.get("imagen") || null, tema: f.get("tema"), orden: Number(f.get("orden")) || 0, activo: !!f.get("activo"),
       };
       if (!datos.titulo) { toast("El título es obligatorio", false); return; }
       try {
@@ -1603,6 +1796,12 @@
     { clave: "politica_devoluciones", label: "Política de devoluciones" },
     { clave: "politica_terminos", label: "Términos y condiciones" },
   ];
+  var PLANTILLAS_POLITICAS = {
+    politica_privacidad: "<p>Recopilamos tus datos (nombre, correo y teléfono) únicamente para procesar tu pedido y contactarte. No vendemos ni compartimos tu información con terceros, salvo los necesarios para el envío (paquetería) y el cobro.</p>",
+    politica_envios: "<p>Enviamos a todo México por paquetería (2 a 5 días hábiles). El envío es gratis en compras desde $999. Las existencias salen en 24-48 h y los personalizados en 3 a 7 días hábiles.</p>",
+    politica_devoluciones: "<p>Aceptamos cambios por defecto de fabricación. Avísanos dentro de los 7 días posteriores a la entrega enviando una foto del producto. Los artículos personalizados no tienen devolución salvo defecto de fábrica.</p>",
+    politica_terminos: "<p>Al realizar un pedido aceptas los términos y condiciones. Los precios están en pesos mexicanos e incluyen impuestos. Los artículos de temporada están sujetos a disponibilidad.</p>",
+  };
   async function renderPoliticas() {
     var cont = $("#contenido");
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
@@ -1611,11 +1810,20 @@
       var mapa = {};
       config.forEach(function (c) { mapa[c.clave] = c.valor; });
       var campos = POLITICAS.map(function (p) {
-        return fld(p.label + " <span class=hint>(acepta HTML)</span>", '<textarea name="' + p.clave + '" rows="9">' + esc(mapa[p.clave] || "") + "</textarea>");
+        return '<details open class="cfg-grupo"><summary><i class="bi bi-chevron-right"></i> ' + esc(p.label) + '</summary><div>' +
+          '<button type="button" class="btn btn--sm btn--ghost" data-plantilla="' + p.clave + '"><i class="bi bi-magic"></i> Cargar plantilla de ejemplo</button>' +
+          '<textarea name="' + p.clave + '" rows="8" style="margin-top:10px">' + esc(mapa[p.clave] || "") + "</textarea></div></details>";
       }).join("");
       cont.innerHTML = '<form id="f-politicas"><div class="card"><h2>Políticas de la tienda</h2>' +
-        '<p class="muted">Estos textos se guardan en Supabase. Puedes mostrarlos en tu sitio (pie de página o página de políticas).</p>' + campos +
+        '<p class="muted">Cada política se muestra en la página <b>/politicas.html</b> (enlazada desde el pie de página). Usa HTML o pega texto simple.</p>' + campos +
         '<div class="modal__ft" style="margin-top:18px"><button class="btn btn--rojo" type="submit"><i class="bi bi-check-lg"></i> Guardar políticas</button></div></div></form>';
+      $$("[data-plantilla]", cont).forEach(function (b) {
+        b.onclick = function () {
+          var clave = b.getAttribute("data-plantilla");
+          var ta = cont.querySelector('textarea[name="' + clave + '"]');
+          if (ta) ta.value = PLANTILLAS_POLITICAS[clave] || "";
+        };
+      });
       $("#f-politicas").addEventListener("submit", async function (e) {
         e.preventDefault();
         var f = new FormData(e.target);
@@ -1626,7 +1834,7 @@
             if (existe) await supa("PATCH", "/rest/v1/Configuracion?id=eq." + existe.id, { valor: f.get(p.clave) || "" });
             else await supa("POST", "/rest/v1/Configuracion", { clave: p.clave, valor: f.get(p.clave) || "" });
           }
-          toast("Políticas guardadas");
+          toast("Políticas guardadas. Pulsa 'Publicar cambios' para aplicarlas.");
         } catch (err) { toast(err.message, false); }
       });
     } catch (e) { cont.innerHTML = errCard(e); }
@@ -1634,40 +1842,40 @@
 
   /* ============================== CONFIGURACIÓN ============================== */
   var CFG_META = [
-    { clave: "marca", label: "Marca", tipo: "text" },
-    { clave: "lema", label: "Lema", tipo: "text" },
-    { clave: "descripcion", label: "Descripción (SEO)", tipo: "area" },
-    { clave: "logo", label: "Ruta del logo", tipo: "text" },
-    { clave: "favicon", label: "Favicon", tipo: "text" },
-    { clave: "whatsapp", label: "WhatsApp (52 + 10 dígitos)", tipo: "text" },
-    { clave: "whatsappBonito", label: "WhatsApp (formato bonito)", tipo: "text" },
-    { clave: "email", label: "Correo principal", tipo: "text" },
-    { clave: "emailAlt", label: "Correo facturación", tipo: "text" },
-    { clave: "facebook", label: "Facebook (URL)", tipo: "text" },
-    { clave: "instagram", label: "Instagram (URL)", tipo: "text" },
-    { clave: "direccion", label: "Dirección", tipo: "text" },
-    { clave: "horario", label: "Horario", tipo: "text" },
-    { clave: "moneda", label: "Moneda", tipo: "text" },
-    { clave: "simbolo", label: "Símbolo de moneda", tipo: "text" },
-    { clave: "iva", label: "IVA (0 = incluido)", tipo: "number" },
-    { clave: "envio", label: "Costo de envío", tipo: "number" },
-    { clave: "envioGratisDesde", label: "Envío gratis desde", tipo: "number" },
-    { clave: "porPagina", label: "Artículos por página", tipo: "number" },
-    { clave: "mesesSinIntereses", label: "Mensaje de MSI", tipo: "text" },
-    { clave: "modoImagenes", label: "Modo de imágenes (auto|hotlink|local)", tipo: "text" },
-    { clave: "extImagenes", label: "Extensión de imágenes", tipo: "text" },
-    { clave: "particulasMax", label: "Partículas (máx)", tipo: "number" },
-    { clave: "particulas", label: "Partículas activas", tipo: "bool" },
-    { clave: "aos", label: "Animaciones AOS", tipo: "bool" },
-    { clave: "animaciones", label: "Animaciones", tipo: "bool" },
-    { clave: "url", label: "URL del sitio", tipo: "text" },
-    { clave: "titulo", label: "Título SEO", tipo: "text" },
-    { clave: "cache", label: "Versión de caché", tipo: "text" },
-    { clave: "talleres", label: "Talleres (JSON)", tipo: "json" },
-    { clave: "pagos", label: "Pagos (JSON)", tipo: "json" },
-    { clave: "hotlink", label: "Hotlink (JSON)", tipo: "json" },
-    { clave: "colores", label: "Colores de marca (JSON)", tipo: "json" },
-    { clave: "faq", label: "Preguntas frecuentes (JSON)", tipo: "json" },
+    { clave: "marca", label: "Marca", tipo: "text", g: "Identidad" },
+    { clave: "lema", label: "Lema", tipo: "text", g: "Identidad" },
+    { clave: "descripcion", label: "Descripción", tipo: "area", g: "Identidad" },
+    { clave: "logo", label: "Ruta del logo", tipo: "text", g: "Identidad" },
+    { clave: "favicon", label: "Favicon", tipo: "text", g: "Identidad" },
+    { clave: "colores", label: "Colores de marca (JSON)", tipo: "json", g: "Identidad" },
+    { clave: "whatsapp", label: "WhatsApp (52 + 10 dígitos)", tipo: "text", g: "Contacto" },
+    { clave: "whatsappBonito", label: "WhatsApp (formato bonito)", tipo: "text", g: "Contacto" },
+    { clave: "email", label: "Correo principal", tipo: "text", g: "Contacto" },
+    { clave: "emailAlt", label: "Correo facturación", tipo: "text", g: "Contacto" },
+    { clave: "direccion", label: "Dirección", tipo: "text", g: "Contacto" },
+    { clave: "horario", label: "Horario", tipo: "text", g: "Contacto" },
+    { clave: "facebook", label: "Facebook (URL)", tipo: "text", g: "Redes" },
+    { clave: "instagram", label: "Instagram (URL)", tipo: "text", g: "Redes" },
+    { clave: "moneda", label: "Moneda", tipo: "text", g: "Precios y envío" },
+    { clave: "simbolo", label: "Símbolo de moneda", tipo: "text", g: "Precios y envío" },
+    { clave: "iva", label: "IVA (0 = incluido)", tipo: "number", g: "Precios y envío" },
+    { clave: "envio", label: "Costo de envío", tipo: "number", g: "Precios y envío" },
+    { clave: "envioGratisDesde", label: "Envío gratis desde", tipo: "number", g: "Precios y envío" },
+    { clave: "mesesSinIntereses", label: "Mensaje de MSI", tipo: "text", g: "Precios y envío" },
+    { clave: "pagos", label: "Pagos (JSON)", tipo: "json", g: "Precios y envío" },
+    { clave: "talleres", label: "Talleres (JSON)", tipo: "json", g: "Precios y envío" },
+    { clave: "porPagina", label: "Artículos por página", tipo: "number", g: "Catálogo e imágenes" },
+    { clave: "modoImagenes", label: "Modo de imágenes (auto|hotlink|local)", tipo: "text", g: "Catálogo e imágenes" },
+    { clave: "extImagenes", label: "Extensión de imágenes", tipo: "text", g: "Catálogo e imágenes" },
+    { clave: "hotlink", label: "Hotlink (JSON)", tipo: "json", g: "Catálogo e imágenes" },
+    { clave: "particulas", label: "Partículas activas", tipo: "bool", g: "Animaciones" },
+    { clave: "particulasMax", label: "Partículas (máx)", tipo: "number", g: "Animaciones" },
+    { clave: "aos", label: "Animaciones AOS", tipo: "bool", g: "Animaciones" },
+    { clave: "animaciones", label: "Animaciones", tipo: "bool", g: "Animaciones" },
+    { clave: "url", label: "URL del sitio", tipo: "text", g: "SEO" },
+    { clave: "titulo", label: "Título SEO", tipo: "text", g: "SEO" },
+    { clave: "cache", label: "Versión de caché", tipo: "text", g: "SEO" },
+    { clave: "faq", label: "Preguntas frecuentes (JSON)", tipo: "json", g: "FAQ (JSON)" },
   ];
   var configCache = [];
   var adminsCache = [];
@@ -1734,12 +1942,22 @@
       adminsCache = admins;
       var mapa = {};
       configCache.forEach(function (c) { mapa[c.clave] = c.valor; });
-      var campos = CFG_META.map(function (m) {
+      function campoHTML(m) {
         var v = mapa[m.clave] !== undefined ? mapa[m.clave] : "";
         if (m.tipo === "area") return fld(m.label, '<textarea name="' + m.clave + '" rows="3">' + esc(v) + "</textarea>");
         if (m.tipo === "json") return fld(m.label + " <span class=hint>(JSON válido)</span>", '<textarea name="' + m.clave + '" rows="5">' + esc(v) + "</textarea>");
         if (m.tipo === "bool") return '<div class="field"><label>' + esc(m.label) + "</label>" + check(m.clave, v === "true", "Activado") + "</div>";
         return fld(m.label, '<input name="' + m.clave + '" type="' + (m.tipo === "number" ? "number" : "text") + '" value="' + esc(v) + '">');
+      }
+      var grupos = [];
+      CFG_META.forEach(function (m) {
+        var g = grupos.find(function (x) { return x.nombre === m.g; });
+        if (!g) { g = { nombre: m.g, items: [] }; grupos.push(g); }
+        g.items.push(m);
+      });
+      var campos = grupos.map(function (g) {
+        return '<details open class="cfg-grupo"><summary><i class="bi bi-chevron-right"></i> ' + esc(g.nombre) + "</summary><div>" +
+          g.items.map(campoHTML).join("") + "</div></details>";
       }).join("");
       cont.innerHTML =
         '<div class="card"><h2>👑 Cuentas de administrador</h2><p class="muted">Las cuentas que pueden entrar a este panel se gestionan aquí (no aparecen en Clientes).</p><div id="admins-card"></div></div>' +

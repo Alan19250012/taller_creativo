@@ -164,13 +164,13 @@ async function main() {
   const categoriasJS = categorias.map((c) => ({
     s: c.slug, n: c.nombre, g: c.grupo || "producto", e: c.emoji || "🎁",
     orden: c.orden, nav: c.enNav !== false, sidebar: c.enSidebar !== false,
-    kw: c.keywords || "", d: c.descripcion || "",
+    kw: c.keywords || "", d: c.descripcion || "", img: c.imagen || null,
     epoca: c.epoca || undefined,
   }));
 
   const bannersJS = banners.map((b) => ({
     n: b.titulo, sub: b.subtitulo || "", cta: b.boton || "Ver más", link: b.enlace || "#",
-    kw: b.keywords || "", et: b.etiqueta || "", tema: b.tema || "rojo",
+    kw: b.keywords || "", et: b.etiqueta || "", tema: b.tema || "rojo", img: b.imagen || null,
   }));
 
   // Variantes por producto: slug → [{talla,color,stock}]
@@ -229,7 +229,7 @@ async function main() {
   const conteo = {}; // subcategoría → nº productos
   Object.keys(prodSubs).forEach((p) => (prodSubs[p] || []).forEach((s) => (conteo[s] = (conteo[s] || 0) + 1)));
   const listaSub = subcategorias.map((s) => ({
-    s: s.slug, n: s.nombre, i: s.icono || "bi-tag", cats: catSubs2List(s.slug), c: conteo[s.slug] || 0,
+    s: s.slug, n: s.nombre, i: s.icono || "bi-tag", ii: s.iconoImagen || null, cats: catSubs2List(s.slug), c: conteo[s.slug] || 0,
   }));
   function catSubs2List(subSlug) {
     const out = [];

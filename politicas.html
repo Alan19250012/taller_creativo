@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Políticas · Taller Creativo EK</title>
+<meta name="description" content="Políticas de privacidad, envíos, devoluciones y términos de Taller Creativo EK.">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#DA1D2A">
+<link rel="canonical" href="https://tallercreativoek.com/politicas.html">
+<link rel="icon" href="img/favicon/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" href="img/favicon/favicon-32x32.png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+<link rel="stylesheet" href="assets/ek.css?v=ff14695883">
+</head>
+<body>
+<div id="ek-progressbar" class="ek-progressbar"></div>
+<button class="ek-totop" id="ek-totop" aria-label="Volver arriba"><i class="bi bi-arrow-up"></i></button>
+
+<header class="ek-header">
+  <div class="ek-container ek-header__inner">
+    <a class="ek-logo" href="index.html" aria-label="Taller Creativo EK, inicio">
+      <img src="img/logo/logo-taller-creativo-ek.png" alt="Taller Creativo EK" width="116" height="54">
+    </a>
+    <form class="ek-search" data-buscador role="search" action="tienda.html" method="get">
+      <i class="bi bi-search ek-search__ico"></i>
+      <input type="search" name="q" placeholder="Buscar artículos…" aria-label="Buscar artículos" autocomplete="off">
+      <button class="ek-search__btn" type="submit">Buscar</button>
+    </form>
+    <div class="ek-actions">
+      <a class="ek-action" href="https://wa.me/525562208987" target="_blank" rel="noopener" title="WhatsApp" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+      <a class="ek-action" href="tienda.html?fav=1" title="Mis favoritos" aria-label="Favoritos"><i class="bi bi-heart"></i><span class="ek-action__count ek-hide" data-fav-count>0</span></a>
+      <a class="ek-action" href="carrito.html" title="Carrito" aria-label="Carrito"><i class="bi bi-cart3"></i><span class="ek-action__count ek-hide" data-cart-count>0</span></a>
+      <button class="ek-action ek-burger" data-toggle-sidebar aria-label="Menú de categorías"><i class="bi bi-list"></i></button>
+    </div>
+  </div>
+</header>
+
+<main class="ek-container" style="padding-top:26px;max-width:860px">
+  <nav class="ek-crumbs"><a href="index.html">Inicio</a> <i class="bi bi-chevron-right"></i> <span>Políticas</span></nav>
+  <h1 style="font-size:clamp(1.7rem,4vw,2.5rem);margin:10px 0 6px">Políticas de la tienda</h1>
+  <p class="ek-muted" style="margin-top:0">Información importante sobre privacidad, envíos, devoluciones y términos.</p>
+  <div id="politicas"></div>
+</main>
+
+<footer class="ek-footer">
+  <div class="ek-container">
+    <div class="ek-footer__bottom">
+      <span>© <span id="ek-anio">2025</span> Taller Creativo EK · Todos los derechos reservados.</span>
+      <div class="ek-pay"><span>SPEI</span><span>Mercado Pago</span><span>Clip</span><span>Visa</span><span>Mastercard</span><span>Efectivo</span></div>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/ek-config.js?v=ff14695883" defer></script>
+<script src="assets/ek-imagenes.js?v=ff14695883" defer></script>
+<script src="assets/ek-subcategorias.js?v=ff14695883" defer></script>
+<script src="assets/ek-data.js?v=ff14695883" defer></script>
+<script src="assets/ek-blog-data.js?v=ff14695883" defer></script>
+<script src="assets/ek-blog.js?v=ff14695883" defer></script>
+<script src="assets/ek-supabase.js?v=ff14695883" defer></script>
+<script src="assets/ek-live.js?v=ff14695883" defer></script>
+<script src="assets/ek.js?v=ff14695883" defer></script>
+<script>
+(function () {
+  "use strict";
+  var C = window.EK_CONFIG || {};
+  var SEC = [
+    { id: "privacidad", icono: "bi-shield-lock", titulo: "Política de privacidad", clave: "politica_privacidad", fallback: "Protegemos tus datos personales y solo los usamos para procesar tu pedido y contactarte." },
+    { id: "envios", icono: "bi-truck", titulo: "Política de envíos", clave: "politica_envios", fallback: "Envíos a todo México por paquetería (2 a 5 días hábiles). Envío gratis desde $999." },
+    { id: "devoluciones", icono: "bi-arrow-repeat", titulo: "Política de devoluciones", clave: "politica_devoluciones", fallback: "Aceptamos cambios por defecto de fabricación. Avísanos dentro de los 7 días posteriores a la entrega." },
+    { id: "terminos", icono: "bi-file-earmark-text", titulo: "Términos y condiciones", clave: "politica_terminos", fallback: "Al realizar un pedido aceptas los términos y condiciones de Taller Creativo EK." }
+  ];
+  var cont = document.getElementById("politicas");
+  if (cont) {
+    cont.innerHTML = SEC.map(function (s) {
+      var contenido = C[s.clave] || ("<p>" + s.fallback + "</p>");
+      return '<section id="' + s.id + '" class="ek-buy" style="margin-bottom:16px">' +
+        '<h2 style="display:flex;align-items:center;gap:10px;font-size:1.25rem"><i class="bi ' + s.icono + '" style="color:var(--rojo)"></i> ' + s.titulo + "</h2>" +
+        '<div style="color:#374151;line-height:1.75">' + contenido + "</div></section>";
+    }).join("");
+  }
+})();
+</script>
+</body>
+</html>

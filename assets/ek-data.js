@@ -12,6 +12,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "christmas",
    "d": "Nacimientos, rampas, esferas, gnomos, coronas y letreros navideños.",
+   "img": null,
    "epoca": "Nov · Dic"
   },
   {
@@ -24,6 +25,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "newyear",
    "d": "Porta uvas personalizados, copas y todo para recibir el año con estilo.",
+   "img": null,
    "epoca": "Dic · Ene"
   },
   {
@@ -36,6 +38,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "valentine",
    "d": "Paquetes, gnomos enamorados, cajas corazón y arreglos para San Valentín.",
+   "img": null,
    "epoca": "Ene · Feb"
   },
   {
@@ -48,6 +51,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "dayofthedead",
    "d": "Calaveritas, catrinas, ofrendas y papel picado en MDF.",
+   "img": null,
    "epoca": "Oct · Nov"
   },
   {
@@ -60,6 +64,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "graduation",
    "d": "Osos para firmar, pines, birretes y recuerdos para grupos escolares.",
+   "img": null,
    "epoca": "Jun · Jul"
   },
   {
@@ -72,6 +77,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "mothersday",
    "d": "Tazas, letreros y detalles personalizados para mamá.",
+   "img": null,
    "epoca": "Mayo"
   },
   {
@@ -84,6 +90,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "fathersday",
    "d": "Regalos útiles y personalizados para papá.",
+   "img": null,
    "epoca": "Junio"
   },
   {
@@ -96,6 +103,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "kids,toys",
    "d": "Juguetes didácticos, alcancías y detalles para los peques.",
+   "img": null,
    "epoca": "Abril"
   },
   {
@@ -108,6 +116,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "halloween",
    "d": "Decoración de terror, calabazas y fantasmas con luz.",
+   "img": null,
    "epoca": "Octubre"
   },
   {
@@ -120,6 +129,7 @@ window.EK_DATA =
    "sidebar": true,
    "kw": "spring,flowers",
    "d": "Arreglos florales que nunca se marchitan.",
+   "img": null,
    "epoca": "Mar · May"
   },
   {
@@ -131,7 +141,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "wood,laser",
-   "d": "Corte y grabado láser en MDF: letreros, figuras, charolas y más."
+   "d": "Corte y grabado láser en MDF: letreros, figuras, charolas y más.",
+   "img": null
   },
   {
    "s": "dtf-uv",
@@ -142,7 +153,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "printing,uv",
-   "d": "Impresión DTF UV profesional desde 38x100 cm y maquila para tu marca."
+   "d": "Impresión DTF UV profesional desde 38x100 cm y maquila para tu marca.",
+   "img": null
   },
   {
    "s": "personalizados",
@@ -153,7 +165,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "custom,personalized",
-   "d": "Tazas, termos, botellas, fundas, etiquetas y todo lo que imagines."
+   "d": "Tazas, termos, botellas, fundas, etiquetas y todo lo que imagines.",
+   "img": null
   },
   {
    "s": "playeras",
@@ -164,7 +177,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "tshirt,apparel",
-   "d": "Playeras, sudaderas y bodies de temporada estampados con DTF UV."
+   "d": "Playeras, sudaderas y bodies de temporada estampados con DTF UV.",
+   "img": null
   },
   {
    "s": "tazas-termos",
@@ -175,7 +189,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "mug,tumbler",
-   "d": "Cerámica, tazas mágicas, termos de acero y vasos personalizados."
+   "d": "Cerámica, tazas mágicas, termos de acero y vasos personalizados.",
+   "img": null
   },
   {
    "s": "llaveros-pines",
@@ -186,7 +201,8 @@ window.EK_DATA =
    "nav": false,
    "sidebar": true,
    "kw": "keychain,pin",
-   "d": "El recuerdo perfecto para eventos, escuelas y empresas. Precio por pieza."
+   "d": "El recuerdo perfecto para eventos, escuelas y empresas. Precio por pieza.",
+   "img": null
   },
   {
    "s": "lamparas",
@@ -197,7 +213,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "led,lamp",
-   "d": "Lámparas y cuadros de luz con grabado personalizado."
+   "d": "Lámparas y cuadros de luz con grabado personalizado.",
+   "img": null
   },
   {
    "s": "hogar-cocina",
@@ -208,7 +225,8 @@ window.EK_DATA =
    "nav": false,
    "sidebar": true,
    "kw": "home,kitchen,decor",
-   "d": "Charolas, relojes, organizadores y piezas útiles para tu casa."
+   "d": "Charolas, relojes, organizadores y piezas útiles para tu casa.",
+   "img": null
   },
   {
    "s": "bodas-eventos",
@@ -219,7 +237,8 @@ window.EK_DATA =
    "nav": true,
    "sidebar": true,
    "kw": "wedding,event",
-   "d": "Cilindros con iniciales, recuerdos, números de mesa y toppers."
+   "d": "Cilindros con iniciales, recuerdos, números de mesa y toppers.",
+   "img": null
   },
   {
    "s": "flores",
@@ -230,7 +249,8 @@ window.EK_DATA =
    "nav": false,
    "sidebar": true,
    "kw": "flowers,arrangement",
-   "d": "Arreglos florales eternos, hechos a mano y a tu medida."
+   "d": "Arreglos florales eternos, hechos a mano y a tu medida.",
+   "img": null
   },
   {
    "s": "regalos",
@@ -241,7 +261,8 @@ window.EK_DATA =
    "nav": false,
    "sidebar": true,
    "kw": "gift,present",
-   "d": "Detalles listos para regalar en cualquier ocasión."
+   "d": "Detalles listos para regalar en cualquier ocasión.",
+   "img": null
   },
   {
    "s": "decoracion",
@@ -252,7 +273,8 @@ window.EK_DATA =
    "nav": false,
    "sidebar": true,
    "kw": "decoration,sign",
-   "d": "Letreros, coronas y piezas decorativas para tu hogar o negocio."
+   "d": "Letreros, coronas y piezas decorativas para tu hogar o negocio.",
+   "img": null
   }
  ],
  "banners": [
@@ -263,7 +285,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=ano-nuevo",
    "kw": "newyear,grapes,party",
    "et": "🍇 Año Nuevo 2025",
-   "tema": "rojo"
+   "tema": "rojo",
+   "img": null
   },
   {
    "n": "Llena tu hogar de espíritu navideño",
@@ -272,7 +295,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=navidad",
    "kw": "christmas,decoration,cozy",
    "et": "🎄 Navidad",
-   "tema": "azul"
+   "tema": "azul",
+   "img": null
   },
   {
    "n": "Maquila de DTF UV para tu marca",
@@ -281,7 +305,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=dtf-uv",
    "kw": "printing,uv,workshop",
    "et": "🖨️ Maquila",
-   "tema": "rojo"
+   "tema": "rojo",
+   "img": null
   },
   {
    "n": "Celebra la graduación con algo único",
@@ -290,7 +315,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=graduacion",
    "kw": "graduation,teddy,celebration",
    "et": "🎓 Promo grupal",
-   "tema": "azul"
+   "tema": "azul",
+   "img": null
   },
   {
    "n": "Personaliza tu botella y llévate un regalo",
@@ -299,7 +325,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=personalizados",
    "kw": "bottle,custom,drink",
    "et": "🎁 Regalo gratis",
-   "tema": "rojo"
+   "tema": "rojo",
+   "img": null
   },
   {
    "n": "80 cilindros con las iniciales de los novios",
@@ -308,7 +335,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=bodas-eventos",
    "kw": "wedding,bottle,table",
    "et": "💍 Bodas y eventos",
-   "tema": "azul"
+   "tema": "azul",
+   "img": null
   },
   {
    "n": "Paquetes de Amor y Amistad",
@@ -317,7 +345,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=amor-amistad",
    "kw": "valentine,gift,romantic",
    "et": "💘 San Valentín",
-   "tema": "rojo"
+   "tema": "rojo",
+   "img": null
   },
   {
    "n": "Arma tu ofrenda de Día de Muertos",
@@ -326,7 +355,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=dia-muertos",
    "kw": "dayofthedead,catrina,altar",
    "et": "💀 Tradición",
-   "tema": "azul"
+   "tema": "azul",
+   "img": null
   },
   {
    "n": "Lámparas LED con tu diseño",
@@ -335,7 +365,8 @@ window.EK_DATA =
    "link": "categoria.html?cat=lamparas",
    "kw": "led,lamp,night",
    "et": "💡 Lámparas",
-   "tema": "rojo"
+   "tema": "rojo",
+   "img": null
   },
   {
    "n": "Envío gratis desde $999",
@@ -344,7 +375,8 @@ window.EK_DATA =
    "link": "contacto.html",
    "kw": "gift,boxes,smallbusiness",
    "et": "🚚 Envíos a todo México",
-   "tema": "azul"
+   "tema": "azul",
+   "img": null
   }
  ],
  "productos": [

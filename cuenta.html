@@ -93,9 +93,12 @@
       </div>
       <div style="display:flex;gap:10px;flex-wrap:wrap">
         <a class="ek-btn ek-btn--ghost" href="carrito.html"><i class="bi bi-cart3"></i> Mi carrito</a>
+        <button class="ek-btn ek-btn--ghost" id="cuenta-editar" type="button"><i class="bi bi-pencil"></i> Editar perfil</button>
         <button class="ek-btn ek-btn--rojo" id="cuenta-logout" type="button"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</button>
       </div>
     </div>
+
+    <div id="cuenta-perfil" style="display:none;margin-bottom:22px"></div>
 
     <div class="ek-grid ek-grid--3" id="cuenta-datos" style="margin-bottom:24px"></div>
 
@@ -203,6 +206,38 @@
 
   var lo = document.getElementById("cuenta-logout");
   if (lo) lo.onclick = function () { if (window.EK_logout) window.EK_logout(); };
+
+  var ed = document.getElementById("cuenta-editar");
+  if (ed) ed.onclick = function () {
+    if (!u || !token) return;
+    var form = document.getElementById("cuenta-perfil");
+    if (!form) return;
+    if (form.style.display !== "none") { form.style.display = "none"; form.innerHTML = ""; return; }
+    form.innerHTML = '<div class="ek-buy" style="margin:0">' +
+      '<h3 style="margin:0 0 12px"><i class="bi bi-pencil"></i> Editar perfil</h3>' +
+      '<div style="display:grid;gap:10px;max-width:420px">' +
+        '<input id="pf-nombre" placeholder="Nombre" value="' + esc(u.nombre || "") + '" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;font:inherit">' +
+        '<input id="pf-tel" placeholder="Teléfono" value="' + esc(u.telefono || "") + '" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;font:inherit">' +
+        '<input id="pf-pass" type="password" placeholder="Nueva contraseña (dejar vacío para no cambiar)" style="width:100%;padding:11px;border:1px solid #e5e7eb;border-radius:8px;font:inherit">' +
+        '<div style="display:flex;gap:10px"><button class="ek-btn ek-btn--rojo" id="pf-guardar" type="button">Guardar</button>' +
+        '<button class="ek-btn ek-btn--ghost" id="pf-cancelar" type="button">Cancelar</button></div>' +
+      '</div></div>';
+    form.style.display = "";
+    document.getElementById("pf-cancelar").onclick = function () { form.style.display = "none"; form.innerHTML = ""; };
+    document.getElementById("pf-guardar").onclick = function () {
+      var nombre = document.getElementById("pf-nombre").value.trim();
+      var tel = document.getElementById("pf-tel").value.trim();
+      var pass = document.getElementById("pf-pass").value;
+      fetch("/api/perfil", { method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + token }, body: JSON.stringify({ nombre: nombre, telefono: tel, password: pass }) })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d.ok) { alert(d.error || "No se pudo guardar"); return; }
+          u.nombre = d.nombre; u.telefono = d.telefono;
+          localStorage.setItem("ek_usuario", JSON.stringify(u));
+          location.reload();
+        });
+    };
+  };
 
   if (!u || !token) {
     if (nombreEl) nombreEl.textContent = "";

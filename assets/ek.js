@@ -61,6 +61,7 @@
   }
   /* Banner: usa tu archivo local si ya lo subiste, con respaldo externo */
   function imgBanner(b, i, size) {
+    if (b.img) return { src: b.img, hot: b.img };
     var hot = C.hotlink.base + "/" + size + "/" + size + "/" + encodeURIComponent(b.kw) + "?lock=" + (1000 + i * 37);
     var local = "img/banner/banner-" + String(i + 1).padStart(2, "0") + "." + extImg();
     var tengo = (L.banner || []).indexOf(i + 1) > -1;
@@ -489,6 +490,10 @@
   function subDe(slug) { return SUB.mapa[slug] || []; }
   function subInfo(s) { for (var i = 0; i < SUB.lista.length; i++) if (SUB.lista[i].s === s) return SUB.lista[i]; return null; }
   function subsDeCat(c) { return (SUB.porCat[c] || []).map(subInfo).filter(Boolean); }
+  function iconoSub(s) {
+    if (s.ii) return '<img src="' + esc(s.ii) + '" alt="" style="width:18px;height:18px;object-fit:contain;vertical-align:-3px;border-radius:3px">';
+    return '<i class="bi ' + (s.i || "bi-tag") + '"></i>';
+  }
   function cuentaSub(cat, sub) {
     var n = 0;
     for (var i = 0; i < P.length; i++) if (P[i].c.indexOf(cat) > -1 && subDe(P[i].s).indexOf(sub) > -1) n++;
@@ -513,7 +518,7 @@
         (tiene ? '<div class="ek-subnav" role="menu">' +
           '<p class="ek-subnav__t"><i class="bi bi-grid-3x3-gap-fill"></i> ' + esc(c.n) + "</p>" +
           '<div class="ek-subnav__grid">' + subs.map(function (s) {
-            return '<a class="ek-subnav__a" role="menuitem" href="categoria.html?cat=' + c.s + "&sub=" + s.s + '"><i class="bi ' + s.i + '"></i> ' +
+            return '<a class="ek-subnav__a" role="menuitem" href="categoria.html?cat=' + c.s + "&sub=" + s.s + '">' + iconoSub(s) + ' ' +
               esc(s.n) + "<small>" + cuentaSub(c.s, s.s) + "</small></a>";
           }).join("") + "</div>" +
           '<a class="ek-subnav__f" href="categoria.html?cat=' + c.s + '">Ver todo ' + esc(c.n) + ' <i class="bi bi-arrow-right"></i></a>' +
@@ -663,8 +668,8 @@
             : '<a class="ek-subcat ek-subcat--todas" href="categoria.html?cat=' + c.s + '">Ver todo en ' + esc(c.n) + "</a>") +
           subs.map(function (s) {
             return modo === "filtro"
-              ? '<button class="ek-subcat" type="button" data-sub="' + s.s + '" data-padre="' + c.s + '"><i class="bi ' + s.i + '"></i> ' + esc(s.n) + '<span class="ek-subcat__c">' + cuentaSub(c.s, s.s) + "</span></button>"
-              : '<a class="ek-subcat" href="categoria.html?cat=' + c.s + "&sub=" + s.s + '"><i class="bi ' + s.i + '"></i> ' + esc(s.n) + '<span class="ek-subcat__c">' + cuentaSub(c.s, s.s) + "</span></a>";
+              ? '<button class="ek-subcat" type="button" data-sub="' + s.s + '" data-padre="' + c.s + '">' + iconoSub(s) + ' ' + esc(s.n) + '<span class="ek-subcat__c">' + cuentaSub(c.s, s.s) + "</span></button>"
+              : '<a class="ek-subcat" href="categoria.html?cat=' + c.s + "&sub=" + s.s + '">' + iconoSub(s) + ' ' + esc(s.n) + '<span class="ek-subcat__c">' + cuentaSub(c.s, s.s) + "</span></a>";
           }).join("") + "</div>" : "") +
         "</div>";
     }).join("");
@@ -1277,7 +1282,21 @@
       var bc = $("#ek-crumb-cat"); if (bc) bc.textContent = c0.n;
       var tt = $("#ek-cat-titulo"); if (tt) tt.innerHTML = c0.e + " " + esc(c0.n);
       var ss = $("#ek-cat-sub"); if (ss) ss.textContent = c0.d + (c0.epoca ? " · Disponible en " + c0.epoca : "");
+      var cb = $("#ek-cat-banner");
+      if (cb) cb.innerHTML = c0.img
+        ? '<img src="' + esc(c0.img) + '" alt="' + esc(c0.n) + '" style="width:100%;max-height:280px;object-fit:cover;border-radius:16px;margin-bottom:18px;display:block" onerror="this.style.display=\'none\'">'
+        : "";
       if (F.sub.length) { var sx = subInfo(F.sub[0]); if (tt && sx) tt.innerHTML += ' <span class="ek-muted" style="font-size:.6em">› ' + esc(sx.n) + "</span>"; }
+    } else if (F.sub.length) {
+      var sx0 = subInfo(F.sub[0]);
+      var padre = (sx0 && sx0.cats && sx0.cats[0]) ? cat(sx0.cats[0]) : null;
+      document.title = (sx0 ? sx0.n : "Subcategoría") + " · " + C.marca;
+      var tt5 = $("#ek-cat-titulo"); if (tt5) tt5.innerHTML = esc(sx0 ? sx0.n : "Subcategoría");
+      var ss5 = $("#ek-cat-sub"); if (ss5) ss5.textContent = (padre ? "En " + esc(padre.n) + " · " : "") + "Productos de esta subcategoría.";
+      var cb5 = $("#ek-cat-banner");
+      if (cb5) cb5.innerHTML = (padre && padre.img)
+        ? '<img src="' + esc(padre.img) + '" alt="' + esc(padre.n) + '" style="width:100%;max-height:280px;object-fit:cover;border-radius:16px;margin-bottom:18px;display:block" onerror="this.style.display=\'none\'">'
+        : "";
     } else if (qURL) {
       var t2 = $("#ek-cat-titulo"); if (t2) t2.innerHTML = "🔍 Resultados de búsqueda";
       var s2 = $("#ek-cat-sub"); if (s2) s2.textContent = "Mostrando artículos que coinciden con “" + qURL + "”.";

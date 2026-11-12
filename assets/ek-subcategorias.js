@@ -6,6 +6,7 @@ window.EK_SUBCATS =
    "s": "nacimientos",
    "n": "Nacimientos",
    "i": "bi-house-heart",
+   "ii": null,
    "cats": [
     "navidad",
     "decoracion"
@@ -16,6 +17,7 @@ window.EK_SUBCATS =
    "s": "esferas",
    "n": "Esferas",
    "i": "bi-circle",
+   "ii": null,
    "cats": [
     "navidad",
     "decoracion"
@@ -26,6 +28,7 @@ window.EK_SUBCATS =
    "s": "coronas-rampas",
    "n": "Coronas y rampas",
    "i": "bi-flower1",
+   "ii": null,
    "cats": [
     "navidad",
     "decoracion"
@@ -36,6 +39,7 @@ window.EK_SUBCATS =
    "s": "letreros",
    "n": "Letreros",
    "i": "bi-card-heading",
+   "ii": null,
    "cats": [
     "navidad",
     "graduacion",
@@ -48,6 +52,7 @@ window.EK_SUBCATS =
    "s": "gnomos",
    "n": "Gnomos",
    "i": "bi-person-arms-up",
+   "ii": null,
    "cats": [
     "navidad",
     "amor-amistad",
@@ -59,6 +64,7 @@ window.EK_SUBCATS =
    "s": "santa-venados",
    "n": "Santa, venados y trineo",
    "i": "bi-snow2",
+   "ii": null,
    "cats": [
     "navidad",
     "decoracion"
@@ -69,6 +75,7 @@ window.EK_SUBCATS =
    "s": "botas-dulceros",
    "n": "Botas y dulceros",
    "i": "bi-gift",
+   "ii": null,
    "cats": [
     "navidad",
     "regalos"
@@ -79,6 +86,7 @@ window.EK_SUBCATS =
    "s": "arboles-figuras",
    "n": "Árboles y figuras",
    "i": "bi-tree",
+   "ii": null,
    "cats": [
     "navidad",
     "mdf"
@@ -89,6 +97,7 @@ window.EK_SUBCATS =
    "s": "cuadros-navidenos",
    "n": "Cuadros navideños",
    "i": "bi-image",
+   "ii": null,
    "cats": [
     "navidad",
     "decoracion"
@@ -99,6 +108,7 @@ window.EK_SUBCATS =
    "s": "camino-mesa",
    "n": "Mantelería",
    "i": "bi-border-width",
+   "ii": null,
    "cats": [
     "navidad",
     "hogar-cocina"
@@ -109,6 +119,7 @@ window.EK_SUBCATS =
    "s": "playeras-navidenas",
    "n": "Playeras navideñas",
    "i": "bi-bag-heart",
+   "ii": null,
    "cats": [
     "navidad",
     "playeras"
@@ -119,6 +130,7 @@ window.EK_SUBCATS =
    "s": "packs-familia",
    "n": "Packs familiares",
    "i": "bi-people",
+   "ii": null,
    "cats": [
     "playeras",
     "regalos"
@@ -129,6 +141,7 @@ window.EK_SUBCATS =
    "s": "porta-uvas",
    "n": "Porta uvas",
    "i": "bi-circle-square",
+   "ii": null,
    "cats": [
     "ano-nuevo",
     "mdf",
@@ -140,6 +153,7 @@ window.EK_SUBCATS =
    "s": "copas-brindis",
    "n": "Copas y brindis",
    "i": "bi-cup-straw",
+   "ii": null,
    "cats": [
     "ano-nuevo",
     "personalizados"
@@ -150,6 +164,7 @@ window.EK_SUBCATS =
    "s": "letreros-ano-nuevo",
    "n": "Letreros de Año Nuevo",
    "i": "bi-stars",
+   "ii": null,
    "cats": [
     "ano-nuevo",
     "decoracion"
@@ -160,6 +175,7 @@ window.EK_SUBCATS =
    "s": "paquetes-regalo",
    "n": "Paquetes de regalo",
    "i": "bi-box-seam",
+   "ii": null,
    "cats": [
     "amor-amistad",
     "regalos"
@@ -170,6 +186,7 @@ window.EK_SUBCATS =
    "s": "cajas-corazon",
    "n": "Cajas y corazones",
    "i": "bi-heart",
+   "ii": null,
    "cats": [
     "amor-amistad",
     "mdf",
@@ -181,6 +198,7 @@ window.EK_SUBCATS =
    "s": "globos",
    "n": "Globos y sorpresas",
    "i": "bi-balloon",
+   "ii": null,
    "cats": [
     "amor-amistad",
     "regalos"
@@ -191,6 +209,7 @@ window.EK_SUBCATS =
    "s": "para-pareja",
    "n": "Para pareja",
    "i": "bi-people-fill",
+   "ii": null,
    "cats": [
     "amor-amistad",
     "regalos"
@@ -201,6 +220,7 @@ window.EK_SUBCATS =
    "s": "osos-firmar",
    "n": "Osos para firmar",
    "i": "bi-emoji-smile",
+   "ii": null,
    "cats": [
     "graduacion",
     "regalos"
@@ -211,6 +231,7 @@ window.EK_SUBCATS =
    "s": "pines",
    "n": "Pines",
    "i": "bi-pin-angle",
+   "ii": null,
    "cats": [
     "graduacion",
     "llaveros-pines",
@@ -223,6 +244,7 @@ window.EK_SUBCATS =
    "s": "birretes-coronas",
    "n": "Birretes y coronas",
    "i": "bi-mortarboard",
+   "ii": null,
    "cats": [
     "graduacion",
     "decoracion"
@@ -233,6 +255,7 @@ window.EK_SUBCATS =
    "s": "marcos",
    "n": "Marcos de foto",
    "i": "bi-card-image",
+   "ii": null,
    "cats": [
     "graduacion",
     "mdf",
@@ -244,6 +267,7 @@ window.EK_SUBCATS =
    "s": "maquila",
    "n": "Maquila y transfer",
    "i": "bi-printer",
+   "ii": null,
    "cats": [
     "dtf-uv",
     "personalizados"
@@ -254,6 +278,7 @@ window.EK_SUBCATS =
    "s": "etiquetas",
    "n": "Etiquetas",
    "i": "bi-tags",
+   "ii": null,
    "cats": [
     "dtf-uv",
     "personalizados"
@@ -264,6 +289,7 @@ window.EK_SUBCATS =
    "s": "invitaciones",
    "n": "Invitaciones",
    "i": "bi-envelope-heart",
+   "ii": null,
    "cats": [
     "dtf-uv",
     "bodas-eventos"
@@ -274,6 +300,7 @@ window.EK_SUBCATS =
    "s": "fundas",
    "n": "Fundas de celular",
    "i": "bi-phone",
+   "ii": null,
    "cats": [
     "dtf-uv",
     "personalizados"
@@ -284,6 +311,7 @@ window.EK_SUBCATS =
    "s": "placas",
    "n": "Placas y reconocimientos",
    "i": "bi-award",
+   "ii": null,
    "cats": [
     "dtf-uv",
     "personalizados",
@@ -295,6 +323,7 @@ window.EK_SUBCATS =
    "s": "tazas",
    "n": "Tazas personalizadas",
    "i": "bi-cup-hot",
+   "ii": null,
    "cats": [
     "dia-madres",
     "dia-padres",
@@ -308,6 +337,7 @@ window.EK_SUBCATS =
    "s": "termos",
    "n": "Termos",
    "i": "bi-cup",
+   "ii": null,
    "cats": [
     "personalizados",
     "tazas-termos"
@@ -318,6 +348,7 @@ window.EK_SUBCATS =
    "s": "vasos",
    "n": "Vasos y cerveceros",
    "i": "bi-cup-straw",
+   "ii": null,
    "cats": [
     "tazas-termos",
     "hogar-cocina"
@@ -328,6 +359,7 @@ window.EK_SUBCATS =
    "s": "llaveros",
    "n": "Llaveros",
    "i": "bi-key",
+   "ii": null,
    "cats": [
     "personalizados",
     "llaveros-pines",
@@ -339,6 +371,7 @@ window.EK_SUBCATS =
    "s": "botellas-cilindros",
    "n": "Botellas y cilindros",
    "i": "bi-bottle",
+   "ii": null,
    "cats": [
     "personalizados",
     "bodas-eventos",
@@ -350,6 +383,7 @@ window.EK_SUBCATS =
    "s": "lamparas",
    "n": "Lámparas LED",
    "i": "bi-lightbulb",
+   "ii": null,
    "cats": [
     "lamparas",
     "regalos",
@@ -361,6 +395,7 @@ window.EK_SUBCATS =
    "s": "cuadros-luz",
    "n": "Cuadros de luz",
    "i": "bi-brightness-high",
+   "ii": null,
    "cats": [
     "lamparas",
     "decoracion"
@@ -371,6 +406,7 @@ window.EK_SUBCATS =
    "s": "charolas",
    "n": "Charolas",
    "i": "bi-basket",
+   "ii": null,
    "cats": [
     "mdf",
     "hogar-cocina"
@@ -381,6 +417,7 @@ window.EK_SUBCATS =
    "s": "relojes",
    "n": "Relojes",
    "i": "bi-clock",
+   "ii": null,
    "cats": [
     "mdf",
     "hogar-cocina"
@@ -391,6 +428,7 @@ window.EK_SUBCATS =
    "s": "portarretratos",
    "n": "Portarretratos",
    "i": "bi-image-alt",
+   "ii": null,
    "cats": [
     "mdf",
     "hogar-cocina",
@@ -402,6 +440,7 @@ window.EK_SUBCATS =
    "s": "organizadores",
    "n": "Organizadores",
    "i": "bi-grid-3x3-gap",
+   "ii": null,
    "cats": [
     "mdf",
     "hogar-cocina"
@@ -412,6 +451,7 @@ window.EK_SUBCATS =
    "s": "portavasos",
    "n": "Portavasos",
    "i": "bi-circle-half",
+   "ii": null,
    "cats": [
     "mdf",
     "hogar-cocina"
@@ -422,6 +462,7 @@ window.EK_SUBCATS =
    "s": "separadores",
    "n": "Separadores de libros",
    "i": "bi-bookmark",
+   "ii": null,
    "cats": [
     "mdf",
     "regalos"
@@ -432,6 +473,7 @@ window.EK_SUBCATS =
    "s": "imanes",
    "n": "Imanes",
    "i": "bi-magnet",
+   "ii": null,
    "cats": [
     "personalizados",
     "regalos"
@@ -442,6 +484,7 @@ window.EK_SUBCATS =
    "s": "cajas-regalo",
    "n": "Cajas de regalo",
    "i": "bi-box2-heart",
+   "ii": null,
    "cats": [
     "mdf",
     "regalos"
@@ -452,6 +495,7 @@ window.EK_SUBCATS =
    "s": "recuerdos-boda",
    "n": "Recuerdos de boda",
    "i": "bi-gem",
+   "ii": null,
    "cats": [
     "bodas-eventos",
     "regalos"
@@ -462,6 +506,7 @@ window.EK_SUBCATS =
    "s": "numeros-mesa",
    "n": "Números de mesa",
    "i": "bi-123",
+   "ii": null,
    "cats": [
     "bodas-eventos",
     "decoracion"
@@ -472,6 +517,7 @@ window.EK_SUBCATS =
    "s": "libro-firmas",
    "n": "Libro de firmas",
    "i": "bi-journal-bookmark",
+   "ii": null,
    "cats": [
     "bodas-eventos",
     "regalos"
@@ -482,6 +528,7 @@ window.EK_SUBCATS =
    "s": "toppers",
    "n": "Toppers de pastel",
    "i": "bi-cake2",
+   "ii": null,
    "cats": [
     "navidad",
     "bodas-eventos",
@@ -493,6 +540,7 @@ window.EK_SUBCATS =
    "s": "arreglos-florales",
    "n": "Arreglos florales",
    "i": "bi-flower2",
+   "ii": null,
    "cats": [
     "navidad",
     "amor-amistad",
@@ -507,6 +555,7 @@ window.EK_SUBCATS =
    "s": "calaveritas",
    "n": "Calaveritas",
    "i": "bi-emoji-dizzy",
+   "ii": null,
    "cats": [
     "dia-muertos",
     "decoracion"
@@ -517,6 +566,7 @@ window.EK_SUBCATS =
    "s": "catrinas",
    "n": "Catrinas",
    "i": "bi-person-standing-dress",
+   "ii": null,
    "cats": [
     "dia-muertos",
     "decoracion"
@@ -527,6 +577,7 @@ window.EK_SUBCATS =
    "s": "ofrendas",
    "n": "Ofrendas",
    "i": "bi-fire",
+   "ii": null,
    "cats": [
     "dia-muertos",
     "decoracion"
@@ -537,6 +588,7 @@ window.EK_SUBCATS =
    "s": "mama",
    "n": "Para mamá",
    "i": "bi-suit-heart",
+   "ii": null,
    "cats": [
     "dia-madres",
     "regalos"
@@ -547,6 +599,7 @@ window.EK_SUBCATS =
    "s": "papa",
    "n": "Para papá",
    "i": "bi-person-badge",
+   "ii": null,
    "cats": [
     "dia-padres",
     "regalos"
@@ -557,6 +610,7 @@ window.EK_SUBCATS =
    "s": "ninos",
    "n": "Para niños",
    "i": "bi-balloon-heart",
+   "ii": null,
    "cats": [
     "dia-nino",
     "regalos"
@@ -567,6 +621,7 @@ window.EK_SUBCATS =
    "s": "halloween",
    "n": "Halloween",
    "i": "bi-moon-stars",
+   "ii": null,
    "cats": [
     "halloween",
     "decoracion"
@@ -577,6 +632,7 @@ window.EK_SUBCATS =
    "s": "grupos",
    "n": "Grupos y escuelas",
    "i": "bi-people-fill",
+   "ii": null,
    "cats": [
     "graduacion",
     "regalos"
