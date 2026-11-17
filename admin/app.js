@@ -259,8 +259,8 @@
           '<input class="var-talla" placeholder="Talla" value="' + esc(v.talla) + '">' +
           '<input class="var-color" placeholder="Color" value="' + esc(v.color) + '">' +
           '<input class="var-stock" type="number" placeholder="Stock" value="' + esc(v.stock) + '">' +
-          '<input class="var-precio" type="number" placeholder="Precio" value="' + esc(v.precio) + '">' +
-          '<input class="var-pd" type="number" placeholder="Precio dist." value="' + esc(v.precioDistribuidor) + '">' +
+          '<input class="var-precio" type="number" placeholder="P. cliente" value="' + esc(v.precio) + '">' +
+          '<input class="var-pd" type="number" placeholder="P. distribuidor" value="' + esc(v.precioDistribuidor) + '">' +
           '<div class="var-img">' +
             '<button type="button" class="btn btn--ghost btn--sm" data-foto="' + i + '" title="Foto de esta talla/color">' + mini + "</button>" +
             '<input type="file" class="var-file" accept="image/*" data-i="' + i + '" hidden>' +
@@ -545,7 +545,7 @@
         fld("Tallas / tamaños", tagInput("tallas", p ? p.tallas : [], "Ej. 30 cm")) +
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
-      fld("Stock y precio por variante <span class=hint>(opcional: agrega filas con talla, color, stock y precio)</span>", '<div id="variantes"></div>') +
+      fld("Stock y precio por variante <span class=hint>(opcional: una fila por talla/color. Precio cliente + precio distribuidor + stock + foto de esa variante)</span>", '<div id="variantes"></div>') +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
