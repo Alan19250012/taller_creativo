@@ -399,8 +399,18 @@ window.EK_DATA =
     "height": 42.3
    },
    "c": [],
-   "col": [],
-   "t": [],
+   "col": [
+    "Natural",
+    "Rojo",
+    "Dorado",
+    "rosa",
+    "amarillo"
+   ],
+   "t": [
+    "10 cm",
+    "15 cm",
+    "20 cm"
+   ],
    "st": 90,
    "v": 260,
    "r": 4.7,
@@ -418,17 +428,17 @@ window.EK_DATA =
      "talla": "10 cm",
      "color": "rosa",
      "stock": 10,
-     "precio": 80,
-     "precioDistribuidor": null,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794942047456-Captura-bol.png"
+     "precio": 85,
+     "precioDistribuidor": 79,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794944186250-Captura-bol.png"
     },
     {
      "talla": "20 cm",
      "color": "amarillo",
      "stock": 12,
      "precio": 160,
-     "precioDistribuidor": null,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794942069102-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+     "precioDistribuidor": 145,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794944192133-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
     }
    ]
   },

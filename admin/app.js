@@ -628,6 +628,7 @@
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
+      var varRows = variantesEditor ? variantesEditor.getValor() : [];
       var datos = {
         nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")),
         descripcion: f.get("descripcion") || "",
@@ -646,6 +647,11 @@
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
         activo: !!f.get("activo"),
       };
+      // Auto-sincroniza tallas/colores de las variantes al producto (para que se puedan elegir en la ficha)
+      varRows.forEach(function (v) {
+        if (v.talla && datos.tallas.indexOf(v.talla) === -1) datos.tallas.push(v.talla);
+        if (v.color && datos.colores.indexOf(v.color) === -1) datos.colores.push(v.color);
+      });
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
       try {
         var pid;
@@ -659,7 +665,6 @@
         }
         // variantes (desde el editor de filas)
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
-        var varRows = variantesEditor ? variantesEditor.getValor() : [];
         for (var j = 0; j < varRows.length; j++) {
           await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, precioDistribuidor: varRows[j].precioDistribuidor || null, imagen: varRows[j].imagen || null });
         }

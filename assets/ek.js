@@ -1500,8 +1500,13 @@
     document.body.appendChild(sb);
     $("#ek-add2").onclick = function () { addCart(p.s, talla, color, +$("#ek-cant").value || 1); toast("Agregado al carrito", "bi-bag-check-fill"); };
     revelar();
-    // Personalizador dinámico (si el producto tiene print_area + imagen)
-    if (window.EK_personalizador) window.EK_personalizador(p);
+    // Personalizador dinámico (si el producto tiene print_area + imagen).
+    // ek-personalizador.js se carga DESPUÉS de ek.js, así que esperamos a que esté listo.
+    (function () {
+      var lanzar = function () { if (window.EK_personalizador) window.EK_personalizador(p); };
+      if (window.EK_personalizador) lanzar();
+      else document.addEventListener("DOMContentLoaded", lanzar);
+    })();
   }
 
   /* ======================= CARRITO Y PAGO ======================= */
