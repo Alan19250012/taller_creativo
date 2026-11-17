@@ -316,6 +316,71 @@
       },
     };
   }
+  // Editor de imágenes de personalización (varias, cada una con su propia área de impresión)
+  function initPersonalizaciones(inicial) {
+    var cont = $("#personalizaciones");
+    if (!cont) return { getValor: function () { return { imagenes: [], areas: [] }; } };
+    var lista = (inicial || []).map(function (x) { return { imagen: x.imagen || "", area: x.area || null }; });
+    var editores = [];
+    function pintar() {
+      cont.innerHTML = lista.map(function (x, i) {
+        return '<div class="pa-item" data-i="' + i + '" style="border:1px solid var(--linea);border-radius:10px;padding:12px;margin-bottom:10px;background:#fff">' +
+          '<div class="field"><label>Imagen ' + (i + 1) + '</label>' +
+            '<input type="file" class="pa-file" accept="image/*" data-i="' + i + '" hidden>' +
+            '<button type="button" class="btn btn--sm btn--ghost" data-subir="' + i + '"><i class="bi bi-upload"></i> ' + (x.imagen ? "Reemplazar imagen" : "Subir imagen") + "</button>" +
+            (x.imagen ? '<img src="' + esc(x.imagen) + '" style="max-width:120px;max-height:120px;display:block;margin-top:6px;border-radius:8px">' : "") +
+          "</div>" +
+          '<div class="field"><label>Área de impresión de esta imagen</label><div class="pa-editor" data-i="' + i + '"></div></div>' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '" style="color:var(--rojo)"><i class="bi bi-x-lg"></i> Quitar imagen</button>' +
+        "</div>";
+      }).join("") +
+        '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar imagen de personalización</button>' +
+        '<p class="hint" style="margin-top:6px">Puedes subir todas las que necesites (más de 5). Cada una tiene su propia área de impresión.</p>';
+      editores = [];
+      $$(".pa-editor", cont).forEach(function (el, i) {
+        if (window.PrintAreaEditor) editores[i] = window.PrintAreaEditor({ container: el, imagen: lista[i].imagen || "", valor: lista[i].area });
+      });
+    }
+    function subir(idx, file) {
+      if (!file) return;
+      var lector = new FileReader();
+      lector.onload = async function () {
+        try {
+          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "personalizacion" }) });
+          var d = await res.json();
+          if (d.ok && d.url) { lista[idx].imagen = d.url; pintar(); }
+          else toast(d.error || "Error al subir", false);
+        } catch (e) { toast("Error de conexión", false); }
+      };
+      lector.readAsDataURL(file);
+    }
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push({ imagen: "", area: null }); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+      else if (b.hasAttribute("data-subir")) { cont.querySelector('.pa-file[data-i="' + b.getAttribute("data-subir") + '"]').click(); }
+    });
+    cont.addEventListener("change", function (e) {
+      var f = e.target.closest(".pa-file");
+      if (!f) return;
+      subir(+f.getAttribute("data-i"), f.files[0]);
+      f.value = "";
+    });
+    pintar();
+    return {
+      getValor: function () {
+        var imagenes = [], areas = [];
+        lista.forEach(function (x, i) {
+          if (x.imagen) {
+            imagenes.push(x.imagen);
+            areas.push((editores[i] && editores[i].getValor()) || { x: 30, y: 30, width: 40, height: 30 });
+          }
+        });
+        return { imagenes: imagenes, areas: areas };
+      },
+    };
+  }
   // Constructor por bloques para el blog (texto e imágenes)
   function initBlogBloques(inicial) {
     var cont = $("#blog-bloques");
@@ -524,7 +589,6 @@
         .map(function (r) { return r.B; });
       variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,precioDistribuidor,imagen&productoId=eq." + p.id).catch(function () { return []; });
     }
-    var variantesTxt = variantes.map(function (v) { return [v.talla || "", v.color || "", v.stock, v.precio || ""].join(" | "); }).join("\n");
     var body =
       '<form id="f-prod">' +
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", p ? p.nombre : "") + "</div>" +
@@ -553,12 +617,8 @@
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
       '<div class="row"><div class="field"><label></label>' + check("personalizable", p ? p.personalizable : false, "Producto personalizable (mostrar editor de texto al cliente)") + "</div></div>" +
-      fld("Imagen base para personalizar <span class=hint>(sobre esta trabaja el cliente; NO aparece en la galería)</span>",
-        '<input type="file" id="up-personalizacion" accept="image/*">' +
-        '<input type="hidden" name="imagen_personalizacion" id="imagen_personalizacion" value="' + esc(p ? (p.imagen_personalizacion || "") : "") + '">' +
-        '<img id="personalizacion-preview" style="max-width:160px;max-height:160px;margin-top:8px;border-radius:8px;' + (p && p.imagen_personalizacion ? "" : "display:none") + '" src="' + esc(p ? (p.imagen_personalizacion || "") : "") + '">') +
-      fld("Área de impresión / personalización <span class=hint>(define dónde irá el texto del cliente; solo aplica si es personalizable)</span>",
-        '<div id="print-area-container"><p class="hint" style="margin:0">Sube primero una imagen para dibujar el área.</p></div>') +
+      fld("Imágenes de personalización <span class=hint>(sube 1 o más; cada una con su propia área de impresión)</span>",
+        '<div id="personalizaciones"></div>') +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
@@ -582,56 +642,27 @@
     initTagInput("colores");
     initTagInput("tallas");
     // Editor de variantes (filas)
-    var variantesEditor = initVariantes(p ? (p.variantes || []) : []);
+    var variantesEditor = initVariantes(variantes);
     // Galería de imágenes (1-5)
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
     var galeria = initGaleria(imagenesIniciales);
 
-    // Imagen base de personalización (subida separada, NO visible en la galería)
-    function subirPersonalizacion(file) {
-      var lector = new FileReader();
-      lector.onload = async function () {
-        try {
-          var res = await fetch("/api/upload", { method: "POST", headers: authHeaders(), body: JSON.stringify({ base64: lector.result, nombre: file.name, tipo: "personalizacion" }) });
-          var d = await res.json();
-          if (d.ok && d.url) {
-            $("#imagen_personalizacion").value = d.url;
-            var pv = $("#personalizacion-preview");
-            if (pv) { pv.src = d.url; pv.style.display = ""; }
-            if (editorPA) editorPA.setImagen(d.url);   // el editor de área usa esta imagen
-          } else toast(d.error || "Error al subir", false);
-        } catch (e) { toast("Error de conexión", false); }
-      };
-      lector.readAsDataURL(file);
+    // Editor de imágenes de personalización (varias, cada una con su área de impresión)
+    var personalizacionesIniciales = [];
+    if (p) {
+      var imgsPers = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
+        ? p.imagenes_personalizacion
+        : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
+      var areasPers = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
+      imgsPers.forEach(function (img, i) { personalizacionesIniciales.push({ imagen: img, area: areasPers[i] || null }); });
     }
-    $("#up-personalizacion").addEventListener("change", function () {
-      if (this.files[0]) subirPersonalizacion(this.files[0]);
-    });
+    var personalizacionesEditor = initPersonalizaciones(personalizacionesIniciales);
 
-    // Configurador de área de impresión: usa la imagen de personalización si existe, si no la primera de la galería
-    var editorPA = null;
-    var imgBasePA = (p && p.imagen_personalizacion) || imagenesIniciales[0] || "";
-    if (window.PrintAreaEditor) {
-      editorPA = window.PrintAreaEditor({
-        container: $("#print-area-container"),
-        imagen: imgBasePA,
-        valor: p ? (p.print_area || null) : null,
-      });
-    }
-    // Al subir la primera imagen de la galería (si no hay imagen de personalización), se actualiza el editor
-    $("#galeria").addEventListener("click", function () {
-      setTimeout(function () {
-        if ($("#imagen_personalizacion").value) return;
-        var urls = galeria.getUrls();
-        if (editorPA && urls[0]) editorPA.setImagen(urls[0]);
-      }, 1500);
-    });
-
-    // Mostrar/ocultar la imagen de personalización según el checkbox
+    // Mostrar/ocultar el editor de personalización según el checkbox
     var cbPersonalizable = $('input[name="personalizable"]');
     function togglePersonalizable() {
       var on = cbPersonalizable.checked;
-      $("#up-personalizacion").closest(".field").style.display = on ? "" : "none";
+      $("#personalizaciones").closest(".field").style.display = on ? "" : "none";
     }
     if (cbPersonalizable) { cbPersonalizable.addEventListener("change", togglePersonalizable); togglePersonalizable(); }
 
@@ -639,6 +670,7 @@
       e.preventDefault();
       var f = new FormData(e.target);
       var varRows = variantesEditor ? variantesEditor.getValor() : [];
+      var pers = personalizacionesEditor ? personalizacionesEditor.getValor() : { imagenes: [], areas: [] };
       var datos = {
         nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")),
         descripcion: f.get("descripcion") || "",
@@ -651,9 +683,11 @@
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagenes: galeria ? galeria.getUrls() : [],
         imagen: (galeria && galeria.getUrls()[0]) || null,
-        imagen_personalizacion: f.get("imagen_personalizacion") || null,
+        imagen_personalizacion: pers.imagenes[0] || null,
+        imagenes_personalizacion: pers.imagenes,
         personalizable: !!f.get("personalizable"),
-        print_area: editorPA ? editorPA.getValor() : null,
+        print_area: pers.areas[0] || null,
+        print_areas: pers.areas,
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
         activo: !!f.get("activo"),
       };

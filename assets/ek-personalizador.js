@@ -1,12 +1,13 @@
 /* ============================================================================
    TALLER CREATIVO EK · Personalizador de producto (assets/ek-personalizador.js)
    ----------------------------------------------------------------------------
-   Vista del cliente. Se activa cuando un producto tiene `print_area` e `imagen`.
-   - Dibuja la imagen base en un <canvas>.
-   - Renderiza el texto del cliente DENTRO del área de impresión (print_area),
-     con AUTOSCALING: reduce el tamaño de fuente hasta que quepa (ancho y alto).
-   - Soporta saltos de línea (\n), tipografías de Google Fonts y color.
-   - "Agregar al carrito" captura la composición con canvas.toDataURL('image/png').
+   Vista del cliente. Se activa cuando un producto tiene `personalizable` y
+   al menos una imagen de personalización con su `print_area`.
+   - Soporta VARIAS imágenes de personalización (cada una con su propia área).
+   - El cliente escribe su texto y lo ve sobre la imagen seleccionada.
+   - Dibuja la imagen base en un <canvas> y renderiza el texto DENTRO del área,
+     con AUTOSCALING (reduce la fuente hasta que quepa) y saltos de línea.
+   - "Agregar al carrito" captura la composición con canvas.toDataURL().
    ========================================================================== */
 (function () {
   "use strict";
@@ -41,11 +42,14 @@
       ".ekp-field textarea,.ekp-field select{width:100%;padding:9px 11px;border:1px solid #e5e7eb;border-radius:8px;font:inherit}" +
       ".ekp-field input[type=color]{width:54px;height:38px;border:1px solid #e5e7eb;border-radius:8px;padding:2px;background:#fff}" +
       ".ekp-btn{display:inline-flex;align-items:center;gap:8px;background:#DA1D2A;color:#fff;border:0;padding:12px 18px;border-radius:9px;font-weight:700;cursor:pointer;font:inherit}" +
+      ".ekp-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}" +
+      ".ekp-thumb{width:64px;height:64px;border:2px solid #e5e7eb;border-radius:10px;overflow:hidden;padding:0;background:#f9fafb;cursor:pointer}" +
+      ".ekp-thumb img{width:100%;height:100%;object-fit:cover;display:block}" +
+      ".ekp-thumb.is-on{border-color:#DA1D2A}" +
       "@media(max-width:760px){.ekp-grid{grid-template-columns:1fr}}";
     document.head.appendChild(st);
   }
 
-  // Envuelve palabras para que el texto quepa en el ancho máximo.
   function envolver(ctx, texto, maxW) {
     var lineas = [];
     var palabras = texto.split(/\s+/);
@@ -63,11 +67,9 @@
     return lineas.length ? lineas : [""];
   }
 
-  // Algoritmo de autoscaling: reduce el tamaño de fuente hasta que TODO el texto
-  // (con sus saltos de línea y ajuste de palabras) quepa en maxW × maxH.
   function ajustarTexto(ctx, texto, fuente, maxW, maxH) {
     var parrafos = String(texto || "").split("\n");
-    var size = Math.max(12, Math.floor(maxH / 1.3));  // empieza grande
+    var size = Math.max(12, Math.floor(maxH / 1.3));
     var lineas = [], lineHeight;
     while (size > 8) {
       ctx.font = size + "px " + fuente;
@@ -81,20 +83,36 @@
   }
 
   window.EK_personalizador = function (p) {
-    var imgBase = (p && p.imagen_personalizacion) || (p && p.imagen);
-    if (!p || !p.personalizable || !p.print_area || !imgBase) return;
-    var pa = p.print_area;
+    if (!p || !p.personalizable) return;
+
+    // Construye la lista de imágenes de personalización (cada una con su área)
+    var items = [];
+    var imgs = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
+      ? p.imagenes_personalizacion
+      : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
+    var areas = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
+    imgs.forEach(function (img, i) { if (img) items.push({ imagen: img, area: areas[i] || null }); });
+    if (!items.length && p.imagen) items.push({ imagen: p.imagen, area: p.print_area || null });
+    if (!items.length) return;
+
+    var idx = 0;
     inyectarEstilos();
 
     var destino = document.getElementById("ek-producto");
     if (!destino) return;
 
     // --- Estructura (se inserta justo debajo del bloque de compra) ---
+    var miniaturas = items.length > 1
+      ? '<div class="ekp-thumbs">' + items.map(function (it, i) {
+          return '<button type="button" class="ekp-thumb' + (i === 0 ? " is-on" : "") + '" data-i="' + i + '" title="Imagen ' + (i + 1) + '"><img src="' + it.imagen + '" alt=""></button>';
+        }).join("") + "</div>"
+      : "";
     var sec = document.createElement("section");
     sec.className = "ekp";
     sec.innerHTML =
       '<h3>🎨 Personaliza tu producto</h3>' +
       '<p class="muted">Escribe tu texto: se ajusta automáticamente al área de impresión.</p>' +
+      miniaturas +
       '<div class="ekp-grid">' +
         '<div class="ekp-canvas"><canvas></canvas></div>' +
         '<div>' +
@@ -117,7 +135,7 @@
     var fuente = sec.querySelector("#ekp-fuente");
     var color = sec.querySelector("#ekp-color");
 
-    // Carga la imagen base (crossOrigin para poder exportar el canvas)
+    // Carga la imagen seleccionada
     var img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = function () {
@@ -128,22 +146,20 @@
     img.onerror = function () {
       sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base.";
     };
-    img.src = imgBase;
+    img.src = items[0].imagen;
 
-    // Renderiza la composición: imagen base + texto dentro del print_area
+    function areaActual() { return items[idx].area || { x: 30, y: 30, width: 40, height: 30 }; }
+
     function dibujar() {
       if (!img.naturalWidth) return;
+      var pa = areaActual();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      // print_area en píxeles (porcentajes → píxeles relativos a la imagen)
       var px = (pa.x / 100) * canvas.width;
       var py = (pa.y / 100) * canvas.height;
       var pw = (pa.width / 100) * canvas.width;
       var ph = (pa.height / 100) * canvas.height;
-
-      // (opcional) dibuja el rectángulo del área para referencia en desarrollo:
-      // ctx.strokeStyle = "rgba(255,0,0,.4)"; ctx.strokeRect(px, py, pw, ph);
 
       var fit = ajustarTexto(ctx, txt.value, fuente.value, pw, ph);
       ctx.fillStyle = color.value;
@@ -157,7 +173,15 @@
       });
     }
 
-    // Espera a que las fuentes estén listas antes de pintar
+    // Cambio de imagen (miniaturas)
+    sec.querySelectorAll(".ekp-thumb").forEach(function (b) {
+      b.addEventListener("click", function () {
+        idx = +b.getAttribute("data-i");
+        sec.querySelectorAll(".ekp-thumb").forEach(function (x) { x.classList.toggle("is-on", x === b); });
+        img.src = items[idx].imagen;
+      });
+    });
+
     function redibujar() {
       if (document.fonts && document.fonts.load) {
         document.fonts.load("16px " + fuente.value).then(dibujar).catch(dibujar);
@@ -167,7 +191,6 @@
     fuente.addEventListener("change", redibujar);
     color.addEventListener("input", dibujar);
 
-    // Captura la composición y la agrega al carrito
     sec.querySelector("#ekp-agregar").addEventListener("click", function () {
       try {
         var dataURL = canvas.toDataURL("image/png");

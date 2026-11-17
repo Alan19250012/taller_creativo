@@ -187,8 +187,10 @@ async function main() {
     imagen: p.imagen || null,
     imagenes: p.imagenes || [],       // 1-5 imágenes
     imagen_personalizacion: p.imagen_personalizacion || null,
+    imagenes_personalizacion: p.imagenes_personalizacion || [],
     personalizable: !!p.personalizable,
     print_area: p.print_area || null,  // área de personalización {x,y,width,height} en %
+    print_areas: p.print_areas || [],  // una por cada imagen de personalización
     c: prodCats[p.slug] || [], col: p.colores || [], t: p.tallas || [],
     st: p.stock, v: p.vendidos, r: p.calificacion, b: badge(p),
     d: p.descripcion || "", f: p.caracteristicas || [], kw: p.keywords || "",

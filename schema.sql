@@ -108,7 +108,9 @@ CREATE TABLE "Producto" (
   "imagen" TEXT,
   "imagenes" TEXT[] NOT NULL DEFAULT '{}',   -- 1 a 5 imágenes del producto
   "imagen_personalizacion" TEXT,             -- imagen base del personalizador (NO se muestra en la galería)
+  "imagenes_personalizacion" TEXT[] NOT NULL DEFAULT '{}',  -- varias imágenes base de personalización
   "print_area" JSONB,          -- área de personalización: {x,y,width,height} en %
+  "print_areas" JSONB[] NOT NULL DEFAULT '{}',  -- áreas de impresión (una por cada imagen de personalización)
   "personalizable" BOOLEAN NOT NULL DEFAULT false,  -- si es personalizable, se muestra el editor
   "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

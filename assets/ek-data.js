@@ -391,6 +391,7 @@ window.EK_DATA =
     "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794421953006-Captura-bol.png"
    ],
    "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794420953151-Captura-bol.png",
+   "imagenes_personalizacion": [],
    "personalizable": true,
    "print_area": {
     "x": 27.4,
@@ -398,12 +399,15 @@ window.EK_DATA =
     "width": 46.3,
     "height": 42.3
    },
+   "print_areas": [],
    "c": [],
    "col": [
-    "azul"
+    "rosa",
+    "amarillo"
    ],
    "t": [
-    "10cm"
+    "10 cm",
+    "20 cm"
    ],
    "st": 90,
    "v": 260,
@@ -417,7 +421,40 @@ window.EK_DATA =
     "Precio por pieza"
    ],
    "kw": "christmas,ornament,wooden",
-   "variantes": []
+   "variantes": [
+    {
+     "talla": "10 cm",
+     "color": "rosa",
+     "stock": 10,
+     "precio": 85,
+     "precioDistribuidor": 49,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947200580-Captura-bol.png"
+    },
+    {
+     "talla": "20 cm",
+     "color": "rosa",
+     "stock": 12,
+     "precio": 160,
+     "precioDistribuidor": 145,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947244461-Captura-bol.png"
+    },
+    {
+     "talla": "10 cm",
+     "color": "amarillo",
+     "stock": 4,
+     "precio": 85,
+     "precioDistribuidor": 49,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947273496-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+    },
+    {
+     "talla": "20 cm",
+     "color": "amarillo",
+     "stock": 6,
+     "precio": 160,
+     "precioDistribuidor": 145,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947301032-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+    }
+   ]
   },
   {
    "n": "Alcancía MDF Personalizada",
@@ -428,8 +465,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-nino",
     "mdf",
@@ -470,8 +509,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [],
    "col": [
     "Natural",
@@ -507,8 +548,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-muertos",
     "flores",
@@ -547,8 +590,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "flores",
@@ -587,8 +632,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "primavera",
     "flores",
@@ -629,8 +676,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "flores",
@@ -669,8 +718,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "dtf-uv",
@@ -709,8 +760,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "mdf",
@@ -749,8 +802,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "playeras",
     "navidad",
@@ -790,8 +845,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "dtf-uv",
@@ -831,8 +888,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -874,8 +933,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [],
    "col": [
     "Rojo",
@@ -910,8 +971,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "mdf",
@@ -952,8 +1015,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "halloween",
     "mdf",
@@ -992,8 +1057,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-muertos",
     "mdf",
@@ -1033,8 +1100,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "dtf-uv",
@@ -1073,8 +1142,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-muertos",
     "decoracion",
@@ -1114,8 +1185,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -1155,8 +1228,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -1196,8 +1271,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "personalizados",
     "bodas-eventos",
@@ -1236,8 +1313,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "personalizados",
@@ -1276,8 +1355,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "dtf-uv",
@@ -1316,8 +1397,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -1356,8 +1439,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -1396,8 +1481,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "decoracion",
@@ -1436,8 +1523,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "lamparas",
     "decoracion",
@@ -1476,8 +1565,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "decoracion"
@@ -1519,8 +1610,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "decoracion",
@@ -1559,8 +1652,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -1601,8 +1696,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -1643,8 +1740,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -1686,8 +1785,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -1727,8 +1828,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "decoracion",
@@ -1768,8 +1871,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "amor-amistad",
@@ -1809,8 +1914,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -1849,8 +1956,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-muertos",
     "mdf",
@@ -1889,8 +1998,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "dtf-uv",
@@ -1931,8 +2042,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "regalos",
@@ -1971,8 +2084,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "lamparas",
     "decoracion",
@@ -2010,8 +2125,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "lamparas",
     "mdf",
@@ -2051,8 +2168,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "lamparas",
     "personalizados",
@@ -2093,8 +2212,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "decoracion",
@@ -2134,8 +2255,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "mdf",
@@ -2175,8 +2298,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -2215,8 +2340,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-madres",
     "mdf",
@@ -2257,8 +2384,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -2298,8 +2427,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "mdf",
@@ -2340,8 +2471,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -2380,8 +2513,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "llaveros-pines",
     "personalizados"
@@ -2420,8 +2555,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "llaveros-pines",
     "dtf-uv",
@@ -2461,8 +2598,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "llaveros-pines",
     "mdf",
@@ -2505,8 +2644,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-padres",
     "llaveros-pines",
@@ -2547,8 +2688,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "llaveros-pines",
@@ -2589,8 +2732,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dtf-uv",
     "personalizados"
@@ -2626,8 +2771,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dtf-uv",
     "personalizados"
@@ -2663,8 +2810,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "mdf",
@@ -2703,8 +2852,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -2745,8 +2896,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -2786,8 +2939,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -2826,8 +2981,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "regalos",
@@ -2866,8 +3023,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "regalos",
@@ -2906,8 +3065,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "regalos",
@@ -2947,8 +3108,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -2987,8 +3150,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -3027,8 +3192,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -3067,8 +3234,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "llaveros-pines",
@@ -3109,8 +3278,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "llaveros-pines",
     "personalizados",
@@ -3151,8 +3322,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -3191,8 +3364,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "playeras",
     "navidad"
@@ -3233,8 +3408,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "playeras",
     "navidad"
@@ -3275,8 +3452,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "playeras",
     "navidad",
@@ -3316,8 +3495,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "playeras",
     "navidad"
@@ -3359,8 +3540,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -3401,8 +3584,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3443,8 +3628,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3484,8 +3671,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -3525,8 +3714,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -3565,8 +3756,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3608,8 +3801,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -3649,8 +3844,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -3689,8 +3886,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "amor-amistad",
     "tazas-termos",
@@ -3731,8 +3930,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "graduacion",
     "regalos",
@@ -3771,8 +3972,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -3811,8 +4014,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-nino",
     "mdf",
@@ -3850,8 +4055,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-muertos",
     "mdf",
@@ -3890,8 +4097,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "playeras",
     "navidad",
@@ -3933,8 +4142,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "tazas-termos",
     "dtf-uv",
@@ -3976,8 +4187,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "tazas-termos",
     "personalizados"
@@ -4017,8 +4230,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-madres",
     "tazas-termos",
@@ -4058,8 +4273,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dia-padres",
     "tazas-termos",
@@ -4099,8 +4316,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "tazas-termos",
     "personalizados",
@@ -4138,8 +4357,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "tazas-termos",
     "personalizados",
@@ -4180,8 +4401,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "tazas-termos",
     "personalizados",
@@ -4221,8 +4444,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "bodas-eventos",
     "decoracion",
@@ -4261,8 +4486,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "regalos",
@@ -4301,8 +4528,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "dtf-uv",
     "personalizados"
@@ -4338,8 +4567,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "mdf",
@@ -4378,8 +4609,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -4417,8 +4650,10 @@ window.EK_DATA =
    "imagen": null,
    "imagenes": [],
    "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": false,
    "print_area": null,
+   "print_areas": [],
    "c": [
     "navidad",
     "lamparas",
