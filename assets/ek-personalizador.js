@@ -86,13 +86,23 @@
     if (!p || !p.personalizable) return;
 
     // Construye la lista de imágenes de personalización (cada una con su área)
+    var usaVariantes = !!(p.variantes && p.variantes.length);
     var items = [];
-    var imgs = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
-      ? p.imagenes_personalizacion
-      : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
-    var areas = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
-    imgs.forEach(function (img, i) { if (img) items.push({ imagen: img, area: areas[i] || null }); });
-    if (!items.length && p.imagen) items.push({ imagen: p.imagen, area: p.print_area || null });
+    var areaDef = (p.print_areas && p.print_areas[0]) || p.print_area || { x: 30, y: 30, width: 40, height: 30 };
+
+    if (usaVariantes) {
+      // Personaliza la imagen de la VARIANTE seleccionada (la "vista" de esa talla/color)
+      var v0 = (window.EK_getVariante ? window.EK_getVariante() : null);
+      var img0 = (v0 && v0.imagen) || (p.imagenes_personalizacion && p.imagenes_personalizacion[0]) || p.imagen_personalizacion || p.imagen;
+      if (img0) items.push({ imagen: img0, area: areaDef });
+    } else {
+      var imgs = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
+        ? p.imagenes_personalizacion
+        : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
+      var areas = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
+      imgs.forEach(function (img, i) { if (img) items.push({ imagen: img, area: areas[i] || null }); });
+    }
+    if (!items.length && p.imagen) items.push({ imagen: p.imagen, area: areaDef });
     if (!items.length) return;
 
     var idx = 0;
@@ -147,6 +157,16 @@
       sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base.";
     };
     img.src = items[0].imagen;
+
+    // Si usa variantes, al cambiar talla/color se personaliza la imagen de esa variante
+    if (usaVariantes) {
+      window.EK_onVarianteChange = function (v) {
+        if (!v || !v.imagen) return;
+        items[0] = { imagen: v.imagen, area: areaDef };
+        idx = 0;
+        img.src = v.imagen;
+      };
+    }
 
     function areaActual() { return items[idx].area || { x: 30, y: 30, width: 40, height: 30 }; }
 

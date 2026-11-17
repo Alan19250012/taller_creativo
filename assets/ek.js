@@ -1439,8 +1439,10 @@
       }
       return null;
     }
+    window.EK_getVariante = varianteSeleccionada;
     function actualizarStockUI() {
       var v = varianteSeleccionada();
+      if (window.EK_onVarianteChange) window.EK_onVarianteChange(v);
       var mimg = document.getElementById("ek-main-img");
       if (mimg) mimg.src = (v && v.imagen) ? v.imagen : mainDefault;
       if (!v) return;
