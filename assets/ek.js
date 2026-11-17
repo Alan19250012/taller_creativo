@@ -129,8 +129,18 @@
   // Lo usa assets/ek-personalizador.js al capturar la vista previa.
   window.EK_agregarPersonalizado = function (slug, imagen) {
     var p = prod(slug); if (!p || !imagen) return;
+    // Si hay una variante seleccionada, el personalizado usa su talla/color y su precio
+    var v = (window.EK_getVariante ? window.EK_getVariante() : null);
     var c = carrito();
-    c.push({ k: slug + "|personalizado|" + Date.now(), s: slug, t: "Personalizado", col: "—", c: 1, img: imagen });
+    c.push({
+      k: slug + "|personalizado|" + Date.now(),
+      s: slug,
+      t: v ? (v.talla || "Personalizado") : "Personalizado",
+      col: v ? (v.color || "—") : "—",
+      c: 1,
+      img: imagen,
+      precio: (v && v.precio != null) ? v.precio : p.p,
+    });
     guardar(c);
     pintarDrawerCarrito();
     toast("Personalización agregada al carrito", "bi-bag-check-fill");
@@ -757,7 +767,7 @@
         '<a href="articulo.html?id=' + l.p.s + '">' + imgTag(l.p, 0, 200, l.p.n) + "</a>" +
         "<div>" +
           '<div class="ek-ci__n">' + esc(l.p.n) + "</div>" +
-          '<div class="ek-ci__m">' + esc(l.x.t) + " · " + esc(l.x.col) + " · " + money(l.p.p) + " c/u</div>" +
+          '<div class="ek-ci__m">' + esc(l.x.t) + " · " + esc(l.x.col) + " · " + money(l.precio) + " c/u</div>" +
           '<div class="ek-ci__f">' +
             '<div class="ek-qty ek-qty--mini"><button data-menos="' + esc(l.x.k) + '" aria-label="Quitar uno">−</button>' +
             '<input type="number" value="' + l.x.c + '" min="1" data-cant="' + esc(l.x.k) + '" aria-label="Cantidad">' +
@@ -1524,8 +1534,9 @@
     var c = carrito(), sub = 0, piezas = 0, lineas = [];
     c.forEach(function (x) {
       var p = prod(x.s); if (!p) return;
-      var imp = p.p * x.c; sub += imp; piezas += x.c;
-      lineas.push({ x: x, p: p, imp: imp });
+      var precio = (x.precio != null) ? x.precio : p.p;   // precio por pieza (variante o base)
+      var imp = precio * x.c; sub += imp; piezas += x.c;
+      lineas.push({ x: x, p: p, imp: imp, precio: precio });
     });
     var cup = LS.get("cupon", ""), cupon = CUPONES[cup] || null, descu = 0, envioGratis = false;
     if (cupon) {
@@ -1573,7 +1584,7 @@
         return '<div class="ek-cart__row" data-k="' + esc(l.x.k) + '">' +
           "<a href=\"articulo.html?id=" + l.p.s + '">' + mini + "</a>" +
           "<div><div class=\"ek-cart__n\"><a href=\"articulo.html?id=" + l.p.s + '">' + esc(l.p.n) + "</a></div>" +
-          '<div class="ek-cart__d">' + esc(l.x.t) + " · " + esc(l.x.col) + " · " + money(l.p.p) + " c/u</div>" +
+          '<div class="ek-cart__d">' + esc(l.x.t) + " · " + esc(l.x.col) + " · " + money(l.precio) + " c/u</div>" +
           '<div class="ek-row" style="gap:10px"><div class="ek-qty"><button data-menos="' + esc(l.x.k) + '">−</button>' +
           '<input type="number" value="' + l.x.c + '" min="1" data-cant="' + esc(l.x.k) + '"><button data-mas="' + esc(l.x.k) + '">+</button></div>' +
           '<button class="ek-chip" data-quitar="' + esc(l.x.k) + '"><i class="bi bi-trash3"></i> Quitar</button></div></div>' +
@@ -1624,7 +1635,7 @@
       var t = totales();
       if (!t.lineas.length) return;
       var items = t.lineas.map(function (l) {
-        return { nombre: l.p.n, precio: l.p.p, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
+        return { nombre: l.p.n, precio: l.precio, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
       });
       var u = usuarioLogueado();
       var base = location.origin + location.pathname;
