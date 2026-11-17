@@ -530,19 +530,22 @@
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", p ? p.nombre : "") + "</div>" +
       '<div class="field"><label>Slug <span class="hint">(se genera solo si lo dejas vacío)</span></label>' + input("slug", p ? p.slug : "") + "</div></div>" +
       fld("Descripción", area("descripcion", p ? p.descripcion : "", 3)) +
-      '<div class="row">' +
-        fld("Precio minorista (MXN) *", input("precioMinorista", p ? p.precioMinorista : "", "number")) +
-        fld("Precio distribuidor (MXN) <span class=hint>(solo lo ven distribuidores)</span>", input("precioDistribuidor", p ? (p.precioDistribuidor || "") : "", "number")) +
+      '<div class="row"><div class="field"><label></label>' + check("usarVariantes", variantes.length > 0, "Este producto usa variantes (el precio, stock y fotos dependen de la talla/color)") + "</div></div>" +
+      '<div id="campos-base">' +
+        '<div class="row">' +
+          fld("Precio minorista (MXN) <span class=hint>(si usas variantes se toma el menor)</span>", input("precioMinorista", p ? p.precioMinorista : "", "number")) +
+          fld("Precio distribuidor (MXN) <span class=hint>(solo distribuidores)</span>", input("precioDistribuidor", p ? (p.precioDistribuidor || "") : "", "number")) +
+        "</div>" +
+        fld("Precio anterior (oferta)", input("precioAnterior", p ? (p.precioAnterior || "") : "", "number")) +
+        fld("Stock <span class=hint>(si usas variantes se suma solo)</span>", input("stock", p ? p.stock : 0, "number")) +
+        '<div class="row">' +
+          fld("Colores", tagInput("colores", p ? p.colores : [], "Ej. Rojo")) +
+          fld("Tallas / tamaños", tagInput("tallas", p ? p.tallas : [], "Ej. 30 cm")) +
+        "</div>" +
       "</div>" +
-      fld("Precio anterior (oferta)", input("precioAnterior", p ? (p.precioAnterior || "") : "", "number")) +
-      '<div class="row row--3">' +
-        fld("Stock", input("stock", p ? p.stock : 0, "number")) +
+      '<div class="row">' +
         fld("Vendidos", input("vendidos", p ? p.vendidos : 0, "number")) +
         fld("Calificación (0-5)", input("calificacion", p ? p.calificacion : 0, "number")) +
-      "</div>" +
-      '<div class="row">' +
-        fld("Colores", tagInput("colores", p ? p.colores : [], "Ej. Rojo")) +
-        fld("Tallas / tamaños", tagInput("tallas", p ? p.tallas : [], "Ej. 30 cm")) +
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
       fld("Stock y precio por variante <span class=hint>(opcional: una fila por talla/color. Precio cliente + precio distribuidor + stock + foto de esa variante)</span>", '<div id="variantes"></div>') +
@@ -568,6 +571,13 @@
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
     modal(p ? "Editar producto" : "Nuevo producto", body);
+    // Toggle: si usa variantes, oculta precio/stock/colores/tallas base (se derivan de las variantes)
+    var cbUsarVar = $('input[name="usarVariantes"]');
+    function toggleVar() {
+      var on = cbUsarVar.checked;
+      $("#campos-base").style.display = on ? "none" : "";
+    }
+    if (cbUsarVar) { cbUsarVar.addEventListener("change", toggleVar); toggleVar(); }
     // Entradas de etiquetas (colores y tallas con chips)
     initTagInput("colores");
     initTagInput("tallas");
@@ -652,6 +662,19 @@
         if (v.talla && datos.tallas.indexOf(v.talla) === -1) datos.tallas.push(v.talla);
         if (v.color && datos.colores.indexOf(v.color) === -1) datos.colores.push(v.color);
       });
+      // Si usa variantes: stock = suma de las variantes y precio = el menor
+      var cbUsar = $('input[name="usarVariantes"]');
+      if (cbUsar && cbUsar.checked && varRows.length) {
+        var sumStock = 0, minP = null, minPd = null;
+        varRows.forEach(function (v) {
+          sumStock += (v.stock || 0);
+          if (v.precio != null && (minP == null || v.precio < minP)) minP = v.precio;
+          if (v.precioDistribuidor != null && (minPd == null || v.precioDistribuidor < minPd)) minPd = v.precioDistribuidor;
+        });
+        datos.stock = sumStock;
+        if (minP != null) datos.precioMinorista = minP;
+        datos.precioDistribuidor = minPd;
+      }
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
       try {
         var pid;
