@@ -1322,6 +1322,14 @@
     if (!p) { cont.innerHTML = '<div class="ek-empty"><i class="bi bi-emoji-frown"></i><h3>No encontramos ese artículo</h3><p class="ek-muted">Puede que ya no esté disponible. Mira el catálogo completo.</p><a class="ek-btn ek-btn--rojo" href="tienda.html">Ver catálogo</a></div>'; return; }
     document.title = p.n + " · " + C.marca;
     var c0 = cat(p.c[0]), off = desc(p), rv = Math.max(3, Math.round(p.v * .12));
+    // Une las tallas/colores de las variantes a las listas del producto,
+    // para que SIEMPRE se puedan elegir aunque no estén en "Tallas"/"Colores".
+    var tallasChips = (p.t || []).slice();
+    var coloresChips = (p.col || []).slice();
+    (p.variantes || []).forEach(function (v) {
+      if (v.talla && tallasChips.indexOf(v.talla) === -1) tallasChips.push(v.talla);
+      if (v.color && coloresChips.indexOf(v.color) === -1) coloresChips.push(v.color);
+    });
 
     /* JSON-LD para Google */
     var ld = document.createElement("script"); ld.type = "application/ld+json";
@@ -1363,10 +1371,10 @@
       '<div class="ek-buy__msi"><i class="bi bi-credit-card-2-front"></i> ' + esc(C.mesesSinIntereses) + "</div>" +
       '<div class="ek-stockbar' + (p.st <= 10 ? " poco" : "") + '" id="ek-live-stockbar"><i style="width:' + Math.max(6, Math.min(100, Math.round(p.st / 120 * 100))) + '%"></i></div>' +
       "<small class='ek-muted' id='ek-live-stocktext'>" + (p.st > 0 ? "Quedan <b>" + nf(p.st) + "</b> piezas · " + nf(p.v) + " ya vendidas" : "Agotado por ahora: te avisamos cuando llegue") + "</small>" +
-      '<div class="ek-opt"><div class="ek-opt__l"><span>Tamaño / Talla</span><span class="ek-muted" id="ek-talla-sel">' + esc(p.t[0]) + "</span></div>" +
-      '<div class="ek-chiplist" id="ek-tallas">' + p.t.map(function (t, i) { return '<button class="ek-chip' + (i === 0 ? " is-on" : "") + '" data-t="' + esc(t) + '">' + esc(t) + "</button>"; }).join("") + "</div></div>" +
-      '<div class="ek-opt"><div class="ek-opt__l"><span>Color</span><span class="ek-muted" id="ek-color-sel">' + esc(p.col[0]) + "</span></div>" +
-      '<div class="ek-chiplist" id="ek-colores">' + p.col.map(function (c, i) { return '<button class="ek-chip' + (i === 0 ? " is-on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + "</button>"; }).join("") + "</div></div>" +
+      '<div class="ek-opt"><div class="ek-opt__l"><span>Tamaño / Talla</span><span class="ek-muted" id="ek-talla-sel">' + esc(tallasChips[0] || "") + "</span></div>" +
+      '<div class="ek-chiplist" id="ek-tallas">' + tallasChips.map(function (t, i) { return '<button class="ek-chip' + (i === 0 ? " is-on" : "") + '" data-t="' + esc(t) + '">' + esc(t) + "</button>"; }).join("") + "</div></div>" +
+      '<div class="ek-opt"><div class="ek-opt__l"><span>Color</span><span class="ek-muted" id="ek-color-sel">' + esc(coloresChips[0] || "") + "</span></div>" +
+      '<div class="ek-chiplist" id="ek-colores">' + coloresChips.map(function (c, i) { return '<button class="ek-chip' + (i === 0 ? " is-on" : "") + '" data-c="' + esc(c) + '">' + esc(c) + "</button>"; }).join("") + "</div></div>" +
       '<div class="ek-opt"><div class="ek-opt__l"><span>Cantidad</span><span class="ek-muted" id="ek-live-max">Máx. ' + nf(p.st) + "</span></div>" +
       '<div class="ek-qty"><button data-q="-1" aria-label="Menos">−</button><input id="ek-cant" type="number" value="1" min="1" max="' + Math.max(1, p.st) + '"><button data-q="1" aria-label="Más">+</button></div></div>' +
       '<div class="ek-buy__cta">' +
@@ -1421,7 +1429,7 @@
     cont.innerHTML = enc.join("");
 
     /* Interacciones */
-    var talla = p.t[0], color = p.col[0];
+    var talla = tallasChips[0], color = coloresChips[0];
     var mainDefault = imgURL(p, 0, 900);
     // Variante seleccionada (stock, precio y foto por talla/color, si están definidos)
     function varianteSeleccionada() {

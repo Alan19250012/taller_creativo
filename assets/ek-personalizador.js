@@ -89,7 +89,7 @@
     var destino = document.getElementById("ek-producto");
     if (!destino) return;
 
-    // --- Estructura ---
+    // --- Estructura (se inserta justo debajo del bloque de compra) ---
     var sec = document.createElement("section");
     sec.className = "ekp";
     sec.innerHTML =
@@ -107,7 +107,9 @@
         "</div>" +
       "</div>";
 
-    destino.appendChild(sec);
+    var detalle = destino.querySelector(".ek-detail");
+    if (detalle) detalle.insertAdjacentElement("afterend", sec);
+    else destino.appendChild(sec);
 
     var canvas = sec.querySelector("canvas");
     var ctx = canvas.getContext("2d");

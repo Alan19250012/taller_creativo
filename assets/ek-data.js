@@ -400,16 +400,10 @@ window.EK_DATA =
    },
    "c": [],
    "col": [
-    "Natural",
-    "Rojo",
-    "Dorado",
-    "rosa",
-    "amarillo"
+    "azul"
    ],
    "t": [
-    "10 cm",
-    "15 cm",
-    "20 cm"
+    "10cm"
    ],
    "st": 90,
    "v": 260,
@@ -423,24 +417,7 @@ window.EK_DATA =
     "Precio por pieza"
    ],
    "kw": "christmas,ornament,wooden",
-   "variantes": [
-    {
-     "talla": "10 cm",
-     "color": "rosa",
-     "stock": 10,
-     "precio": 85,
-     "precioDistribuidor": 79,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794944186250-Captura-bol.png"
-    },
-    {
-     "talla": "20 cm",
-     "color": "amarillo",
-     "stock": 12,
-     "precio": 160,
-     "precioDistribuidor": 145,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794944192133-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
-    }
-   ]
+   "variantes": []
   },
   {
    "n": "Alcancía MDF Personalizada",
