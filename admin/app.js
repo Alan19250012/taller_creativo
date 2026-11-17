@@ -248,7 +248,7 @@
     var cont = $("#variantes");
     if (!cont) return { getValor: function () { return []; } };
     var lista = (variantesIniciales || []).map(function (v) {
-      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "", imagen: v.imagen || "" };
+      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "", precioDistribuidor: v.precioDistribuidor || "", imagen: v.imagen || "" };
     });
     function pintar() {
       cont.innerHTML = lista.map(function (v, i) {
@@ -260,6 +260,7 @@
           '<input class="var-color" placeholder="Color" value="' + esc(v.color) + '">' +
           '<input class="var-stock" type="number" placeholder="Stock" value="' + esc(v.stock) + '">' +
           '<input class="var-precio" type="number" placeholder="Precio" value="' + esc(v.precio) + '">' +
+          '<input class="var-pd" type="number" placeholder="Precio dist." value="' + esc(v.precioDistribuidor) + '">' +
           '<div class="var-img">' +
             '<button type="button" class="btn btn--ghost btn--sm" data-foto="' + i + '" title="Foto de esta talla/color">' + mini + "</button>" +
             '<input type="file" class="var-file" accept="image/*" data-i="' + i + '" hidden>' +
@@ -291,11 +292,12 @@
       else if (e.target.classList.contains("var-color")) v.color = e.target.value;
       else if (e.target.classList.contains("var-stock")) v.stock = Number(e.target.value) || 0;
       else if (e.target.classList.contains("var-precio")) v.precio = e.target.value ? Number(e.target.value) : "";
+      else if (e.target.classList.contains("var-pd")) v.precioDistribuidor = e.target.value ? Number(e.target.value) : "";
     });
     cont.addEventListener("click", function (e) {
       var b = e.target.closest("button");
       if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", imagen: "" }); pintar(); }
+      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", precioDistribuidor: "", imagen: "" }); pintar(); }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
       else if (b.hasAttribute("data-foto")) { cont.querySelector('.var-file[data-i="' + b.getAttribute("data-foto") + '"]').click(); }
     });
@@ -309,7 +311,7 @@
     return {
       getValor: function () {
         return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
-          return { talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null, imagen: v.imagen || null };
+          return { talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null, precioDistribuidor: v.precioDistribuidor || null, imagen: v.imagen || null };
         });
       },
     };
@@ -520,7 +522,7 @@
     if (p) {
       actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=B&A=eq." + p.id).catch(function () { return []; }))
         .map(function (r) { return r.B; });
-      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,imagen&productoId=eq." + p.id).catch(function () { return []; });
+      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,precioDistribuidor,imagen&productoId=eq." + p.id).catch(function () { return []; });
     }
     var variantesTxt = variantes.map(function (v) { return [v.talla || "", v.color || "", v.stock, v.precio || ""].join(" | "); }).join("\n");
     var body =
@@ -659,7 +661,7 @@
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
         var varRows = variantesEditor ? variantesEditor.getValor() : [];
         for (var j = 0; j < varRows.length; j++) {
-          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, imagen: varRows[j].imagen || null });
+          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, precioDistribuidor: varRows[j].precioDistribuidor || null, imagen: varRows[j].imagen || null });
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");
         renderProductos();
@@ -1698,10 +1700,40 @@
       pintarConstructor();
     } catch (e) { cont.innerHTML = errCard(e); }
   }
+  function mapaHome() {
+    var filas = [
+      ["Cinta de avisos (barra que se mueve)", "configuracion", "Configuración"],
+      ["Cabecera (logo, buscador, cuenta)", "configuracion", "Configuración"],
+      ["Menú de categorías", "categorias", "Categorías"],
+      ["Carrusel de banners", "banners", "Banners"],
+      ["Beneficios (envío gratis, personalizable…)", null, "Fija (código)"],
+      ["Artículos en tendencia", null, "Automático (más vendidos)"],
+      ["Oferta del día", null, "Automático (ofertas)"],
+      ["Categorías de temporada", "categorias", "Categorías"],
+      ["Ofertas de la semana", null, "Automático (ofertas)"],
+      ["Más categorías", "categorias", "Categorías"],
+      ["Secciones de ideas", null, "Fija (código)"],
+      ["Números del taller", null, "Fija (código)"],
+      ["Reseñas", "resenas", "Reseñas"],
+      ["Blog", "blog", "Blog"],
+      ["Preguntas frecuentes", "configuracion", "Configuración (FAQ)"],
+      ["Contacto rápido", null, "Fija (código)"],
+      ["Bloques personalizados (constructor)", null, "Constructor (aquí)"],
+      ["Pie de página y políticas", "politicas", "Políticas"],
+    ];
+    return '<div class="card"><h2>Mapa completo de la home</h2><p class="muted">Así está formada la página de inicio, en orden. Las secciones "Fijas" viven en el código; el resto se edita en su propio apartado (clic para ir).</p>' +
+      '<table><thead><tr><th>#</th><th>Sección</th><th>Dónde se edita</th></tr></thead><tbody>' +
+      filas.map(function (f, i) {
+        var donde = f[1] ? '<a class="btn btn--ghost btn--sm" href="#/' + f[1] + '">' + esc(f[2]) + ' <i class="bi bi-arrow-right"></i></a>' : '<span class="muted">' + esc(f[2]) + "</span>";
+        return "<tr><td>" + (i + 1) + "</td><td>" + esc(f[0]) + "</td><td>" + donde + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+
   function pintarConstructor() {
     var cont = $("#contenido");
     var bloques = (paginaCache && paginaCache.bloques) || [];
     cont.innerHTML =
+      mapaHome() +
       '<div class="card"><div class="toolbar">' +
         '<button class="btn btn--ghost" id="btn-toggle-preview"><i class="bi bi-eye"></i> Vista previa</button>' +
         '<button class="btn" id="btn-add-bloque"><i class="bi bi-plus-lg"></i> Añadir bloque</button>' +

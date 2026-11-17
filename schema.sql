@@ -123,6 +123,7 @@ CREATE TABLE "Variante" (
   "stock" INTEGER NOT NULL DEFAULT 0,
   "extra" DOUBLE PRECISION NOT NULL DEFAULT 0,
   "precio" DOUBLE PRECISION,
+  "precioDistribuidor" DOUBLE PRECISION,    -- precio de mayoreo de esta variante
   "imagen" TEXT,                            -- foto específica de esta talla/color
   CONSTRAINT "Variante_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );

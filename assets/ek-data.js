@@ -385,7 +385,7 @@ window.EK_DATA =
    "s": "adorno-feliz-navidad-madera",
    "p": 85,
    "a": 0,
-   "pd": null,
+   "pd": 80,
    "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794421953006-Captura-bol.png",
    "imagenes": [
     "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794421953006-Captura-bol.png"
@@ -399,16 +399,8 @@ window.EK_DATA =
     "height": 42.3
    },
    "c": [],
-   "col": [
-    "Natural",
-    "Rojo",
-    "Dorado"
-   ],
-   "t": [
-    "10 cm",
-    "15 cm",
-    "20 cm"
-   ],
+   "col": [],
+   "t": [],
    "st": 90,
    "v": 260,
    "r": 4.7,
@@ -421,7 +413,24 @@ window.EK_DATA =
     "Precio por pieza"
    ],
    "kw": "christmas,ornament,wooden",
-   "variantes": []
+   "variantes": [
+    {
+     "talla": "10 cm",
+     "color": "rosa",
+     "stock": 10,
+     "precio": 80,
+     "precioDistribuidor": null,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794942047456-Captura-bol.png"
+    },
+    {
+     "talla": "20 cm",
+     "color": "amarillo",
+     "stock": 12,
+     "precio": 160,
+     "precioDistribuidor": null,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794942069102-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+    }
+   ]
   },
   {
    "n": "Alcancía MDF Personalizada",

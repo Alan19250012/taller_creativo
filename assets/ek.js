@@ -1359,7 +1359,7 @@
       "<span class='ek-muted'>·</span><span class='ek-muted'><i class=\"bi bi-box-seam\"></i> " + nf(p.st) + " en stock</span></div>" +
       '<div class="ek-buy__price"><span class="ek-price" id="ek-live-precio">' + money(p.p) + "</span>" +
       (off ? '<span class="ek-price--old">' + money(p.a) + '</span><span class="ek-price--off">Ahorras ' + money(p.a - p.p) + " (-" + off + "%)</span>" : "") + "</div>" +
-      (esDistribuidor() && p.pd ? '<div style="color:var(--azul);font-weight:700;margin-bottom:6px">Precio distribuidor: ' + money(p.pd) + "</div>" : "") +
+      (esDistribuidor() ? '<div style="color:var(--azul);font-weight:700;margin-bottom:6px" id="ek-live-pd"' + (p.pd ? "" : " hidden") + '>Precio distribuidor: ' + money(p.pd || 0) + "</div>" : "") +
       '<div class="ek-buy__msi"><i class="bi bi-credit-card-2-front"></i> ' + esc(C.mesesSinIntereses) + "</div>" +
       '<div class="ek-stockbar' + (p.st <= 10 ? " poco" : "") + '" id="ek-live-stockbar"><i style="width:' + Math.max(6, Math.min(100, Math.round(p.st / 120 * 100))) + '%"></i></div>' +
       "<small class='ek-muted' id='ek-live-stocktext'>" + (p.st > 0 ? "Quedan <b>" + nf(p.st) + "</b> piezas · " + nf(p.v) + " ya vendidas" : "Agotado por ahora: te avisamos cuando llegue") + "</small>" +
@@ -1445,7 +1445,13 @@
       var bar = document.getElementById("ek-live-stockbar");
       if (bar) { bar.className = "ek-stockbar" + (v.stock <= 10 ? " poco" : ""); bar.innerHTML = '<i style="width:' + Math.max(6, Math.min(100, Math.round(v.stock / 120 * 100))) + '%"></i>'; }
       var precioEl = document.getElementById("ek-live-precio");
-      if (precioEl) precioEl.textContent = money(v.precio || p.p);
+      if (precioEl) precioEl.textContent = money(v.precio != null ? v.precio : p.p);
+      var pdEl = document.getElementById("ek-live-pd");
+      if (pdEl) {
+        var pdV = (v.precioDistribuidor != null) ? v.precioDistribuidor : p.pd;
+        if (pdV) { pdEl.hidden = false; pdEl.textContent = "Precio distribuidor: " + money(pdV); }
+        else { pdEl.hidden = true; }
+      }
     }
     $$("#ek-tallas .ek-chip").forEach(function (b) {
       b.onclick = function () { $$("#ek-tallas .ek-chip").forEach(function (x) { x.classList.remove("is-on"); }); b.classList.add("is-on"); talla = b.getAttribute("data-t"); $("#ek-talla-sel").textContent = talla; actualizarStockUI(); };
