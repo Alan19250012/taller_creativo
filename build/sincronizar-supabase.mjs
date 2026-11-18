@@ -186,6 +186,7 @@ async function main() {
     pd: p.precioDistribuidor || null,  // precio de distribuidor (solo lo ven los distribuidores)
     imagen: p.imagen || null,
     imagenes: p.imagenes || [],       // 1-5 imágenes
+    imagenes_mini: p.imagenes_mini || null,  // marcas de miniatura (paralelo a imagenes)
     imagen_personalizacion: p.imagen_personalizacion || null,
     imagenes_personalizacion: p.imagenes_personalizacion || [],
     personalizable: !!p.personalizable,

@@ -107,6 +107,7 @@ CREATE TABLE "Producto" (
   "calificacion" DOUBLE PRECISION NOT NULL DEFAULT 0,
   "imagen" TEXT,
   "imagenes" TEXT[] NOT NULL DEFAULT '{}',   -- 1 a 5 imágenes del producto
+  "imagenes_mini" JSONB,                     -- marcas de miniatura (paralelo a imagenes): [true,false,...]
   "imagen_personalizacion" TEXT,             -- imagen base del personalizador (NO se muestra en la galería)
   "imagenes_personalizacion" TEXT[] NOT NULL DEFAULT '{}',  -- varias imágenes base de personalización
   "print_area" JSONB,          -- área de personalización: {x,y,width,height} en %

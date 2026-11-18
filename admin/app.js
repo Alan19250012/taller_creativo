@@ -198,10 +198,12 @@
     pintar();
   }
   // Galería de imágenes (1-5) con subida a Supabase Storage.
-  function initGaleria(urlsIniciales) {
+  function initGaleria(urlsIniciales, minisIniciales) {
     var cont = $("#galeria");
-    if (!cont) return { getUrls: function () { return []; } };
+    if (!cont) return { getUrls: function () { return []; }, getMinis: function () { return []; } };
     var lista = (urlsIniciales || []).slice(0, 5);
+    var minis = (minisIniciales || []).slice(0, 5);
+    while (minis.length < lista.length) minis.push(true); // por defecto todas se muestran como miniatura
     function pintar() {
       cont.innerHTML = lista.map(function (u, i) {
         if (!u) return '<div class="gal-item gal-item--vacio" data-subir="' + i + '" title="Subir imagen" style="cursor:pointer"><i class="bi bi-cloud-arrow-up"></i><small>Subir</small></div>' +
@@ -209,6 +211,7 @@
         return '<div class="gal-item" data-i="' + i + '"><img src="' + esc(u) + '" alt="Imagen ' + (i + 1) + '" onerror="this.style.opacity=.2">' +
           '<div class="gal-item__ops">' +
             '<button type="button" class="btn btn--sm" data-subir="' + i + '" title="Reemplazar"><i class="bi bi-upload"></i></button>' +
+            '<button type="button" class="btn btn--sm ' + (minis[i] !== false ? "btn--ok" : "btn--ghost") + '" data-mini="' + i + '" title="Mostrar como miniatura en la ficha">Mini' + (minis[i] !== false ? " ✓" : "") + "</button>" +
             '<button type="button" class="btn btn--sm" data-quitar="' + i + '" title="Quitar" style="color:var(--rojo)"><i class="bi bi-x-lg"></i></button>' +
           "</div></div>" +
           '<input type="file" accept="image/*" data-file="' + i + '" style="display:none">';
@@ -232,17 +235,22 @@
     cont.addEventListener("click", function (e) {
       var subir = e.target.closest("[data-subir]");
       if (subir) { cont.querySelector('[data-file="' + subir.getAttribute("data-subir") + '"]').click(); return; }
+      var mini = e.target.closest("[data-mini]");
+      if (mini) { var mi = +mini.getAttribute("data-mini"); minis[mi] = minis[mi] === false; pintar(); return; }
       var b = e.target.closest("button");
       if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push(""); pintar(); }
-      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+      if (b.hasAttribute("data-agregar")) { lista.push(""); minis.push(true); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { var qi = +b.getAttribute("data-quitar"); lista.splice(qi, 1); minis.splice(qi, 1); pintar(); }
     });
     cont.addEventListener("change", function (e) {
       var f = e.target.closest("[data-file]");
       if (f) subir(f, +f.getAttribute("data-file"));
     });
     pintar();
-    return { getUrls: function () { return lista.filter(Boolean); } };
+    return {
+      getUrls: function () { return lista.filter(Boolean); },
+      getMinis: function () { var out = []; lista.forEach(function (u, i) { if (u) out.push(minis[i] !== false); }); return out; },
+    };
   }
   // Editor de variantes (talla | color | stock | precios | foto de muestra).
   // Si el producto es personalizable, cada variante lleva además su propia
@@ -737,9 +745,19 @@
     var cats = await supa("GET", "/rest/v1/Categoria?select=id,nombre&order=nombre.asc").catch(function () { return []; });
     var p = id ? productosCache.find(function (x) { return x.id === id; }) : null;
     var actuales = [];
+    var actualesSubs = [];
     var variantes = [];
+    // Subcategorías y su relación con las categorías (para mostrar solo las que
+    // corresponden a las categorías principales marcadas).
+    var subcatsRel = await Promise.all([
+      supa("GET", "/rest/v1/Subcategoria?select=id,nombre&order=nombre.asc").catch(function () { return []; }),
+      supa("GET", "/rest/v1/_CategoriaToSubcategoria?select=A,B").catch(function () { return []; }),
+    ]);
+    var subcats = subcatsRel[0], relCS = subcatsRel[1];
     if (p) {
-      actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=B&A=eq." + p.id).catch(function () { return []; }))
+      actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=A&B=eq." + p.id).catch(function () { return []; }))
+        .map(function (r) { return r.A; });
+      actualesSubs = (await supa("GET", "/rest/v1/_ProductoToSubcategoria?select=B&A=eq." + p.id).catch(function () { return []; }))
         .map(function (r) { return r.B; });
       variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,precioDistribuidor,imagen,imagen_personalizacion,print_area,areas_campos&productoId=eq." + p.id).catch(function () { return []; });
     }
@@ -777,6 +795,7 @@
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
+      fld("Subcategorías <span class=hint>(aparecen las de las categorías marcadas arriba)</span>", '<div class="chips" id="subcats-chips"></div>') +
       '<div class="row row--3">' +
         check("destacado", p ? p.destacado : false, "Destacado (Top)") +
         check("nuevo", p ? p.nuevo : false, "Nuevo") +
@@ -798,7 +817,25 @@
     initTagInput("tallas");
     // Galería de imágenes (1-5)
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
-    var galeria = initGaleria(imagenesIniciales);
+    var minisIniciales = (p && p.imagenes_mini && p.imagenes_mini.length) ? p.imagenes_mini : [];
+    var galeria = initGaleria(imagenesIniciales, minisIniciales);
+
+    // Subcategorías disponibles según las categorías principales marcadas.
+    function pintarSubcats() {
+      var el = $("#subcats-chips");
+      if (!el) return;
+      var sel = $$('input[name="cat"]:checked').map(function (c) { return c.value; });
+      var disp = subcats.filter(function (s) {
+        return relCS.some(function (r) { return sel.indexOf(r.A) > -1 && r.B === s.id; });
+      });
+      el.innerHTML = disp.length
+        ? disp.map(function (s) {
+            return '<label><input type="checkbox" name="subcat" value="' + s.id + '"' + (actualesSubs.indexOf(s.id) > -1 ? " checked" : "") + "> " + esc(s.nombre) + "</label>";
+          }).join("")
+        : '<span class="hint" style="font-size:.8rem">Marca una categoría para ver sus subcategorías.</span>';
+    }
+    $("#f-prod").addEventListener("change", function (e) { if (e.target && e.target.name === "cat") pintarSubcats(); });
+    pintarSubcats();
 
     // Campos de personalización (definiciones) + variantes (cada una con su
     // imagen en blanco y sus áreas por campo).
@@ -834,6 +871,7 @@
         colores: arrJoin(f.get("colores")), tallas: arrJoin(f.get("tallas")),
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagenes: galeria ? galeria.getUrls() : [],
+        imagenes_mini: galeria ? galeria.getMinis() : [],
         imagen: (galeria && galeria.getUrls()[0]) || null,
         imagen_personalizacion: null,
         imagenes_personalizacion: [],
@@ -873,6 +911,12 @@
         for (var i = 0; i < catsSel.length; i++) {
           await supa("POST", "/rest/v1/_CategoriaToProducto", { A: catsSel[i], B: pid });
         }
+        // subcategorías
+        await supa("DELETE", "/rest/v1/_ProductoToSubcategoria?A=eq." + pid).catch(function () {});
+        var subsSel = $$('input[name="subcat"]:checked').map(function (s) { return s.value; });
+        for (var k = 0; k < subsSel.length; k++) {
+          await supa("POST", "/rest/v1/_ProductoToSubcategoria", { A: pid, B: subsSel[k] });
+        }
         // variantes (desde el editor de filas)
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
         for (var j = 0; j < varRows.length; j++) {
@@ -890,13 +934,15 @@
     var cont = $("#contenido");
     try {
       categoriasCache = await supa("GET", "/rest/v1/Categoria?select=*&order=orden.asc");
+      var subsCount = (await supa("GET", "/rest/v1/Subcategoria?select=id").catch(function () { return []; })).length;
+      var totalCatsSubs = categoriasCache.length + subsCount;
       cont.innerHTML =
         '<div class="card"><div class="toolbar"><button class="btn" id="btn-nueva-cat"><i class="bi bi-plus-lg"></i> Nueva categoría</button>' +
-        '<span class="muted">Usa ↑↓ para ordenar; activa "Menú" o "Lateral" para mostrar la categoría en cada barra.</span></div>' +
+        '<span class="muted">Usa ↑↓ para ordenar; activa "Menú" o "Lateral". Total categorías+subcategorías: <b>' + totalCatsSubs + '</b> / 44</span></div>' +
         '<table><thead><tr><th>Nombre</th><th>Grupo</th><th>Menú</th><th>Lateral</th><th>Orden</th><th></th></tr></thead><tbody>' +
         categoriasCache.map(function (c) {
           return "<tr><td><b>" + esc(c.nombre) + "</b> " + esc(c.emoji || "") + '<br><small class="muted">' + esc(c.slug) + "</small></td>" +
-            "<td>" + (c.grupo === "temporada" ? "🎄 Temporada" : "🛍 Producto") + "</td>" +
+            "<td>" + esc(c.grupo || "producto") + "</td>" +
             '<td><button class="btn btn--sm ' + (c.enNav ? "btn--ok" : "btn--ghost") + '" data-toggle="enNav" data-id="' + c.id + '">' + (c.enNav ? "Sí" : "No") + "</button></td>" +
             '<td><button class="btn btn--sm ' + (c.enSidebar !== false ? "btn--ok" : "btn--ghost") + '" data-toggle="enSidebar" data-id="' + c.id + '">' + (c.enSidebar !== false ? "Sí" : "No") + "</button></td>" +
             '<td><button class="btn btn--ghost btn--sm" data-mover="' + c.id + '" data-dir="-1"><i class="bi bi-arrow-up"></i></button>' +
@@ -949,7 +995,9 @@
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", c ? c.nombre : "") + "</div>" +
       '<div class="field"><label>Slug</label>' + input("slug", c ? c.slug : "") + "</div></div>" +
       '<div class="row">' +
-        '<div class="field"><label>Grupo</label>' + select("grupo", [{ v: "temporada", l: "Temporada" }, { v: "producto", l: "Producto" }], c ? c.grupo : "producto") + "</div>" +
+        '<div class="field"><label>Grupo <span class=hint>(escribe uno nuevo para crear un grupo)</span></label>' +
+          '<input name="grupo" list="grupos-lista" value="' + esc(c ? c.grupo : "producto") + '">' +
+          '<datalist id="grupos-lista">' + categoriasCache.map(function (x) { return x.grupo; }).filter(Boolean).filter(function (v, i, a) { return a.indexOf(v) === i; }).map(function (g) { return '<option value="' + esc(g) + '">'; }).join("") + "</datalist></div>" +
         '<div class="field"><label>Emoji</label>' + input("emoji", c ? c.emoji : "🎁") + "</div>" +
       "</div>" +
       '<div class="row">' +
@@ -997,6 +1045,13 @@
         keywords: f.get("keywords") || null, enNav: !!f.get("enNav"), enSidebar: !!f.get("enSidebar"), activo: !!f.get("activo"),
       };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
+      if (!c) {
+        var ncTotal = await Promise.all([
+          supa("GET", "/rest/v1/Categoria?select=id"),
+          supa("GET", "/rest/v1/Subcategoria?select=id"),
+        ]);
+        if ((ncTotal[0].length || 0) + (ncTotal[1].length || 0) >= 44) { toast("Máximo 44 categorías/subcategorías en total", false); return; }
+      }
       try {
         if (c) await supa("PATCH", "/rest/v1/Categoria?id=eq." + c.id, datos);
         else await supa("POST", "/rest/v1/Categoria", datos);
@@ -1116,6 +1171,13 @@
       var f = new FormData(e.target);
       var datos = { nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")), icono: f.get("icono") || "bi-tag", iconoImagen: f.get("iconoImagen") || null, orden: Number(f.get("orden")) || 0, activo: !!f.get("activo") };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
+      if (!s) {
+        var nsTotal = await Promise.all([
+          supa("GET", "/rest/v1/Categoria?select=id"),
+          supa("GET", "/rest/v1/Subcategoria?select=id"),
+        ]);
+        if ((nsTotal[0].length || 0) + (nsTotal[1].length || 0) >= 44) { toast("Máximo 44 categorías/subcategorías en total", false); return; }
+      }
       try {
         var sid;
         if (s) { await supa("PATCH", "/rest/v1/Subcategoria?id=eq." + s.id, datos); sid = s.id; }

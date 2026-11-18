@@ -532,9 +532,8 @@
 
     cont.innerHTML = principales.map(function (c) {
       var subs = subsDeCat(c.s), tiene = subs.length > 0;
-      var primer = P.filter(function (p) { return p.c.indexOf(c.s) > -1; })[0];
-      var imgCat = c.img || (primer ? imgURL(primer, 0, 400) : "");
-      var imgProd = primer ? imgURL(primer, 0, 200) : "";
+      var prods = P.filter(function (p) { return p.c.indexOf(c.s) > -1; }).slice(0, 3);
+      var imgCat = c.img || (prods[0] ? imgURL(prods[0], 0, 400) : "");
       return '<div class="ek-nav__item">' +
         '<a class="ek-nav__link' + (activo === c.s ? " is-active" : "") + '" href="categoria.html?cat=' + c.s + '"' +
           (tiene ? ' aria-haspopup="true" data-consubs="' + c.s + '"' : "") + ">" +
@@ -542,7 +541,9 @@
         (tiene ? '<div class="ek-subnav" role="menu">' +
           '<div class="ek-subnav__media">' +
             (imgCat ? '<div class="ek-subnav__cat"><img src="' + imgCat + '" alt="' + esc(c.n) + '" loading="lazy" onerror="this.style.display=\'none\'"></div>' : "") +
-            (primer ? '<div class="ek-subnav__prod"><img src="' + imgProd + '" alt="' + esc(primer.n) + '" loading="lazy" onerror="this.style.display=\'none\'"><div><b>' + esc(primer.n) + '</b><small>' + money(primer.p) + '</small></div></div>' : "") +
+            prods.map(function (pr) {
+              return '<a class="ek-subnav__prod" href="articulo.html?id=' + pr.s + '"><img src="' + imgURL(pr, 0, 200) + '" alt="' + esc(pr.n) + '" loading="lazy" onerror="this.style.display=\'none\'"><div><b>' + esc(pr.n) + '</b><small>' + money(pr.p) + '</small></div></a>';
+            }).join("") +
           "</div>" +
           '<p class="ek-subnav__t"><i class="bi bi-grid-3x3-gap-fill"></i> ' + esc(c.n) + "</p>" +
           '<div class="ek-subnav__grid">' + subs.map(function (s) {
@@ -608,7 +609,7 @@
         panel.style.borderRadius = "18px 18px 0 0";
         panel.style.maxHeight = "70vh";
       } else {
-        var w = Math.min(480, window.innerWidth - 16);
+        var w = Math.min(660, window.innerWidth - 16);
         panel.style.width = w + "px";
         panel.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + "px";
         panel.style.top = (r.bottom + 2) + "px";
@@ -665,7 +666,7 @@
   }
 
   /* ============ BARRA LATERAL: CATEGORÍAS Y SUBCATEGORÍAS ============ */
-  function acordeonCategorias(modo, lista, abierto) {
+  function acordeonCategorias(modo, lista, abierto, plano) {
     return (lista || CATS).slice().sort(function (a, b) { return a.orden - b.orden; }).map(function (c) {
       var subs = subsDeCat(c.s);
       var n = P.filter(function (p) { return p.c.indexOf(c.s) > -1; }).length;
@@ -674,6 +675,12 @@
         ? '<button class="ek-cat" data-cat="' + c.s + '" type="button">'
         : '<a class="ek-cat" href="categoria.html?cat=' + c.s + '">';
       var cerrar = modo === "filtro" ? "</button>" : "</a>";
+      // Modo plano (barra lateral fija): solo el enlace, sin desplegar subcategorías.
+      if (plano) {
+        return '<div class="ek-catwrap"><div class="ek-catrow">' + abrir +
+          '<span class="ek-cat__e">' + c.e + "</span> " + esc(c.n) +
+          '<span class="ek-cat__c">' + n + "</span>" + cerrar + "</div></div>";
+      }
       return '<div class="ek-catwrap' + (abierto ? " is-open" : "") + '">' +
         '<div class="ek-catrow">' + abrir +
           '<span class="ek-cat__e">' + c.e + "</span> " + esc(c.n) +
@@ -1362,13 +1369,22 @@
       '<img id="ek-main-img" src="' + imgURL(p, 0, 900) + '" alt="' + esc(p.n) + '" width="900" height="900" onerror="EK_imgErr(this)">' +
       "</div><div class=\"ek-gallery__thumbs\">" +
       (function () {
-        var nFotos = (p.imagenes && p.imagenes.length) ? Math.min(5, p.imagenes.length) : 3;
-        var h = "";
-        for (var i = 0; i < nFotos; i++) {
-          h += '<button class="ek-thumb' + (i === 0 ? " is-on" : "") + '" data-img="' + i + '">' + imgTag(p, i, 300, p.n + " foto " + (i + 1)) +
-            '<span class="ek-thumb__n">Foto ' + (i + 1) + "</span></button>";
+        // Índices de las imágenes que se muestran como miniatura: las marcadas en
+        // el panel (imagenes_mini) o, si no hay marca, todas.
+        var idxs = [];
+        if (p.imagenes && p.imagenes.length) {
+          for (var i = 0; i < p.imagenes.length; i++) {
+            if (p.imagenes_mini && p.imagenes_mini[i] === false) continue;
+            idxs.push(i);
+          }
+          if (!idxs.length) for (var j = 0; j < Math.min(5, p.imagenes.length); j++) idxs.push(j);
+        } else {
+          idxs = [0, 1, 2];
         }
-        return h;
+        return idxs.map(function (imgIdx, k) {
+          return '<button class="ek-thumb' + (k === 0 ? " is-on" : "") + '" data-img="' + imgIdx + '">' + imgTag(p, imgIdx, 300, p.n + " foto " + (imgIdx + 1)) +
+            '<span class="ek-thumb__n">Foto ' + (imgIdx + 1) + "</span></button>";
+        }).join("");
       })() + "</div>" +
       '<div class="ek-row" style="gap:8px;margin-top:4px"><i class="bi bi-info-circle ek-muted"></i><small class="ek-muted">Toca la foto para ampliarla.</small></div></div>');
 
@@ -1722,15 +1738,28 @@
     function bloque(lista, titulo) {
       return '<div class="ek-side"><div class="ek-side__hd">' + titulo +
         ' <i class="bi bi-chevron-down"></i></div><div class="ek-side__bd">' +
-        acordeonCategorias("enlace", lista, false) + "</div></div>";
+        acordeonCategorias("enlace", lista, false, true) + "</div></div>";
     }
+    function tituloGrupo(g) {
+      var nombres = { "temporada": "Por temporada", "producto": "Por tipo de producto" };
+      return nombres[g] || g;
+    }
+    // Agrupa las categorías por su grupo (dinámico) en lugar de dos grupos fijos.
+    var grupos = {};
+    CATS.forEach(function (c) {
+      if (c.sidebar === false) return;
+      var g = c.g || "producto";
+      (grupos[g] = grupos[g] || []).push(c);
+    });
+    var bloquesGrupos = Object.keys(grupos).sort().map(function (g) {
+      return bloque(grupos[g], tituloGrupo(g));
+    }).join("");
     sb.innerHTML =
       '<div class="ek-drawer__hd"><b style="font-family:var(--display);font-size:1.05rem">Categorías</b>' +
       '<button class="ek-action" data-toggle-sidebar aria-label="Cerrar"><i class="bi bi-x-lg"></i></button></div>' +
       '<div class="ek-side__tope"><i class="bi bi-grid-3x3-gap-fill"></i> Todas las categorías' +
         '<span class="ek-cat__c">' + P.length + "</span></div>" +
-      bloque(CATS.filter(function (c) { return c.g === "temporada" && c.sidebar !== false; }), "Por temporada") +
-      bloque(CATS.filter(function (c) { return c.g === "producto" && c.sidebar !== false; }), "Por tipo de producto") +
+      bloquesGrupos +
       '<div class="ek-side"><div class="ek-side__hd">Ayuda <i class="bi bi-chevron-down"></i></div><div class="ek-side__bd">' +
         '<a class="ek-cat" href="tienda.html"><span class="ek-cat__e">🛍️</span> Todo el catálogo</a>' +
         '<a class="ek-cat" href="tienda.html?etiqueta=promo"><span class="ek-cat__e">🔥</span> Ofertas</a>' +
