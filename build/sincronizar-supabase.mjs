@@ -122,7 +122,7 @@ async function main() {
       pg("Resena", "select=*&aprobada=eq.true&order=creadoEn.desc"),
       pg("Configuracion", "select=clave,valor"),
       pg("Cupon", "select=*"),
-      pg("Variante", "select=productoId,talla,color,stock,precio,precioDistribuidor,imagen"),
+      pg("Variante", "select=productoId,talla,color,stock,precio,precioDistribuidor,imagen,imagen_personalizacion,print_area"),
       pg("_CategoriaToProducto", "select=A,B"),
       pg("_ProductoToSubcategoria", "select=A,B"),
       pg("_CategoriaToSubcategoria", "select=A,B"),
@@ -178,7 +178,7 @@ async function main() {
   productos.forEach((p) => { prodVariantes[p.slug] = []; });
   (variantes || []).forEach((v) => {
     const s = prodSlug[v.productoId];
-    if (s && prodVariantes[s]) prodVariantes[s].push({ talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null, precioDistribuidor: v.precioDistribuidor || null, imagen: v.imagen || null });
+    if (s && prodVariantes[s]) prodVariantes[s].push({ talla: v.talla || null, color: v.color || null, stock: v.stock || 0, precio: v.precio || null, precioDistribuidor: v.precioDistribuidor || null, imagen: v.imagen || null, imagen_personalizacion: v.imagen_personalizacion || null, print_area: v.print_area || null });
   });
 
   const productosJS = productos.map((p) => ({

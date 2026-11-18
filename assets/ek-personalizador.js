@@ -85,14 +85,25 @@
   window.EK_personalizador = function (p) {
     if (!p || !p.personalizable) return;
 
-    // Construye la lista de imágenes de personalización (cada una con su área)
+    // Variantes que tienen su propia imagen personalizable (en blanco)
+    var variantesPers = (p.variantes || []).filter(function (v) { return v.imagen_personalizacion; });
     var items = [];
-    var imgs = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
-      ? p.imagenes_personalizacion
-      : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
-    var areas = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
-    imgs.forEach(function (img, i) { if (img) items.push({ imagen: img, area: areas[i] || null }); });
-    if (!items.length && p.imagen) items.push({ imagen: p.imagen, area: p.print_area || null });
+    var areaDef = (p.print_areas && p.print_areas[0]) || p.print_area || { x: 30, y: 30, width: 40, height: 30 };
+
+    if (variantesPers.length) {
+      // Usa la imagen personalizable de la VARIANTE seleccionada
+      var v0 = (window.EK_getVariante ? window.EK_getVariante() : null);
+      var img0 = (v0 && v0.imagen_personalizacion) || variantesPers[0].imagen_personalizacion;
+      var area0 = (v0 && v0.print_area) || variantesPers[0].print_area || areaDef;
+      items.push({ imagen: img0, area: area0 });
+    } else {
+      var imgs = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
+        ? p.imagenes_personalizacion
+        : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
+      var areas = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
+      imgs.forEach(function (img, i) { if (img) items.push({ imagen: img, area: areas[i] || null }); });
+    }
+    if (!items.length && p.imagen) items.push({ imagen: p.imagen, area: areaDef });
     if (!items.length) return;
 
     var idx = 0;
@@ -147,6 +158,16 @@
       sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base.";
     };
     img.src = items[0].imagen;
+
+    // Si hay variantes con imagen personalizable, al cambiar talla/color se personaliza la correcta
+    if (variantesPers.length) {
+      window.EK_onVarianteChange = function (v) {
+        if (!v || !v.imagen_personalizacion) return;
+        items[0] = { imagen: v.imagen_personalizacion, area: v.print_area || areaDef };
+        idx = 0;
+        img.src = v.imagen_personalizacion;
+      };
+    }
 
     function areaActual() { return items[idx].area || { x: 30, y: 30, width: 40, height: 30 }; }
 

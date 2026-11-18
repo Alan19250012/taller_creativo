@@ -126,7 +126,9 @@ CREATE TABLE "Variante" (
   "extra" DOUBLE PRECISION NOT NULL DEFAULT 0,
   "precio" DOUBLE PRECISION,
   "precioDistribuidor" DOUBLE PRECISION,    -- precio de mayoreo de esta variante
-  "imagen" TEXT,                            -- foto específica de esta talla/color
+  "imagen" TEXT,                            -- foto de muestra de esta talla/color (ejemplo CON texto)
+  "imagen_personalizacion" TEXT,            -- imagen en blanco (SIN texto) para personalizar esta variante
+  "print_area" JSONB,                       -- área de impresión de esta variante {x,y,width,height} en %
   CONSTRAINT "Variante_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX "Variante_productoId_idx" ON "Variante"("productoId");

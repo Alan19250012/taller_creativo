@@ -385,13 +385,16 @@ window.EK_DATA =
    "s": "adorno-feliz-navidad-madera",
    "p": 85,
    "a": 0,
-   "pd": 80,
-   "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794421953006-Captura-bol.png",
+   "pd": 49,
+   "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png",
    "imagenes": [
-    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794421953006-Captura-bol.png"
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png"
    ],
    "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794420953151-Captura-bol.png",
-   "imagenes_personalizacion": [],
+   "imagenes_personalizacion": [
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794420953151-Captura-bol.png",
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794951853096-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+   ],
    "personalizable": true,
    "print_area": {
     "x": 27.4,
@@ -399,7 +402,20 @@ window.EK_DATA =
     "width": 46.3,
     "height": 42.3
    },
-   "print_areas": [],
+   "print_areas": [
+    {
+     "x": 27.4,
+     "y": 39.6,
+     "width": 46.3,
+     "height": 42.3
+    },
+    {
+     "x": 30,
+     "y": 30,
+     "width": 41.1,
+     "height": 39.2
+    }
+   ],
    "c": [],
    "col": [
     "rosa",
@@ -409,7 +425,7 @@ window.EK_DATA =
     "10 cm",
     "20 cm"
    ],
-   "st": 90,
+   "st": 32,
    "v": 260,
    "r": 4.7,
    "b": "top",
@@ -428,7 +444,9 @@ window.EK_DATA =
      "stock": 10,
      "precio": 85,
      "precioDistribuidor": 49,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947200580-Captura-bol.png"
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953793769-Captura-bol---copia.png",
+     "imagen_personalizacion": null,
+     "print_area": null
     },
     {
      "talla": "20 cm",
@@ -436,7 +454,9 @@ window.EK_DATA =
      "stock": 12,
      "precio": 160,
      "precioDistribuidor": 145,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947244461-Captura-bol.png"
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953798070-Captura-bol---copia.png",
+     "imagen_personalizacion": null,
+     "print_area": null
     },
     {
      "talla": "10 cm",
@@ -444,7 +464,9 @@ window.EK_DATA =
      "stock": 4,
      "precio": 85,
      "precioDistribuidor": 49,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947273496-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953802751-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
+     "imagen_personalizacion": null,
+     "print_area": null
     },
     {
      "talla": "20 cm",
@@ -452,7 +474,9 @@ window.EK_DATA =
      "stock": 6,
      "precio": 160,
      "precioDistribuidor": 145,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794947301032-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953810103-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
+     "imagen_personalizacion": null,
+     "print_area": null
     }
    ]
   },
