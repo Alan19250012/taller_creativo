@@ -100,24 +100,30 @@
       return out;
     });
 
-    // Imagen base: primero la del producto (nivel producto), luego la de la
-    // variante seleccionada (legado), luego imágenes de personalización, luego principal.
+    // La personalización es POR VARIANTE: cada combinación talla/color tiene su
+    // propia imagen en blanco y sus propias áreas por campo.
+    function varianteActual() {
+      return (window.EK_getVariante && window.EK_getVariante()) || null;
+    }
     function baseImagen() {
-      var v = window.EK_getVariante ? window.EK_getVariante() : null;
-      if (p.imagen_personalizacion) return p.imagen_personalizacion;
+      var v = varianteActual();
       if (v && v.imagen_personalizacion) return v.imagen_personalizacion;
+      if (p.imagen_personalizacion) return p.imagen_personalizacion;
       if (p.imagenes_personalizacion && p.imagenes_personalizacion[0]) return p.imagenes_personalizacion[0];
       if (p.imagen) return p.imagen;
       return null;
     }
-    function areaGlobal() {
-      var v = window.EK_getVariante ? window.EK_getVariante() : null;
+    // Área del campo i: 1) área propia de la variante (areas_campos[i]),
+    // 2) área general de la variante (print_area), 3) área del producto, 4) default.
+    function areaDeCampo(c, i) {
+      if (c.area && c.area.width != null) return c.area;
+      var v = varianteActual();
+      if (v && v.areas_campos && v.areas_campos[i] && v.areas_campos[i].width != null) return v.areas_campos[i];
       if (v && v.print_area) return v.print_area;
       if (p.print_areas && p.print_areas[0]) return p.print_areas[0];
       if (p.print_area) return p.print_area;
       return { x: 30, y: 30, width: 40, height: 30 };
     }
-    function areaDe(c) { return (c.area && c.area.width != null) ? c.area : null; }
 
     var imgBase = baseImagen();
     if (!imgBase) return;
@@ -171,12 +177,13 @@
     img.onerror = function () { sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base."; };
     img.src = imgBase;
 
-    // Al cambiar de variante, actualiza la imagen base según la prioridad del modelo
-    // (imagen del producto → imagen de la variante → imágenes de personalización).
+    // Al cambiar de variante, actualiza la imagen base y re-dibuja (las áreas
+    // por campo también cambian aunque la imagen sea la misma).
     if (window.EK_getVariante) {
       window.EK_onVarianteChange = function () {
         var nueva = baseImagen();
-        if (nueva && nueva !== img.src) img.src = nueva;
+        if (nueva && nueva !== img.src) { img.src = nueva; }
+        else if (img.naturalWidth) { dibujar(); }
       };
     }
 
@@ -217,7 +224,7 @@
 
     function dibujarFoto(i, c) {
       var im = fotosImg[i];
-      var area = areaDe(c) || areaGlobal();
+      var area = areaDeCampo(c, i);
       var a = areaPx(area);
       ctx.save();
       if (c.forma === "redonda") {
@@ -237,7 +244,7 @@
       var el = sec.querySelector('[data-campo="' + i + '"]');
       var texto = el ? el.value : "";
       if (!texto || !String(texto).trim()) return;
-      var area = areaDe(c) || areaGlobal();
+      var area = areaDeCampo(c, i);
       var a = areaPx(area);
       var fit = ajustarTexto(ctx, texto, fuenteActual(), a.pw, a.ph);
       ctx.fillStyle = c.color || "#000000";

@@ -641,9 +641,6 @@ window.EK_SUBCATS =
   }
  ],
  "mapa": {
-  "adorno-feliz-navidad-madera": [
-   "letreros"
-  ],
   "alcancia-mdf-personalizada": [
    "pines",
    "ninos"
@@ -673,6 +670,9 @@ window.EK_SUBCATS =
   "body-bebe-navideno": [
    "playeras-navidenas",
    "ninos"
+  ],
+  "adorno-feliz-ocasiones-papel": [
+   "letreros"
   ],
   "bota-navidad-dtf-personalizada": [
    "botas-dulceros"

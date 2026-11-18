@@ -130,6 +130,7 @@ CREATE TABLE "Variante" (
   "imagen" TEXT,                            -- foto de muestra de esta talla/color (ejemplo CON texto)
   "imagen_personalizacion" TEXT,            -- imagen en blanco (SIN texto) para personalizar esta variante
   "print_area" JSONB,                       -- área de impresión de esta variante {x,y,width,height} en %
+  "areas_campos" JSONB,                     -- áreas por campo (paralelo a Producto.personalizacion_campos): [{x,y,width,height}, …]
   CONSTRAINT "Variante_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "Producto"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 CREATE INDEX "Variante_productoId_idx" ON "Variante"("productoId");

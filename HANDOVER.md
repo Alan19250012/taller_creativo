@@ -37,8 +37,8 @@ Cliente personaliza ──▶ /api/subir-personalizacion ──▶ Storage (imag
 `Usuario`, `Categoria`, `Subcategoria`, `Producto`, `Variante`, `Resena`, `Pedido`, `DetallePedido`, `Factura`, `Articulo`, `Banner`, `Cupon`, `Pagina`, `Configuracion`, `Auditoria` + tablas puente `_CategoriaToProducto`, `_ProductoToSubcategoria`, `_CategoriaToSubcategoria`.
 
 ### Columnas clave (no estándar) a recordar
-- `Producto`: `colores[]`, `tallas[]`, `caracteristicas[]`, `keywords`, `precioMinorista`, `precioDistribuidor`, `precioAnterior`, `imagen`, `imagenes[]` (1–5), `imagen_personalizacion` (base SIN texto, nivel producto), `imagenes_personalizacion[]`, `personalizacion_campos` JSONB (form builder dinámico: cada campo con `area` {x,y,width,height} en % y, para fotos, `forma` `cuadrada`|`redonda`), `personalizable` BOOL. (`print_area`/`print_areas` = legado)
-- `Variante`: `talla`, `color`, `stock`, `precio` (cliente), `precioDistribuidor`, `imagen` (muestra CON texto). (`imagen_personalizacion`/`print_area` = legado, solo respaldo si el producto no tiene imagen propia)
+- `Producto`: `colores[]`, `tallas[]`, `caracteristicas[]`, `keywords`, `precioMinorista`, `precioDistribuidor`, `precioAnterior`, `imagen`, `imagenes[]` (1–5), `imagen_personalizacion` (legado), `imagenes_personalizacion[]`, `personalizacion_campos` JSONB (form builder: `{tipo,label,max,opciones,obligatorio,forma}`; `forma` `cuadrada`|`redonda` solo en fotos), `personalizable` BOOL.
+- `Variante`: `talla`, `color`, `stock`, `precio` (cliente), `precioDistribuidor`, `imagen` (muestra CON texto), `imagen_personalizacion` (en blanco SIN texto de esta variante), `print_area` JSONB (área general de respaldo), `areas_campos` JSONB (array paralelo a `personalizacion_campos`: `[{x,y,width,height}, …]` por campo).
 - `Categoria`: `grupo`, `emoji`, `enNav`, `enSidebar`, `orden`, `keywords`, `epoca`, `imagen` (banner al entrar a la categoría).
 - `Banner`: `titulo`, `subtitulo`, `boton`, `enlace`, `etiqueta`, `keywords`, `tema`, `imagen`, `orden`, `activo`.
 - `Subcategoria`: `icono`, `iconoImagen` (icono subido).
@@ -67,13 +67,13 @@ Cliente personaliza ──▶ /api/subir-personalizacion ──▶ Storage (imag
 - **Login/registro de clientes** (cabecera → "Iniciar sesión / Crear cuenta") + **panel "Mi cuenta"** (`cuenta.html`): historial de pedidos, "pedir de nuevo", editar perfil, cerrar sesión.
 - **Precio de distribuidor** (además del minorista) por producto y por variante.
 - **Variantes** (talla/color) con stock, precio cliente, precio distribuidor y **foto de muestra**; seleccionables en la ficha.
-- **Personalizador** (`ek-personalizador.js`): form builder dinámico (texto/textarea/select/foto) con **vista previa en tiempo real** (canvas), contador de caracteres, validación de obligatorios y **editor de fotos** (`ek-foto-editor.js`: crop/zoom/rotar/filtros). Cada campo se dibuja **en su propia área** y la foto del cliente puede ser **cuadrada o redonda**.
+- **Personalizador** (`ek-personalizador.js`): form builder dinámico (texto/textarea/select/foto) con **vista previa en tiempo real** (canvas), contador de caracteres, validación de obligatorios y **editor de fotos** (`ek-foto-editor.js`: crop/zoom/rotar/filtros). La imagen en blanco y la ubicación de cada campo son **por variante** (talla/color); la foto del cliente puede ser **cuadrada o redonda**.
 - **Constructor visual** de la home (`ek-page.js`): bloques `hero`, `productos`, `categorias`, `texto`, `promo`.
 - **Blog**, **tiempo real**, **imágenes** (hotlink + locales + subidas), responsive + SEO.
 
 ### Panel administrativo (`/admin`, login `admin@ek.com` / `admin123`)
 - **Resumen** con tarjetas clicables que redirigen a cada sección.
-- **Productos**: CRUD con galería 1–5, precios, chips de colores/tallas, **variantes en tarjetas** (talla|color|stock|precio cliente|precio distribuidor|foto de muestra), toggle **personalizable** + **editor visual de personalización** (`admin/personalizacion-editor.js`): sube la imagen base y arrastra cada campo sobre ella, elige **forma cuadrada/redonda** para las fotos.
+- **Productos**: CRUD con galería 1–5, precios, chips de colores/tallas, **variantes en tarjetas** (talla|color|stock|precio cliente|precio distribuidor|foto de muestra), toggle **personalizable** + **campos de personalización** (tipo/etiqueta/máx/obligatorio/forma de foto). Dentro de **cada variante** se sube su imagen en blanco y se arrastra cada campo a su lugar (`admin/personalizacion-editor.js`, `PosicionadorPersonalizacion`).
 - **Categorías** (época con datalist + imagen), **Subcategorías** (categorías padre + filtros + selector de icono o subir icono), **Banners** (selector cat/sub + imagen + reordenar + activar/desactivar, máx. 11 activos), **Blog**.
 - **Clientes**: teléfono + historial de pedidos + total + filtros; los **administradores** se gestionan en Configuración.
 - **Pedidos**: fechas, productos, teléfono, código único, filtros (cliente/estado/fecha/personalizado); el detalle muestra **miniatura + textos** de la personalización.
@@ -91,7 +91,7 @@ Cliente personaliza ──▶ /api/subir-personalizacion ──▶ Storage (imag
 
 ### ✅ Completado (esta sesión)
 - Módulo de personalización **de punta a punta**: form builder dinámico → vista previa → editor de fotos → subida de composición (`/api/subir-personalizacion`) → metadatos por Stripe → `DetallePedido.personalizacion` → panel muestra miniatura + textos.
-- **Editor visual de personalización** (producto): imagen base SIN texto + **área por campo** (cajas arrastrables) + **forma cuadrada/redonda** de la foto del cliente. Corregido bug que impedía ver el personalizador en la tienda (`esc` no global).
+- **Personalización POR VARIANTE**: imagen en blanco + **área por campo** (cajas arrastrables) + **forma cuadrada/redonda** de la foto, configurado dentro de cada variante (talla/color). Corregido bug que impedía ver el personalizador en la tienda (`esc` no global).
 - Variantes con doble precio + foto de muestra (y auto-sync de tallas/colores; stock = suma, precio = menor).
 - Login/registro + panel "Mi cuenta" + editar perfil + código único de pedido.
 - Banners/Categorías/Subcategorías/Políticas/Configuración mejoradas (ver sección 2).

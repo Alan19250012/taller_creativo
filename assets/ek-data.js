@@ -381,106 +381,6 @@ window.EK_DATA =
  ],
  "productos": [
   {
-   "n": "Adorno Feliz Navidad Madera personalizable",
-   "s": "adorno-feliz-navidad-madera",
-   "p": 85,
-   "a": 0,
-   "pd": 49,
-   "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png",
-   "imagenes": [
-    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png"
-   ],
-   "imagen_personalizacion": null,
-   "imagenes_personalizacion": [],
-   "personalizable": true,
-   "print_area": null,
-   "print_areas": [],
-   "personalizacion_campos": [],
-   "c": [],
-   "col": [
-    "rosa",
-    "amarillo"
-   ],
-   "t": [
-    "10 cm",
-    "20 cm"
-   ],
-   "st": 32,
-   "v": 260,
-   "r": 4.7,
-   "b": "top",
-   "d": "Adorno de madera con la frase Feliz Navidad, perfecto para regalar.",
-   "f": [
-    "Listón incluido",
-    "Súper ligero",
-    "Impresión UV",
-    "Precio por pieza"
-   ],
-   "kw": "christmas,ornament,wooden",
-   "variantes": [
-    {
-     "talla": "10 cm",
-     "color": "rosa",
-     "stock": 10,
-     "precio": 85,
-     "precioDistribuidor": 49,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953793769-Captura-bol---copia.png",
-     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027264195-Captura-bol.png",
-     "print_area": {
-      "x": 25.5,
-      "y": 33,
-      "width": 50,
-      "height": 57.9
-     }
-    },
-    {
-     "talla": "20 cm",
-     "color": "rosa",
-     "stock": 12,
-     "precio": 160,
-     "precioDistribuidor": 145,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953798070-Captura-bol---copia.png",
-     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027321171-Captura-bol.png",
-     "print_area": {
-      "x": 24.4,
-      "y": 31.9,
-      "width": 49.4,
-      "height": 59.3
-     }
-    },
-    {
-     "talla": "10 cm",
-     "color": "amarillo",
-     "stock": 4,
-     "precio": 85,
-     "precioDistribuidor": 49,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953802751-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
-     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027345668-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
-     "print_area": {
-      "x": 30,
-      "y": 30,
-      "width": 39.8,
-      "height": 41.1
-     }
-    },
-    {
-     "talla": "20 cm",
-     "color": "amarillo",
-     "stock": 6,
-     "precio": 160,
-     "precioDistribuidor": 145,
-     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953810103-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
-     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027658093-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
-     "print_area": {
-      "x": 30,
-      "y": 30,
-      "width": 39.2,
-      "height": 40.2
-     }
-    }
-   ]
-  },
-  {
    "n": "Alcancía MDF Personalizada",
    "s": "alcancia-mdf-personalizada",
    "p": 190,
@@ -868,6 +768,165 @@ window.EK_DATA =
    ],
    "kw": "baby,bodysuit,christmas",
    "variantes": []
+  },
+  {
+   "n": "Bolsa personalizable",
+   "s": "adorno-feliz-ocasiones-papel",
+   "p": 85,
+   "a": 0,
+   "pd": 49,
+   "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png",
+   "imagenes": [
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png"
+   ],
+   "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027264195-Captura-bol.png",
+   "imagenes_personalizacion": [
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027264195-Captura-bol.png",
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027321171-Captura-bol.png",
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027345668-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
+    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027658093-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
+   ],
+   "personalizable": true,
+   "print_area": {
+    "x": 25.5,
+    "y": 33,
+    "width": 50,
+    "height": 57.9
+   },
+   "print_areas": [
+    {
+     "x": 25.5,
+     "y": 33,
+     "width": 50,
+     "height": 57.9
+    },
+    {
+     "x": 24.4,
+     "y": 31.9,
+     "width": 49.4,
+     "height": 59.3
+    },
+    {
+     "x": 30,
+     "y": 30,
+     "width": 39.8,
+     "height": 41.1
+    },
+    {
+     "x": 30,
+     "y": 30,
+     "width": 39.2,
+     "height": 40.2
+    }
+   ],
+   "personalizacion_campos": [
+    {
+     "tipo": "foto",
+     "label": "Foto",
+     "obligatorio": true
+    },
+    {
+     "max": 50,
+     "tipo": "textarea",
+     "label": "Nombre",
+     "obligatorio": true
+    },
+    {
+     "max": 50,
+     "tipo": "textarea",
+     "label": "Mensaje",
+     "obligatorio": false
+    }
+   ],
+   "c": [
+    "regalos"
+   ],
+   "col": [
+    "rosa",
+    "amarillo"
+   ],
+   "t": [
+    "10 cm",
+    "20 cm"
+   ],
+   "st": 32,
+   "v": 260,
+   "r": 4.7,
+   "b": "nuevo",
+   "d": "bolsa de papel con la frase personalizable, perfecto para regalar.",
+   "f": [
+    "Listón incluido",
+    "Súper ligero",
+    "Impresión UV",
+    "Precio por pieza"
+   ],
+   "kw": "christmas,ornament,wooden",
+   "variantes": [
+    {
+     "talla": "10 cm",
+     "color": "rosa",
+     "stock": 10,
+     "precio": 85,
+     "precioDistribuidor": 49,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953793769-Captura-bol---copia.png",
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027264195-Captura-bol.png",
+     "print_area": {
+      "x": 25.5,
+      "y": 33,
+      "width": 50,
+      "height": 57.9
+     },
+     "areas_campos": null
+    },
+    {
+     "talla": "20 cm",
+     "color": "rosa",
+     "stock": 12,
+     "precio": 160,
+     "precioDistribuidor": 145,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953798070-Captura-bol---copia.png",
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027321171-Captura-bol.png",
+     "print_area": {
+      "x": 24.4,
+      "y": 31.9,
+      "width": 49.4,
+      "height": 59.3
+     },
+     "areas_campos": null
+    },
+    {
+     "talla": "10 cm",
+     "color": "amarillo",
+     "stock": 4,
+     "precio": 85,
+     "precioDistribuidor": 49,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953802751-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027345668-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
+     "print_area": {
+      "x": 30,
+      "y": 30,
+      "width": 39.8,
+      "height": 41.1
+     },
+     "areas_campos": null
+    },
+    {
+     "talla": "20 cm",
+     "color": "amarillo",
+     "stock": 6,
+     "precio": 160,
+     "precioDistribuidor": 145,
+     "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953810103-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027658093-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
+     "print_area": {
+      "x": 30,
+      "y": 30,
+      "width": 39.2,
+      "height": 40.2
+     },
+     "areas_campos": null
+    }
+   ]
   },
   {
    "n": "Bota Navideña DTF UV Personalizada",

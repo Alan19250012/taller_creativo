@@ -244,18 +244,28 @@
     return { getUrls: function () { return lista.filter(Boolean); } };
   }
   // Editor de variantes (talla | color | stock | precios | foto de muestra).
-  // La personalización (imagen base + áreas por campo) ahora se configura en
-  // el editor de personalización a nivel de producto (PersonalizacionEditor).
-  function initVariantes(variantesIniciales) {
+  // Si el producto es personalizable, cada variante lleva además su propia
+  // imagen en blanco y las áreas de impresión por campo (PosicionadorPersonalizacion).
+  function initVariantes(variantesIniciales, personalizable, getCampos) {
     var cont = $("#variantes");
-    if (!cont) return { getValor: function () { return []; } };
+    if (!cont) return { getValor: function () { return []; }, refrescarAreas: function () {} };
     var lista = (variantesIniciales || []).map(function (v) {
-      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "", precioDistribuidor: v.precioDistribuidor || "", imagen: v.imagen || "" };
+      return {
+        talla: v.talla || "", color: v.color || "", stock: v.stock || 0,
+        precio: v.precio || "", precioDistribuidor: v.precioDistribuidor || "",
+        imagen: v.imagen || "", imagen_personalizacion: v.imagen_personalizacion || "",
+        print_area: v.print_area || null, areas_campos: v.areas_campos || null,
+      };
     });
+    var posicionadores = [];
+
     function thumb(url) {
       return url ? '<img src="' + esc(url) + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px" alt="">' : '<i class="bi bi-image" style="font-size:1.2rem"></i>';
     }
+
     function pintar() {
+      // Conserva las áreas dibujadas antes de re-renderizar.
+      posicionadores.forEach(function (p, i) { if (p) lista[i].areas_campos = p.getAreas(); });
       cont.innerHTML = lista.map(function (v, i) {
         return '<div class="var-card" data-i="' + i + '">' +
           '<div class="var-row">' +
@@ -272,10 +282,27 @@
               '<input type="file" class="var-file" accept="image/*" data-i="' + i + '" hidden>' +
             "</div>" +
           "</div>" +
+          (personalizable ? '<div class="var-area"><label>Personalización de esta variante: sube la imagen en blanco y arrastra cada campo a su lugar</label><div class="var-pos" data-i="' + i + '"></div></div>' : "") +
         "</div>";
       }).join("") +
         '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar variante</button>';
+      // Posicionadores por variante
+      posicionadores = [];
+      if (personalizable) {
+        $$(".var-pos", cont).forEach(function (el, i) {
+          if (window.PosicionadorPersonalizacion) {
+            posicionadores[i] = window.PosicionadorPersonalizacion({
+              container: el,
+              campos: getCampos ? getCampos() : [],
+              imagen: lista[i].imagen_personalizacion || lista[i].imagen || "",
+              areas: lista[i].areas_campos || [],
+              onImagen: function (url) { lista[i].imagen_personalizacion = url; },
+            });
+          }
+        });
+      }
     }
+
     function subir(idx, file, campo) {
       if (!file) return;
       var lector = new FileReader();
@@ -302,7 +329,7 @@
     cont.addEventListener("click", function (e) {
       var b = e.target.closest("button");
       if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", precioDistribuidor: "", imagen: "" }); pintar(); }
+      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", precioDistribuidor: "", imagen: "", imagen_personalizacion: "", print_area: null, areas_campos: null }); pintar(); }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
       else if (b.hasAttribute("data-foto")) { cont.querySelector('.var-file[data-i="' + b.getAttribute("data-foto") + '"]').click(); }
     });
@@ -313,36 +340,56 @@
     pintar();
     return {
       getValor: function () {
+        posicionadores.forEach(function (p, i) { if (p) lista[i].areas_campos = p.getAreas(); });
         return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
           return {
             talla: v.talla || null, color: v.color || null, stock: v.stock || 0,
             precio: v.precio || null, precioDistribuidor: v.precioDistribuidor || null,
-            imagen: v.imagen || null,
+            imagen: v.imagen || null, imagen_personalizacion: v.imagen_personalizacion || null,
+            print_area: v.print_area || null, areas_campos: v.areas_campos || null,
           };
+        });
+      },
+      refrescarAreas: function () {
+        var campos = getCampos ? getCampos() : [];
+        posicionadores.forEach(function (p, i) {
+          if (!p) return;
+          var previas = lista[i].areas_campos || [];
+          var nw = campos.map(function (_, k) { return (previas && previas[k]) || null; });
+          lista[i].areas_campos = nw;
+          p.setCampos(campos, nw);
         });
       },
     };
   }
-  // Constructor de campos de personalización (form builder dinámico)
-  function initCamposPersonalizacion(inicial) {
+  // Constructor de campos de personalización (form builder dinámico).
+  // Define los campos del producto (texto/texto multilínea/fuente/foto); las
+  // ÁREAS de cada campo se configuran por variante (PosicionadorPersonalizacion).
+  function initCamposPersonalizacion(inicial, onCambio) {
     var cont = $("#personalizacion-campos");
     if (!cont) return { getValor: function () { return []; } };
     var lista = (inicial || []).map(function (c) {
-      return { tipo: c.tipo || "texto", label: c.label || "", max: c.max != null ? c.max : "", opciones: (c.opciones || []).join(", "), obligatorio: !!c.obligatorio };
+      return { tipo: c.tipo || "texto", label: c.label || "", max: c.max != null ? c.max : "", opciones: (c.opciones || []).join(", "), obligatorio: !!c.obligatorio, forma: c.forma || "cuadrada" };
     });
-    var TIPOS = [{ v: "texto", l: "Texto (1 línea)" }, { v: "textarea", l: "Texto multilínea" }, { v: "select", l: "Selector de opciones" }, { v: "foto", l: "Subida de foto" }];
+    var TIPOS = [{ v: "texto", l: "Texto (1 línea)" }, { v: "textarea", l: "Texto multilínea" }, { v: "select", l: "Selector de fuente" }, { v: "foto", l: "Foto del cliente" }];
+    function notificar() { if (onCambio) onCambio(); }
     function pintar() {
       cont.innerHTML = lista.map(function (c, i) {
         var extra = "";
         if (c.tipo === "texto" || c.tipo === "textarea") extra = '<input class="pc-max" placeholder="Máx. caracteres (vacío = sin límite)" value="' + esc(c.max) + '">';
-        else if (c.tipo === "select") extra = '<input class="pc-opciones" placeholder="Opciones separadas por coma (ej. Block, Script, Serif)" value="' + esc(c.opciones) + '">';
+        else if (c.tipo === "select") extra = '<input class="pc-opciones" placeholder="Fuentes separadas por coma (ej. Block, Script, Serif)" value="' + esc(c.opciones) + '">';
+        var forma = c.tipo === "foto"
+          ? '<label class="check" style="margin-top:6px">Forma de la foto: <select class="pc-forma"><option value="cuadrada"' + (c.forma !== "redonda" ? " selected" : "") + '>Cuadrada</option><option value="redonda"' + (c.forma === "redonda" ? " selected" : "") + '>Redonda</option></select></label>'
+          : "";
+        var nota = c.tipo === "select" ? '<div class="hint" style="margin-top:4px">Este selector define la fuente del texto (no se posiciona en la variante).</div>' : "";
         return '<div class="cfg-faq" data-i="' + i + '">' +
           '<div class="row">' +
             '<div class="field"><label>Tipo</label><select class="pc-tipo">' + TIPOS.map(function (t) { return '<option value="' + t.v + '"' + (c.tipo === t.v ? " selected" : "") + '>' + t.l + '</option>'; }).join("") + '</select></div>' +
             '<div class="field"><label>Etiqueta (visible al cliente)</label><input class="pc-label" value="' + esc(c.label) + '" placeholder="Ej. Nombre de la mascota"></div>' +
           '</div>' +
           '<div class="field">' + extra + '</div>' +
-          '<label class="check"><input type="checkbox" class="pc-obligatorio"' + (c.obligatorio ? " checked" : "") + '> Obligatorio (*)</label> ' +
+          '<label class="check"><input type="checkbox" class="pc-obligatorio"' + (c.obligatorio ? " checked" : "") + '> Obligatorio (*)</label>' +
+          forma + nota +
           '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '" style="color:var(--rojo)"><i class="bi bi-x-lg"></i> Quitar campo</button>' +
         '</div>';
       }).join("") + '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar campo</button>';
@@ -356,15 +403,24 @@
       else if (e.target.classList.contains("pc-obligatorio")) c.obligatorio = e.target.checked;
     });
     cont.addEventListener("change", function (e) {
-      var s = e.target.closest(".pc-tipo"); if (!s) return;
-      var f = s.closest(".cfg-faq");
-      lista[+f.getAttribute("data-i")].tipo = s.value;
-      pintar();
+      var s = e.target.closest(".pc-tipo"); if (s) {
+        var f = s.closest(".cfg-faq");
+        lista[+f.getAttribute("data-i")].tipo = s.value;
+        pintar(); notificar();
+        return;
+      }
+      var fs = e.target.closest(".pc-forma"); if (fs) {
+        var f2 = fs.closest(".cfg-faq");
+        lista[+f2.getAttribute("data-i")].forma = fs.value;
+        notificar();
+        return;
+      }
+      if (e.target.classList.contains("pc-label")) notificar();
     });
     cont.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push({ tipo: "texto", label: "", max: "", opciones: "", obligatorio: false }); pintar(); }
-      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+      if (b.hasAttribute("data-agregar")) { lista.push({ tipo: "texto", label: "", max: "", opciones: "", obligatorio: false, forma: "cuadrada" }); pintar(); notificar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); notificar(); }
     });
     pintar();
     return {
@@ -373,6 +429,7 @@
           var out = { tipo: c.tipo, label: c.label, obligatorio: !!c.obligatorio };
           if (c.tipo === "texto" || c.tipo === "textarea") out.max = c.max ? Number(c.max) : null;
           if (c.tipo === "select") out.opciones = String(c.opciones || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+          if (c.tipo === "foto") out.forma = c.forma || "cuadrada";
           return out;
         });
       },
@@ -650,7 +707,7 @@
     if (p) {
       actuales = (await supa("GET", "/rest/v1/_CategoriaToProducto?select=B&A=eq." + p.id).catch(function () { return []; }))
         .map(function (r) { return r.B; });
-      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,precioDistribuidor,imagen,imagen_personalizacion,print_area&productoId=eq." + p.id).catch(function () { return []; });
+      variantes = await supa("GET", "/rest/v1/Variante?select=talla,color,stock,precio,precioDistribuidor,imagen,imagen_personalizacion,print_area,areas_campos&productoId=eq." + p.id).catch(function () { return []; });
     }
     var body =
       '<form id="f-prod">' +
@@ -679,7 +736,7 @@
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
       fld("Stock y precio por variante <span class=hint>(opcional: una fila por talla/color. Precio cliente + precio distribuidor + stock + foto de esa variante)</span>", '<div id="variantes"></div>') +
-      fld("Personalización <span class=hint>(sube la imagen base SIN texto y arrastra cada campo sobre ella para posicionarlo; elige si la foto del cliente es cuadrada o redonda)</span>", '<div id="personalizacion-editor"></div>') +
+      fld("Campos de personalización <span class=hint>(define los campos que llenará el cliente. La imagen en blanco y la ubicación de cada campo se configuran DENTRO de cada variante)</span>", '<div id="personalizacion-campos"></div>') +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
@@ -705,28 +762,28 @@
     // Entradas de etiquetas (colores y tallas con chips)
     initTagInput("colores");
     initTagInput("tallas");
-    // Editor de variantes: talla | color | stock | precios | foto de muestra
-    var cbPersonalizable = $('input[name="personalizable"]');
-    var variantesEditor = initVariantes(variantes);
-
     // Galería de imágenes (1-5)
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
     var galeria = initGaleria(imagenesIniciales);
 
-    // Editor de personalización: imagen base + campos con sus áreas + forma de la foto
-    var imagenPersRef = (p && p.imagen_personalizacion)
-      || (variantes && variantes[0] && variantes[0].imagen_personalizacion)
-      || (p && p.imagen) || "";
-    var camposPersEditor = window.PersonalizacionEditor
-      ? window.PersonalizacionEditor({ container: $("#personalizacion-editor"), campos: p ? (p.personalizacion_campos || []) : [], imagen: imagenPersRef })
-      : null;
+    // Campos de personalización (definiciones) + variantes (cada una con su
+    // imagen en blanco y sus áreas por campo).
+    var cbPersonalizable = $('input[name="personalizable"]');
+    var variantesEditor = null;
+    var camposPersEditor = initCamposPersonalizacion(p ? (p.personalizacion_campos || []) : [], function () {
+      if (variantesEditor && variantesEditor.refrescarAreas) variantesEditor.refrescarAreas();
+    });
+    function crearEditorVariantes() {
+      var actuales = variantesEditor ? variantesEditor.getValor() : variantes;
+      variantesEditor = initVariantes(actuales, cbPersonalizable ? cbPersonalizable.checked : false, function () { return camposPersEditor.getValor(); });
+    }
+    crearEditorVariantes();
     function toggleCamposPers() {
       var on = cbPersonalizable ? cbPersonalizable.checked : false;
-      var el = $("#personalizacion-editor"); if (el) el.closest(".field").style.display = on ? "" : "none";
-      if (on && camposPersEditor && camposPersEditor.refrescar) setTimeout(function () { camposPersEditor.refrescar(); }, 30);
+      var el = $("#personalizacion-campos"); if (el) el.closest(".field").style.display = on ? "" : "none";
     }
     toggleCamposPers();
-    if (cbPersonalizable) cbPersonalizable.addEventListener("change", toggleCamposPers);
+    if (cbPersonalizable) cbPersonalizable.addEventListener("change", function () { toggleCamposPers(); crearEditorVariantes(); });
 
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
@@ -744,10 +801,10 @@
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagenes: galeria ? galeria.getUrls() : [],
         imagen: (galeria && galeria.getUrls()[0]) || null,
-        imagen_personalizacion: camposPersEditor ? camposPersEditor.getImagen() : null,
-        imagenes_personalizacion: (camposPersEditor && camposPersEditor.getImagen()) ? [camposPersEditor.getImagen()] : [],
+        imagen_personalizacion: null,
+        imagenes_personalizacion: [],
         personalizable: !!f.get("personalizable"),
-        personalizacion_campos: camposPersEditor ? camposPersEditor.getCampos() : [],
+        personalizacion_campos: camposPersEditor ? camposPersEditor.getValor() : [],
         print_area: null,
         print_areas: [],
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
@@ -785,7 +842,7 @@
         // variantes (desde el editor de filas)
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
         for (var j = 0; j < varRows.length; j++) {
-          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, precioDistribuidor: varRows[j].precioDistribuidor || null, imagen: varRows[j].imagen || null });
+          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, precioDistribuidor: varRows[j].precioDistribuidor || null, imagen: varRows[j].imagen || null, imagen_personalizacion: varRows[j].imagen_personalizacion || null, print_area: varRows[j].print_area || null, areas_campos: varRows[j].areas_campos || null });
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");
         renderProductos();

@@ -7,31 +7,29 @@
 
 ## 1. Modelo de datos
 
-### 1.1 Tabla `Producto` (columnas nuevas)
+### 1.1 Tabla `Producto` — campos (definiciones, compartidas por todas las variantes)
 ```sql
 ALTER TABLE "Producto" ADD COLUMN IF NOT EXISTS "personalizacion_campos" JSONB;
--- Array de definiciones de campos dinámicos. CADA campo tiene su propia área
--- de impresión (porcentajes) y las fotos su forma (cuadrada o redonda):
+-- Array de DEFINICIONES de campos. Las ÁREAS se guardan por variante (ver 1.2).
 -- [
---   { "tipo":"texto",     "label":"Nombre",      "max":7,  "obligatorio":true,
---     "area":{ "x":20, "y":35, "width":40, "height":12 } },
---   { "tipo":"textarea",  "label":"Dedicatoria", "max":120, "obligatorio":false,
---     "area":{ "x":15, "y":50, "width":70, "height":25 } },
+--   { "tipo":"texto",     "label":"Nombre",      "max":7,  "obligatorio":true },
+--   { "tipo":"textarea",  "label":"Dedicatoria", "max":120, "obligatorio":false },
 --   { "tipo":"select",    "label":"Tipografía", "opciones":["Block","Script","Serif"], "obligatorio":true },
---   { "tipo":"foto",      "label":"Foto", "obligatorio":false, "forma":"redonda",
---     "area":{ "x":38, "y":8, "width":24, "height":20 } }
+--   { "tipo":"foto",      "label":"Foto", "obligatorio":false, "forma":"redonda" }
 -- ]
--- "select" es el selector de FUENTE global (no se posiciona).
+-- "select" = selector de FUENTE global (no se posiciona). "forma" solo aplica a "foto".
 ```
 
-`Producto` también guarda:
-- `imagen_personalizacion` → imagen **en blanco** (SIN texto) sobre la que se dibujan campos y foto. Es el lienzo de referencia para posicionar (a nivel de producto).
-
-### 1.2 Tabla `Variante` (legado)
-La personalización ya NO depende de la variante: `imagen_personalizacion` y `print_area`
-de la variante quedaron como **respaldo legado** (el personalizador las usa solo si el
-producto no tiene `imagen_personalizacion` propia). La variante conserva:
-- `imagen` → foto de **muestra** (ejemplo CON texto).
+### 1.2 Tabla `Variante` — imagen y áreas POR VARIANTE (talla/color)
+```sql
+ALTER TABLE "Variante" ADD COLUMN IF NOT EXISTS "areas_campos" JSONB;
+-- Cada variante tiene su propia imagen en blanco y sus propias áreas por campo:
+--   "imagen_personalizacion"  → imagen en blanco (SIN texto) de esta talla/color
+--   "print_area"              → área general {x,y,width,height} en % (respaldo)
+--   "areas_campos"            → array PARALELO a Producto.personalizacion_campos:
+--                               [ {x,y,width,height}, {x,y,width,height}, null, … ]
+--                               (null = ese campo usa print_area o el default)
+```
 
 ### 1.3 Metadatos en la orden (`DetallePedido`)
 El ítem personalizado guarda su payload como JSON:
@@ -59,12 +57,11 @@ ALTER TABLE "DetallePedido" ADD COLUMN IF NOT EXISTS "personalizacion" JSONB;
 ## 3. Flujo completo
 
 ```
-Admin: sube imagen base + define campos + ARRASTRA cada campo sobre la imagen
-       (elige forma cuadrada/redonda para las fotos)  ──▶ Producto.personalizacion_campos
-                                                          Producto.imagen_personalizacion
+Admin: define los CAMPOS una vez (producto)  ──▶ Producto.personalizacion_campos
+Admin: POR VARIANTE sube la imagen en blanco y arrastra cada campo ──▶ Variante.imagen_personalizacion + Variante.areas_campos
                                                           │
-Cliente: rellena campos (texto/foto/fuente) ──▶ Live preview (canvas)
-                                                          │ cada campo se dibuja EN SU área
+Cliente: elige talla/color → rellena campos → Live preview (canvas)
+                                                          │ cada campo se dibuja EN el área de ESA variante
                                                           ▼
 "Agregar al carrito" ──▶ compone PNG ──▶ upload /api/subir-personalizacion ──▶ URL
                                                           │ guarda { imagen, campos }
@@ -76,15 +73,13 @@ Panel admin: Pedido → muestra miniatura + textos + opciones
 
 ---
 
-## 4. Panel administrativo — editor visual
+## 4. Panel administrativo
 
-Componente `admin/personalizacion-editor.js` (`window.PersonalizacionEditor`):
-- Une en un solo lugar: **subir imagen base** + **lista de campos** + **cajas arrastrables**.
-- Cada campo de texto/foto se dibuja como una caja de color sobre la imagen; se arrastra
-  para moverla y su esquina roja cambia el tamaño.
-- Los campos `foto` tienen un selector **Cuadrada / Redonda** (la caja se ve como círculo).
-- El campo `select` es el selector de fuente y **no se posiciona**.
-- Devuelve `getCampos()` (con `area` y `forma`) y `getImagen()`.
+- **Campos de personalización** (nivel producto): define tipo, etiqueta, máx. caracteres,
+  opciones de fuente, obligatorio y (para fotos) la forma **cuadrada/redonda**.
+- **Dentro de cada variante** (`PosicionadorPersonalizacion`, `admin/personalizacion-editor.js`):
+  subir la imagen en blanco de esa talla/color y **arrastrar una caja por cada campo** para
+  ubicarlo; la esquina roja cambia el tamaño. Las fotos se ven como círculo si son redondas.
 
 ---
 
@@ -92,10 +87,10 @@ Componente `admin/personalizacion-editor.js` (`window.PersonalizacionEditor`):
 
 | `tipo` | Render (cliente) | Posición | Extras |
 |---|---|---|---|
-| `texto` | `<input>` + contador | sí (`area`) | `max` |
-| `textarea` | `<textarea>` + contador | sí (`area`) | `max` |
+| `texto` | `<input>` + contador | por variante (`areas_campos`) | `max` |
+| `textarea` | `<textarea>` + contador | por variante (`areas_campos`) | `max` |
 | `select` | `<select>` (fuente global) | no | `opciones` |
-| `foto` | subida + editor de fotos | sí (`area`) | `forma` = `cuadrada` \| `redonda` |
+| `foto` | subida + editor de fotos | por variante (`areas_campos`) | `forma` = `cuadrada` \| `redonda` |
 
 ---
 
