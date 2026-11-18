@@ -254,7 +254,11 @@
     function thumb(url) {
       return url ? '<img src="' + esc(url) + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px" alt="">' : '<i class="bi bi-image" style="font-size:1.2rem"></i>';
     }
+    function guardarAreas() {
+      editoresPA.forEach(function (ed, i) { if (ed && ed.getValor()) lista[i].print_area = ed.getValor(); });
+    }
     function pintar() {
+      guardarAreas();   // conserva las áreas dibujadas antes de re-renderizar
       cont.innerHTML = lista.map(function (v, i) {
         return '<div class="var-card" data-i="' + i + '">' +
           '<div class="var-row">' +
@@ -327,12 +331,13 @@
     pintar();
     return {
       getValor: function () {
-        return lista.filter(function (v) { return v.talla || v.color; }).map(function (v, i) {
+        guardarAreas();
+        return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
           return {
             talla: v.talla || null, color: v.color || null, stock: v.stock || 0,
             precio: v.precio || null, precioDistribuidor: v.precioDistribuidor || null,
             imagen: v.imagen || null, imagen_personalizacion: v.imagen_personalizacion || null,
-            print_area: (editoresPA[i] && editoresPA[i].getValor()) || null,
+            print_area: v.print_area || null,
           };
         });
       },
@@ -616,7 +621,10 @@
       '<div class="row"><div class="field"><label>Nombre *</label>' + input("nombre", p ? p.nombre : "") + "</div>" +
       '<div class="field"><label>Slug <span class="hint">(se genera solo si lo dejas vacío)</span></label>' + input("slug", p ? p.slug : "") + "</div></div>" +
       fld("Descripción", area("descripcion", p ? p.descripcion : "", 3)) +
-      '<div class="row"><div class="field"><label></label>' + check("usarVariantes", variantes.length > 0, "Este producto usa variantes (el precio, stock y fotos dependen de la talla/color)") + "</div></div>" +
+      '<div class="row">' +
+        '<div class="field"><label></label>' + check("usarVariantes", variantes.length > 0, "Este producto usa variantes (el precio, stock y fotos dependen de la talla/color)") + "</div>" +
+        '<div class="field"><label></label>' + check("personalizable", p ? p.personalizable : false, "Producto personalizable (el cliente escribe su texto)") + "</div>" +
+      "</div>" +
       '<div id="campos-base">' +
         '<div class="row">' +
           fld("Precio minorista (MXN) <span class=hint>(si usas variantes se toma el menor)</span>", input("precioMinorista", p ? p.precioMinorista : "", "number")) +
@@ -638,9 +646,6 @@
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
-      '<div class="row"><div class="field"><label></label>' + check("personalizable", p ? p.personalizable : false, "Producto personalizable (mostrar editor de texto al cliente)") + "</div></div>" +
-      fld("Imágenes de personalización <span class=hint>(sube 1 o más; cada una con su propia área de impresión)</span>",
-        '<div id="personalizaciones"></div>') +
       fld("Categorías", '<div class="chips">' + cats.map(function (c) {
         return '<label><input type="checkbox" name="cat" value="' + c.id + '"' + (actuales.indexOf(c.id) > -1 ? " checked" : "") + "> " + esc(c.nombre) + "</label>";
       }).join("") + "</div>") +
@@ -663,36 +668,24 @@
     // Entradas de etiquetas (colores y tallas con chips)
     initTagInput("colores");
     initTagInput("tallas");
-    // Editor de variantes (filas)
-    var variantesEditor = initVariantes(variantes, true);
+    // Editor de variantes: guarda foto de muestra + imagen personalizable + área por variante
+    var cbPersonalizable = $('input[name="personalizable"]');
+    var variantesEditor = null;
+    function crearEditorVariantes() {
+      var actuales = variantesEditor ? variantesEditor.getValor() : variantes;
+      variantesEditor = initVariantes(actuales, cbPersonalizable ? cbPersonalizable.checked : false);
+    }
+    crearEditorVariantes();
+    if (cbPersonalizable) cbPersonalizable.addEventListener("change", crearEditorVariantes);
+
     // Galería de imágenes (1-5)
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
     var galeria = initGaleria(imagenesIniciales);
-
-    // Editor de imágenes de personalización (varias, cada una con su área de impresión)
-    var personalizacionesIniciales = [];
-    if (p) {
-      var imgsPers = (p.imagenes_personalizacion && p.imagenes_personalizacion.length)
-        ? p.imagenes_personalizacion
-        : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
-      var areasPers = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
-      imgsPers.forEach(function (img, i) { personalizacionesIniciales.push({ imagen: img, area: areasPers[i] || null }); });
-    }
-    var personalizacionesEditor = initPersonalizaciones(personalizacionesIniciales);
-
-    // Mostrar/ocultar el editor de personalización según el checkbox
-    var cbPersonalizable = $('input[name="personalizable"]');
-    function togglePersonalizable() {
-      var on = cbPersonalizable.checked;
-      $("#personalizaciones").closest(".field").style.display = on ? "" : "none";
-    }
-    if (cbPersonalizable) { cbPersonalizable.addEventListener("change", togglePersonalizable); togglePersonalizable(); }
 
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
       var varRows = variantesEditor ? variantesEditor.getValor() : [];
-      var pers = personalizacionesEditor ? personalizacionesEditor.getValor() : { imagenes: [], areas: [] };
       var datos = {
         nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")),
         descripcion: f.get("descripcion") || "",
@@ -705,11 +698,11 @@
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagenes: galeria ? galeria.getUrls() : [],
         imagen: (galeria && galeria.getUrls()[0]) || null,
-        imagen_personalizacion: pers.imagenes[0] || null,
-        imagenes_personalizacion: pers.imagenes,
+        imagen_personalizacion: null,
+        imagenes_personalizacion: [],
         personalizable: !!f.get("personalizable"),
-        print_area: pers.areas[0] || null,
-        print_areas: pers.areas,
+        print_area: null,
+        print_areas: [],
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
         activo: !!f.get("activo"),
       };
@@ -718,6 +711,15 @@
         if (v.talla && datos.tallas.indexOf(v.talla) === -1) datos.tallas.push(v.talla);
         if (v.color && datos.colores.indexOf(v.color) === -1) datos.colores.push(v.color);
       });
+      // Derivar la personalización a nivel producto desde las variantes
+      var imgsPers = [], areasPers = [];
+      varRows.forEach(function (v) {
+        if (v.imagen_personalizacion) { imgsPers.push(v.imagen_personalizacion); areasPers.push(v.print_area || null); }
+      });
+      datos.imagen_personalizacion = imgsPers[0] || null;
+      datos.imagenes_personalizacion = imgsPers;
+      datos.print_area = areasPers[0] || null;
+      datos.print_areas = areasPers;
       // Si usa variantes: stock = suma de las variantes y precio = el menor
       var cbUsar = $('input[name="usarVariantes"]');
       if (cbUsar && cbUsar.checked && varRows.length) {
