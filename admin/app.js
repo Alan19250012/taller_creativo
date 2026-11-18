@@ -29,9 +29,10 @@
     clearTimeout(t._t);
     t._t = setTimeout(function () { t.classList.remove("is-on"); }, 3200);
   }
-  function modal(titulo, body) {
+  function modal(titulo, body, ancha) {
     var box = $("#modal-box");
     box.innerHTML = '<div class="modal__hd"><h2>' + esc(titulo) + '</h2><button class="close" data-cerrar>&times;</button></div>' + body;
+    box.classList.toggle("modal--wide", !!ancha);
     $("#modal").classList.add("is-on");
     var c = $("[data-cerrar]", box);
     if (c) c.onclick = cerrarModal;
@@ -259,13 +260,27 @@
     });
     var posicionadores = [];
 
+    function syncAreas() {
+      posicionadores.forEach(function (p, i) { if (p) lista[i].areas_campos = p.getAreas(); });
+    }
+
+    function copiarAreas(dest, src) {
+      syncAreas();
+      var campos = getCampos ? getCampos() : [];
+      var origen = (lista[src] && lista[src].areas_campos) || [];
+      var nw = campos.map(function (_, k) { return (origen[k] && origen[k].width != null) ? JSON.parse(JSON.stringify(origen[k])) : null; });
+      lista[dest].areas_campos = nw;
+      if (posicionadores[dest]) posicionadores[dest].setCampos(campos, nw);
+      toast("Áreas copiadas de la variante " + (src + 1), true);
+    }
+
     function thumb(url) {
       return url ? '<img src="' + esc(url) + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px" alt="">' : '<i class="bi bi-image" style="font-size:1.2rem"></i>';
     }
 
     function pintar() {
       // Conserva las áreas dibujadas antes de re-renderizar.
-      posicionadores.forEach(function (p, i) { if (p) lista[i].areas_campos = p.getAreas(); });
+      syncAreas();
       cont.innerHTML = lista.map(function (v, i) {
         return '<div class="var-card" data-i="' + i + '">' +
           '<div class="var-row">' +
@@ -282,7 +297,14 @@
               '<input type="file" class="var-file" accept="image/*" data-i="' + i + '" hidden>' +
             "</div>" +
           "</div>" +
-          (personalizable ? '<div class="var-area"><label>Personalización de esta variante: sube la imagen en blanco y arrastra cada campo a su lugar</label><div class="var-pos" data-i="' + i + '"></div></div>' : "") +
+          (personalizable ? '<div class="var-area"><label>Personalización de esta variante: sube la imagen en blanco y arrastra cada campo a su lugar</label>' +
+            '<div class="var-copy"><select class="var-copy-src" data-i="' + i + '"><option value="">Copiar áreas desde otra variante…</option>' + lista.map(function (ov, k) {
+              if (k === i) return "";
+              var nombre = "Variante " + (k + 1);
+              var det = [ov.talla, ov.color].filter(Boolean).join(" / ");
+              return '<option value="' + k + '">' + esc(nombre + (det ? " (" + det + ")" : "")) + "</option>";
+            }).join("") + '</select><button type="button" class="btn btn--sm btn--ghost" data-copiar="' + i + '"><i class="bi bi-clipboard"></i> Copiar</button></div>' +
+            '<div class="var-pos" data-i="' + i + '"></div></div>' : "") +
         "</div>";
       }).join("") +
         '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar variante</button>';
@@ -332,6 +354,13 @@
       if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", precioDistribuidor: "", imagen: "", imagen_personalizacion: "", print_area: null, areas_campos: null }); pintar(); }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
       else if (b.hasAttribute("data-foto")) { cont.querySelector('.var-file[data-i="' + b.getAttribute("data-foto") + '"]').click(); }
+      else if (b.hasAttribute("data-copiar")) {
+        var di = +b.getAttribute("data-copiar");
+        var sel = cont.querySelector('.var-copy-src[data-i="' + di + '"]');
+        var src = sel ? parseInt(sel.value, 10) : NaN;
+        if (!isNaN(src) && src >= 0 && src !== di && lista[src]) copiarAreas(di, src);
+        else toast("Elige de qué variante copiar las áreas", false);
+      }
     });
     cont.addEventListener("change", function (e) {
       var f = e.target.closest(".var-file");
@@ -340,7 +369,7 @@
     pintar();
     return {
       getValor: function () {
-        posicionadores.forEach(function (p, i) { if (p) lista[i].areas_campos = p.getAreas(); });
+        syncAreas();
         return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
           return {
             talla: v.talla || null, color: v.color || null, stock: v.stock || 0,
@@ -363,25 +392,26 @@
     };
   }
   // Constructor de campos de personalización (form builder dinámico).
-  // Define los campos del producto (texto/texto multilínea/fuente/foto); las
+  // Define los campos del producto (texto/texto multilínea/foto); las
   // ÁREAS de cada campo se configuran por variante (PosicionadorPersonalizacion).
+  // (La tipografía y el color del texto los elige el cliente en la tienda, de forma global.)
   function initCamposPersonalizacion(inicial, onCambio) {
     var cont = $("#personalizacion-campos");
     if (!cont) return { getValor: function () { return []; } };
     var lista = (inicial || []).map(function (c) {
-      return { tipo: c.tipo || "texto", label: c.label || "", max: c.max != null ? c.max : "", opciones: (c.opciones || []).join(", "), obligatorio: !!c.obligatorio, forma: c.forma || "cuadrada" };
+      var tipo = c.tipo === "select" ? "texto" : (c.tipo || "texto"); // migra el antiguo selector de fuente a texto plano
+      return { tipo: tipo, label: c.label || "", max: c.max != null ? c.max : "", opciones: (c.opciones || []).join(", "), obligatorio: !!c.obligatorio, forma: c.forma || "cuadrada" };
     });
-    var TIPOS = [{ v: "texto", l: "Texto (1 línea)" }, { v: "textarea", l: "Texto multilínea" }, { v: "select", l: "Selector de fuente" }, { v: "foto", l: "Foto del cliente" }];
+    var TIPOS = [{ v: "texto", l: "Texto (1 línea)" }, { v: "textarea", l: "Texto multilínea" }, { v: "foto", l: "Foto del cliente" }];
+    var MAX_CAMPOS = 5; // máximo de campos de personalización por producto
     function notificar() { if (onCambio) onCambio(); }
     function pintar() {
       cont.innerHTML = lista.map(function (c, i) {
         var extra = "";
         if (c.tipo === "texto" || c.tipo === "textarea") extra = '<input class="pc-max" placeholder="Máx. caracteres (vacío = sin límite)" value="' + esc(c.max) + '">';
-        else if (c.tipo === "select") extra = '<input class="pc-opciones" placeholder="Fuentes separadas por coma (ej. Block, Script, Serif)" value="' + esc(c.opciones) + '">';
         var forma = c.tipo === "foto"
           ? '<label class="check" style="margin-top:6px">Forma de la foto: <select class="pc-forma"><option value="cuadrada"' + (c.forma !== "redonda" ? " selected" : "") + '>Cuadrada</option><option value="redonda"' + (c.forma === "redonda" ? " selected" : "") + '>Redonda</option></select></label>'
           : "";
-        var nota = c.tipo === "select" ? '<div class="hint" style="margin-top:4px">Este selector define la fuente del texto (no se posiciona en la variante).</div>' : "";
         return '<div class="cfg-faq" data-i="' + i + '">' +
           '<div class="row">' +
             '<div class="field"><label>Tipo</label><select class="pc-tipo">' + TIPOS.map(function (t) { return '<option value="' + t.v + '"' + (c.tipo === t.v ? " selected" : "") + '>' + t.l + '</option>'; }).join("") + '</select></div>' +
@@ -389,10 +419,12 @@
           '</div>' +
           '<div class="field">' + extra + '</div>' +
           '<label class="check"><input type="checkbox" class="pc-obligatorio"' + (c.obligatorio ? " checked" : "") + '> Obligatorio (*)</label>' +
-          forma + nota +
+          forma +
           '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '" style="color:var(--rojo)"><i class="bi bi-x-lg"></i> Quitar campo</button>' +
         '</div>';
-      }).join("") + '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar campo</button>';
+      }).join("") + (lista.length < MAX_CAMPOS
+        ? '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar campo</button>'
+        : '<p class="hint" style="margin-top:6px">Máximo ' + MAX_CAMPOS + ' campos de personalización.</p>');
     }
     cont.addEventListener("input", function (e) {
       var f = e.target.closest(".cfg-faq"); if (!f) return;
@@ -419,7 +451,10 @@
     });
     cont.addEventListener("click", function (e) {
       var b = e.target.closest("button"); if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push({ tipo: "texto", label: "", max: "", opciones: "", obligatorio: false, forma: "cuadrada" }); pintar(); notificar(); }
+      if (b.hasAttribute("data-agregar")) {
+        if (lista.length >= MAX_CAMPOS) { toast("Máximo " + MAX_CAMPOS + " campos de personalización", false); return; }
+        lista.push({ tipo: "texto", label: "", max: "", opciones: "", obligatorio: false, forma: "cuadrada" }); pintar(); notificar();
+      }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); notificar(); }
     });
     pintar();
@@ -428,7 +463,6 @@
         return lista.filter(function (c) { return c.label; }).map(function (c) {
           var out = { tipo: c.tipo, label: c.label, obligatorio: !!c.obligatorio };
           if (c.tipo === "texto" || c.tipo === "textarea") out.max = c.max ? Number(c.max) : null;
-          if (c.tipo === "select") out.opciones = String(c.opciones || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
           if (c.tipo === "foto") out.forma = c.forma || "cuadrada";
           return out;
         });
@@ -751,7 +785,7 @@
       '<div class="row"><div class="field"><label></label>' + check("activo", p ? p.activo !== false : true, "Activo (visible en la tienda)") + "</div></div>" +
       '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button><button class="btn btn--rojo" type="submit">Guardar</button></div>' +
       "</form>";
-    modal(p ? "Editar producto" : "Nuevo producto", body);
+    modal(p ? "Editar producto" : "Nuevo producto", body, true);
     // Toggle: si usa variantes, oculta precio/stock/colores/tallas base (se derivan de las variantes)
     var cbUsarVar = $('input[name="usarVariantes"]');
     function toggleVar() {

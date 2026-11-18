@@ -1,7 +1,7 @@
 # 🧭 Checkpoint Técnico de Handover — Taller Creativo EK
 
 > Documento de traspaso para continuar el proyecto en una sesión nueva sin perder contexto.
-> Última actualización: fin de la sesión de desarrollo (módulo de personalización cerrado de punta a punta).
+> Última actualización: personalización POR VARIANTE (imagen en blanco + áreas por campo) terminada y pusheada.
 
 ---
 
@@ -90,13 +90,12 @@ Cliente personaliza ──▶ /api/subir-personalizacion ──▶ Storage (imag
 ## 3. Estado actual del código
 
 ### ✅ Completado (esta sesión)
-- Módulo de personalización **de punta a punta**: form builder dinámico → vista previa → editor de fotos → subida de composición (`/api/subir-personalizacion`) → metadatos por Stripe → `DetallePedido.personalizacion` → panel muestra miniatura + textos.
-- **Personalización POR VARIANTE**: imagen en blanco + **área por campo** (cajas arrastrables) + **forma cuadrada/redonda** de la foto, configurado dentro de cada variante (talla/color). Corregido bug que impedía ver el personalizador en la tienda (`esc` no global).
-- Variantes con doble precio + foto de muestra (y auto-sync de tallas/colores; stock = suma, precio = menor).
-- Login/registro + panel "Mi cuenta" + editar perfil + código único de pedido.
-- Banners/Categorías/Subcategorías/Políticas/Configuración mejoradas (ver sección 2).
-- **Desplegado en Cloudflare Pages** (repo conectado vía Git, `main`); **Deploy Hook configurado** (`DEPLOY_HOOK_URL`).
-- `schema.sql` + `seed.sql` versionados en el repo; migraciones incrementales aplicadas.
+- Personalización **por variante**: imagen en blanco + área por campo (cajas arrastrables) + foto cuadrada/redonda. Fix del bug que ocultaba el personalizador en la tienda (`esc` no global).
+- Migración DB aplicada: `Variante.areas_campos` (JSONB).
+- Variantes con doble precio (cliente + distribuidor) + foto de muestra; stock = suma, precio = menor.
+- Login/registro de clientes + "Mi cuenta" (historial, pedir de nuevo, editar perfil) + código único de pedido.
+- Banners/categorías/subcategorías/políticas/configuración mejoradas (ver sección 2).
+- Desplegado en Cloudflare Pages (Git, rama `main`); Deploy Hook configurado.
 
 ### ⚠️ Pendiente / por hacer (conocido)
 - **Payload de personalización en Stripe metadata limitado a ~490 caracteres**: textos largos se recortan. Mejor: guardar el payload completo en una tabla propia y pasar solo una referencia.
@@ -115,7 +114,7 @@ raíz/
     ├── assets/  ek.js · ek.css · ek-config.js · ek-data.js · ek-subcategorias.js
     │            ek-blog.js · ek-blog-data.js · ek-imagenes.js · ek-supabase.js
     │            ek-live.js · ek-page.js · ek-personalizador.js · ek-foto-editor.js
-    ├── admin/   index.html · app.js · app.css · printarea.js
+    ├── admin/   index.html · app.js · app.css · printarea.js · personalizacion-editor.js
     ├── functions/  _lib.js · api/{login,me,admin,publish,upload,registro,mis-pedidos,perfil,subir-personalizacion,checkout,webhook}.js
     ├── build/   sincronizar-supabase.mjs · generar-paginas.mjs · detectar-imagenes.mjs · …
     ├── .env · .dev.vars · .gitignore · _headers
@@ -126,19 +125,19 @@ raíz/
 
 ## 4. Siguiente tarea exacta
 
-**Punto actual:** el módulo de personalización quedó **cerrado de punta a punta** (form builder → preview → editor de fotos → checkout → orden → panel). Último commit `a1f6edc`.
+**Punto actual:** personalización **por variante** terminada y pusheada (commit `d50e2b3`): cada talla/color tiene su propia imagen en blanco + áreas por campo (`Variante.areas_campos`) + forma de foto cuadrada/redonda. Es un cambio reciente: **falta probarlo de punta a punta en el panel y publicar** (no se ha validado en producción todavía).
 
 Tareas pendientes, en orden sugerido:
 
-1. **Quitar el límite de 490 caracteres del payload** (la más recomendada):
-   - Guardar el payload completo de personalización en una tabla nueva (ej. `Personalizacion`) al hacer checkout, y pasar solo un `id` por el metadata de Stripe; el webhook lo enlaza a `DetallePedido`.
-   - Así los textos largos y la foto original no se recortan.
+1. **Probar la personalización por variante**: en el panel, abrir un producto personalizable, subir la imagen en blanco en cada variante, arrastrar los campos a su lugar, guardar, "Publicar cambios" y verificar en la tienda que cada talla/color usa su propia imagen y áreas.
 
-2. **Factura en PDF** adjunta al correo (hoy es HTML).
+2. **Quitar el límite de 490 caracteres del payload** (Stripe metadata): guardar el payload completo en una tabla propia y pasar solo una referencia; así los textos largos y la foto original no se recortan.
 
-3. **Replicar el pie con políticas** en las páginas restantes (tienda, carrito, contacto, blog, etc.).
+3. **Factura en PDF** adjunta al correo (hoy es HTML).
 
-4. **Rotar claves** (Supabase, Stripe, Resend, BD) antes de pasar a cobros reales.
+4. **Replicar el pie con políticas** en las páginas restantes (tienda, carrito, contacto, blog…).
+
+5. **Rotar claves** (Supabase, Stripe, Resend, BD) antes de pasar a cobros reales.
 
 ---
 
@@ -153,6 +152,7 @@ Tareas pendientes, en orden sugerido:
 - El admin escribe vía **Pages Functions con service role** (proxy `/api/admin` con allowlist); la anon key solo lee datos públicos (RLS).
 - Migraciones **incrementales** con `migrar-db.mjs` (`ALTER TABLE ... ADD COLUMN IF NOT EXISTS`), pooler en **MODO SESIÓN (puerto 5432)**, NO el 6543.
 - Tras cambiar el esquema o antes de desplegar, correr `node build/sincronizar-supabase.mjs`.
+- Tras editar cualquier `assets/ek-*.js`, correr `node build/sellar-version.mjs` para renovar el `?v=` de caché (ya incluye ek-personalizador, ek-foto-editor, ek-page, ek-live, ek-blog-data y ek-supabase).
 
 ### ⚠️ CRÍTICO — Codificación UTF-8
 - **NO usar PowerShell `Get-Content`/`Set-Content` para editar HTML**: corrompe acentos/emojis a mojibake. Usar **Node** o las herramientas `edit`/`write`.

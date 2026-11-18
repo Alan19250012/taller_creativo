@@ -36,7 +36,14 @@
       ".pos-box{position:absolute;border:2px dashed;box-sizing:border-box;cursor:move;min-width:24px;min-height:24px}" +
       ".pos-box__shape{position:absolute;opacity:.3;pointer-events:none}" +
       ".pos-box__label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:#fff;font-size:.7rem;font-weight:700;text-shadow:0 1px 2px rgba(0,0,0,.65);pointer-events:none;white-space:nowrap;max-width:92%;overflow:hidden;text-overflow:ellipsis}" +
-      ".pos-box__handle{position:absolute;right:-7px;bottom:-7px;width:14px;height:14px;background:#DA1D2A;border:2px solid #fff;border-radius:50%;cursor:se-resize}";
+      ".pos-box__handle{position:absolute;right:-7px;bottom:-7px;width:14px;height:14px;background:#DA1D2A;border:2px solid #fff;border-radius:50%;cursor:se-resize}" +
+      ".pos-fields{margin-top:12px;display:flex;flex-direction:column;gap:8px}" +
+      ".pos-fields__row{display:grid;grid-template-columns:12px minmax(70px,150px) repeat(4,minmax(56px,1fr));gap:6px;align-items:center}" +
+      ".pos-fields__dot{width:10px;height:10px;border-radius:50%}" +
+      ".pos-fields__lbl{font-size:.74rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+      ".pos-fields__cell{display:flex;flex-direction:column;gap:2px}" +
+      ".pos-fields__cell span{font-size:.6rem;color:#6b7280;text-transform:uppercase;letter-spacing:.03em}" +
+      ".pos-fields__row input{padding:5px 7px;border:1px solid #e5e7eb;border-radius:6px;font:inherit;width:100%;min-width:0;box-sizing:border-box}";
     document.head.appendChild(st);
   }
 
@@ -94,6 +101,42 @@
       }
       var lbl = box.querySelector(".pos-box__label");
       if (lbl) lbl.textContent = c.label || ("Campo " + (i + 1));
+      actualizarInputs(i);
+    }
+
+    function actualizarInputs(i) {
+      var a = areas[i];
+      var fila = cont.querySelector('.pos-fields__row[data-i="' + i + '"]');
+      if (!fila) return;
+      ["x", "y", "width", "height"].forEach(function (k) {
+        var inp = fila.querySelector('[data-k="' + k + '"]');
+        if (inp) inp.value = a ? round1(a[k] || 0) : "";
+      });
+    }
+
+    function renderInputs() {
+      var caja = cont.querySelector(".pos-fields");
+      if (!caja) return;
+      caja.innerHTML = campos.map(function (c, i) {
+        if (!sePosiciona(c)) return "";
+        var a = areas[i] || areaPorDefecto(i);
+        return '<div class="pos-fields__row" data-i="' + i + '">' +
+          '<span class="pos-fields__dot" style="background:' + colorDe(i) + '"></span>' +
+          '<span class="pos-fields__lbl" title="' + esc(c.label || ("Campo " + (i + 1))) + '">' + esc(c.label || ("Campo " + (i + 1))) + '</span>' +
+          '<label class="pos-fields__cell"><span>X (%)</span><input type="number" step="0.1" data-i="' + i + '" data-k="x" value="' + a.x + '"></label>' +
+          '<label class="pos-fields__cell"><span>Y (%)</span><input type="number" step="0.1" data-i="' + i + '" data-k="y" value="' + a.y + '"></label>' +
+          '<label class="pos-fields__cell"><span>Ancho (%)</span><input type="number" step="0.1" data-i="' + i + '" data-k="width" value="' + a.width + '"></label>' +
+          '<label class="pos-fields__cell"><span>Alto (%)</span><input type="number" step="0.1" data-i="' + i + '" data-k="height" value="' + a.height + '"></label>' +
+        '</div>';
+      }).join("");
+    }
+
+    function normalizarArea(i) {
+      var a = areas[i]; if (!a) return;
+      a.x = round1(Math.max(0, Math.min(100, a.x)));
+      a.y = round1(Math.max(0, Math.min(100, a.y)));
+      a.width = round1(Math.max(1, Math.min(100 - a.x, a.width)));
+      a.height = round1(Math.max(1, Math.min(100 - a.y, a.height)));
     }
 
     function hacerArrastrable(box, i) {
@@ -158,6 +201,7 @@
         hacerArrastrable(box, i);
         posicionarBox(i);
       });
+      renderInputs();
     }
 
     function setImagen(url) {
@@ -184,7 +228,8 @@
         '<p class="pos-help">Arrastra cada caja sobre la imagen para ubicar cada campo de texto o el lugar de la foto. La esquina roja cambia el tamaño.</p>' +
         '<div class="pos-stage"><img class="pos-img-el" alt="Imagen personalizable">' +
           (imagen ? "" : '<div class="pos-empty">Sube la imagen en blanco de esta variante para posicionar los campos.</div>') +
-        '</div>';
+        '</div>' +
+        '<div class="pos-fields"></div>';
       setImagen(imagen);
     }
 
@@ -213,6 +258,18 @@
     cont.addEventListener("change", function (e) {
       var f = e.target.closest(".pos-file");
       if (f && f.files[0]) { subir(f.files[0]); f.value = ""; }
+    });
+    cont.addEventListener("input", function (e) {
+      var inp = e.target.closest('.pos-fields__row input[data-k]');
+      if (!inp) return;
+      var i = +inp.getAttribute("data-i");
+      var k = inp.getAttribute("data-k");
+      if (!areas[i]) areas[i] = areaPorDefecto(i);
+      var v = parseFloat(inp.value);
+      if (isNaN(v)) v = 0;
+      areas[i][k] = v;
+      normalizarArea(i);
+      posicionarBox(i);
     });
 
     pintar();

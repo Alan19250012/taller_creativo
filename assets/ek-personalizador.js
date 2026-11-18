@@ -5,12 +5,12 @@
    y construye un formulario con vista previa en tiempo real (canvas).
 
    Modelo de campo (cada campo puede tener su propia área de impresión):
-     { tipo: "texto"|"textarea"|"select"|"foto",
+     { tipo: "texto"|"textarea"|"foto",
        label, max, opciones, obligatorio,
        area: {x,y,width,height}  (porcentajes sobre la imagen personalizable),
        forma: "cuadrada"|"redonda"  (solo campos "foto") }
 
-   - "select" sigue siendo el selector de fuente global (no se posiciona).
+   - El cliente elige la tipografía y el color del texto (aplican a todos los campos de texto).
    - "texto"/"textarea" se dibujan centrados dentro de su área.
    - "foto" se dibuja recortada (cuadrada o redonda) dentro de su área.
    - "Agregar al carrito" compone la imagen y adjunta los textos como metadatos.
@@ -20,7 +20,13 @@
 
   function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); }
 
-  var FUENTES_MAPA = { "block": "Montserrat", "script": "Caveat", "serif": "Playfair Display", "cursiva": "Pacifico", "montserrat": "Montserrat", "pacifico": "Pacifico", "caveat": "Caveat", "playfair display": "Playfair Display" };
+  var FUENTES = [
+    { n: "Montserrat", c: "Montserrat" },
+    { n: "Poppins", c: "Poppins" },
+    { n: "Playfair Display", c: "Playfair Display" },
+    { n: "Pacifico", c: "Pacifico" },
+    { n: "Caveat", c: "Caveat" },
+  ];
 
   var estilosInyectados = false;
   function inyectarEstilos() {
@@ -42,6 +48,7 @@
       ".ekp-field{margin-bottom:14px}" +
       ".ekp-field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:5px}" +
       ".ekp-field textarea,.ekp-field select,.ekp-field input[type=text]{width:100%;padding:9px 11px;border:1px solid #e5e7eb;border-radius:8px;font:inherit}" +
+      ".ekp-field input[type=color]{width:56px;height:40px;border:1px solid #e5e7eb;border-radius:8px;padding:2px;background:#fff;cursor:pointer}" +
       ".ekp-contador{display:block;font-size:.76rem;color:#6b7280;margin-top:4px}" +
       ".ekp-contador.lleno{color:#DA1D2A;font-weight:700}" +
       ".ekp-btn{display:inline-flex;align-items:center;gap:8px;background:#DA1D2A;color:#fff;border:0;padding:12px 18px;border-radius:9px;font-weight:700;cursor:pointer;font:inherit}" +
@@ -95,7 +102,6 @@
         obligatorio: !!c.obligatorio,
         area: c.area || null,
         forma: c.forma || "cuadrada",
-        color: c.color || "#000000",
       };
       return out;
     });
@@ -139,18 +145,19 @@
       '<p class="muted">Completa los campos y mira la vista previa en tiempo real.</p>' +
       '<div class="ekp-grid">' +
         '<div class="ekp-canvas"><canvas></canvas></div>' +
-        '<div>' + campos.map(function (c, i) {
+        '<div>' +
+          '<div class="ekp-field"><label>Tipografía</label><select id="ekp-fuente">' + FUENTES.map(function (f) { return '<option value="' + f.c + '">' + f.n + '</option>'; }).join("") + '</select></div>' +
+          '<div class="ekp-field"><label>Color del texto</label><input type="color" id="ekp-color" value="#000000"></div>' +
+          campos.map(function (c, i) {
           if (c.tipo === "textarea") {
             return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><textarea data-campo="' + i + '" rows="2" maxlength="' + (c.max || 500) + '"></textarea>' + (c.max ? '<small class="ekp-contador" data-contador="' + i + '"></small>' : '') + '</div>';
-          }
-          if (c.tipo === "select") {
-            return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><select data-campo="' + i + '">' + (c.opciones || []).map(function (o) { return '<option value="' + esc(o) + '">' + esc(o) + '</option>'; }).join("") + '</select></div>';
           }
           if (c.tipo === "foto") {
             return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label>' +
               '<div class="ekp-foto-wrap">' +
                 '<input type="file" data-foto="' + i + '" accept="image/jpeg,image/png" hidden>' +
                 '<button type="button" class="ekp-btn-ghost" data-foto-btn="' + i + '"><i class="bi bi-image"></i> Subir foto</button>' +
+                '<button type="button" class="ekp-btn-ghost" data-foto-cambiar="' + i + '" style="display:none">Cambiar</button>' +
                 '<img data-foto-img="' + i + '" class="ekp-foto-prev' + (c.forma === "redonda" ? " is-round" : "") + '" style="display:none" alt="">' +
               '</div>' +
               '</div>';
@@ -168,8 +175,14 @@
 
     var canvas = sec.querySelector("canvas");
     var ctx = canvas.getContext("2d");
-    var fotos = {};     // índice de campo foto → dataURL
-    var fotosImg = {};  // índice de campo foto → Image cargada
+    var fuenteSel = sec.querySelector("#ekp-fuente");
+    var colorSel = sec.querySelector("#ekp-color");
+    var fotos = {};         // índice de campo foto → dataURL
+    var fotosImg = {};      // índice de campo foto → Image cargada
+    var fotoArchivos = {};  // índice de campo foto → File original (para re-editar sin volver a subir)
+
+    function fuenteActual() { return (fuenteSel && fuenteSel.value) || "Montserrat"; }
+    function colorActual() { return (colorSel && colorSel.value) || "#000000"; }
 
     var img = new Image();
     img.crossOrigin = "anonymous";
@@ -185,17 +198,6 @@
         if (nueva && nueva !== img.src) { img.src = nueva; }
         else if (img.naturalWidth) { dibujar(); }
       };
-    }
-
-    function fuenteActual() {
-      for (var i = 0; i < campos.length; i++) {
-        if (campos[i].tipo === "select") {
-          var el = sec.querySelector('[data-campo="' + i + '"]');
-          var v = el ? el.value : (campos[i].opciones && campos[i].opciones[0]);
-          return FUENTES_MAPA[String(v).toLowerCase()] || v || "Montserrat";
-        }
-      }
-      return "Montserrat";
     }
 
     function areaPx(area) {
@@ -247,7 +249,7 @@
       var area = areaDeCampo(c, i);
       var a = areaPx(area);
       var fit = ajustarTexto(ctx, texto, fuenteActual(), a.pw, a.ph);
-      ctx.fillStyle = c.color || "#000000";
+      ctx.fillStyle = colorActual();
       ctx.font = fit.size + "px " + fuenteActual();
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       var totalH = fit.lineas.length * fit.lineHeight;
@@ -273,12 +275,49 @@
       }
     });
 
-    // Subida de fotos (con editor si está disponible)
+    // Tipografía y color del texto (globales para todos los textos)
+    function redibujarFuente() {
+      if (document.fonts && document.fonts.load) {
+        document.fonts.load("16px " + fuenteActual()).then(dibujar).catch(dibujar);
+      } else dibujar();
+    }
+    if (fuenteSel) fuenteSel.addEventListener("change", redibujarFuente);
+    if (colorSel) colorSel.addEventListener("input", function () { dibujar(); });
+
+    // Subida de fotos (con editor si está disponible). La foto original se conserva
+    // para poder volver a editarla sin tener que subirla de nuevo.
+    function aplicarFoto(i, dataURL) {
+      fotos[i] = dataURL;
+      var im = new Image();
+      im.onload = function () { fotosImg[i] = im; dibujar(); };
+      im.src = dataURL;
+      var prev = sec.querySelector('[data-foto-img="' + i + '"]');
+      if (prev) { prev.src = dataURL; prev.style.display = ""; }
+      var btn = sec.querySelector('[data-foto-btn="' + i + '"]');
+      if (btn) btn.innerHTML = '<i class="bi bi-pencil-square"></i> Editar foto';
+      var camb = sec.querySelector('[data-foto-cambiar="' + i + '"]');
+      if (camb) camb.style.display = "";
+      validar();
+    }
+    function editarFoto(i, archivo) {
+      if (window.EK_FotoEditor) {
+        window.EK_FotoEditor(archivo, function (dataURL) { aplicarFoto(i, dataURL); });
+      } else {
+        var lector = new FileReader();
+        lector.onload = function () { aplicarFoto(i, lector.result); };
+        lector.readAsDataURL(archivo);
+      }
+    }
     sec.addEventListener("click", function (e) {
       var b = e.target.closest("[data-foto-btn]");
-      if (!b) return;
-      var i = +b.getAttribute("data-foto-btn");
-      sec.querySelector('[data-foto="' + i + '"]').click();
+      if (b) {
+        var i = +b.getAttribute("data-foto-btn");
+        if (fotoArchivos[i]) editarFoto(i, fotoArchivos[i]);
+        else sec.querySelector('[data-foto="' + i + '"]').click();
+        return;
+      }
+      var cb = e.target.closest("[data-foto-cambiar]");
+      if (cb) sec.querySelector('[data-foto="' + +cb.getAttribute("data-foto-cambiar") + '"]').click();
     });
     sec.addEventListener("change", function (e) {
       var f = e.target.closest("[data-foto]");
@@ -286,21 +325,8 @@
       var i = +f.getAttribute("data-foto");
       var archivo = f.files[0];
       if (!/image\/(jpeg|png)/.test(archivo.type)) { window.alert("Solo se permiten JPG o PNG."); f.value = ""; return; }
-      function guardar(dataURL) {
-        fotos[i] = dataURL;
-        var im = new Image();
-        im.onload = function () { fotosImg[i] = im; dibujar(); };
-        im.src = dataURL;
-        var prev = sec.querySelector('[data-foto-img="' + i + '"]');
-        if (prev) { prev.src = dataURL; prev.style.display = ""; }
-      }
-      if (window.EK_FotoEditor) {
-        window.EK_FotoEditor(archivo, guardar);
-      } else {
-        var lector = new FileReader();
-        lector.onload = function () { guardar(lector.result); };
-        lector.readAsDataURL(archivo);
-      }
+      fotoArchivos[i] = archivo;
+      editarFoto(i, archivo);
       f.value = "";
     });
 
@@ -311,6 +337,7 @@
       campos.forEach(function (c, i) {
         if (!c.obligatorio) return;
         if (c.tipo === "foto") { if (!fotos[i]) ok = false; }
+        else if (c.tipo === "select") { /* la fuente ya no es elegible por el cliente */ }
         else { var el = sec.querySelector('[data-campo="' + i + '"]'); if (!el || !String(el.value).trim()) ok = false; }
       });
       btnAgregar.disabled = !ok;
@@ -328,6 +355,7 @@
         var meta = {};
         campos.forEach(function (c, i) {
           if (c.tipo === "foto") meta[c.label] = fotos[i] ? "[Foto adjunta]" : "";
+          else if (c.tipo === "select") meta[c.label] = "";
           else { var el = sec.querySelector('[data-campo="' + i + '"]'); meta[c.label] = el ? el.value : ""; }
         });
         // Sube la composición al servidor y guarda la URL (no el data-URL gigante)
