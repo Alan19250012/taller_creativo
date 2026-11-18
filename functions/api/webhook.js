@@ -113,10 +113,16 @@ export async function onRequestPost(context) {
       const liData = await liRes.json();
       const items = (liData.data || []).map(function (li) {
         const unit = li.price && li.price.unit_amount != null ? li.price.unit_amount / 100 : (li.amount_total / Math.max(1, li.quantity)) / 100;
+        let personalizacion = null;
+        try {
+          const raw = li.price && li.price.metadata && li.price.metadata.personalizacion;
+          if (raw) personalizacion = JSON.parse(raw);
+        } catch (e) { personalizacion = null; }
         return {
           nombre: li.description || (li.price && li.price.product_data && li.price.product_data.name) || "Artículo",
           cantidad: li.quantity || 1,
           precio: unit,
+          personalizacion: personalizacion,
         };
       });
 
@@ -150,6 +156,7 @@ export async function onRequestPost(context) {
       for (const it of items) {
         await pg(env, "DetallePedido", "POST", {
           pedidoId, nombreProducto: it.nombre, cantidad: it.cantidad, precioUnitario: it.precio, tipoPrecio: "minorista",
+          personalizacion: it.personalizacion || null,
         });
       }
 

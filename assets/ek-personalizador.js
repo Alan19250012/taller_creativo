@@ -272,17 +272,34 @@
     });
     btnAgregar.addEventListener("click", function () {
       if (!validar()) return;
+      btnAgregar.disabled = true;
       try {
         var dataURL = canvas.toDataURL("image/png");
         var meta = {};
         campos.forEach(function (c, i) {
-          if (c.tipo === "foto") { if (fotos[i]) meta[c.label] = fotos[i]; }
+          if (c.tipo === "foto") meta[c.label] = fotos[i] ? "[Foto adjunta]" : "";
           else { var el = sec.querySelector('[data-campo="' + i + '"]'); meta[c.label] = el ? el.value : ""; }
         });
-        if (window.EK_agregarPersonalizado) window.EK_agregarPersonalizado(p.s, dataURL, meta);
-        else window.alert("No se pudo agregar al carrito.");
+        // Sube la composición al servidor y guarda la URL (no el data-URL gigante)
+        fetch("/api/subir-personalizacion", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ base64: dataURL, nombre: "personalizacion.png" }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (d.ok && d.url) {
+              if (window.EK_agregarPersonalizado) window.EK_agregarPersonalizado(p.s, d.url, meta);
+              else window.alert("No se pudo agregar al carrito.");
+            } else {
+              window.alert(d.error || "No se pudo guardar la personalización.");
+            }
+          })
+          .catch(function () { window.alert("Error de conexión al guardar la personalización."); })
+          .finally(function () { btnAgregar.disabled = false; validar(); });
       } catch (e) {
         window.alert("No se pudo generar la vista previa (la imagen puede no permitir exportación).");
+        btnAgregar.disabled = false;
       }
     });
     validar();

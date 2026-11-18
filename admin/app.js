@@ -1504,7 +1504,16 @@
       "<h3>Artículos</h3>" +
       (items.length
         ? '<table><thead><tr><th>Artículo</th><th>Cant.</th><th>Precio</th></tr></thead><tbody>' +
-          items.map(function (i) { return "<tr><td>" + esc(i.nombreProducto || "—") + (i.talla ? " <span class='tag'>" + esc(i.talla) + "</span>" : "") + "</td><td>" + i.cantidad + "</td><td>" + money(i.precioUnitario) + "</td></tr>"; }).join("") +
+          items.map(function (i) {
+            var pers = "";
+            if (i.personalizacion) {
+              var campos = i.personalizacion.campos || {};
+              var textos = Object.keys(campos).map(function (k) { return "<b>" + esc(k) + "</b>: " + esc(campos[k]); }).join(" · ");
+              pers = (i.personalizacion.imagen ? '<a href="' + esc(i.personalizacion.imagen) + '" target="_blank" rel="noopener"><img src="' + esc(i.personalizacion.imagen) + '" style="width:60px;height:60px;object-fit:cover;border-radius:8px;display:block;margin:5px 0" alt="Personalización"></a>' : "") +
+                (textos ? '<small class="muted">' + textos + "</small>" : "");
+            }
+            return "<tr><td>" + esc(i.nombreProducto || "—") + (i.talla ? " <span class='tag'>" + esc(i.talla) + "</span>" : "") + pers + "</td><td>" + i.cantidad + "</td><td>" + money(i.precioUnitario) + "</td></tr>";
+          }).join("") +
           "</tbody></table>"
         : '<div class="empty">Sin artículos registrados</div>') +
       "<p style='margin-top:14px'><b>Subtotal:</b> " + money(p.subtotal) + " · <b>Envío:</b> " + money(p.envio) + " · <b>Total:</b> <span style='color:var(--rojo)'>" + money(p.total) + "</span></p>" +

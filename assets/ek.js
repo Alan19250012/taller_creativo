@@ -1636,7 +1636,10 @@
       var t = totales();
       if (!t.lineas.length) return;
       var items = t.lineas.map(function (l) {
-        return { nombre: l.p.n, precio: l.precio, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
+        return {
+          nombre: l.p.n, precio: l.precio, cantidad: l.x.c, talla: l.x.t, color: l.x.col,
+          personalizacion: l.x.meta ? { imagen: l.x.img || null, campos: l.x.meta } : null,
+        };
       });
       var u = usuarioLogueado();
       var base = location.origin + location.pathname;

@@ -42,6 +42,9 @@ export async function onRequestPost(context) {
     if (it.talla || it.color) {
       params.set(`line_items[${i}][price_data][product_data][metadata][variante]`, String((it.talla || "") + " / " + (it.color || "")).slice(0, 200));
     }
+    if (it.personalizacion) {
+      params.set(`line_items[${i}][price_data][metadata][personalizacion]`, JSON.stringify(it.personalizacion).slice(0, 490));
+    }
   });
 
   const res = await fetch("https://api.stripe.com/v1/checkout/sessions", {
