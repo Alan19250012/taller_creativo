@@ -149,6 +149,7 @@
           '<div class="ekp-field"><label>Tipografía</label><select id="ekp-fuente">' + FUENTES.map(function (f) { return '<option value="' + f.c + '">' + f.n + '</option>'; }).join("") + '</select></div>' +
           '<div class="ekp-field"><label>Color del texto</label><input type="color" id="ekp-color" value="#000000"></div>' +
           campos.map(function (c, i) {
+          if (c.tipo === "select") { return ""; } // la tipografía ahora es global (no es un campo)
           if (c.tipo === "textarea") {
             return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><textarea data-campo="' + i + '" rows="2" maxlength="' + (c.max || 500) + '"></textarea>' + (c.max ? '<small class="ekp-contador" data-contador="' + i + '"></small>' : '') + '</div>';
           }
