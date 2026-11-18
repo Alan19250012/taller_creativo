@@ -14,7 +14,9 @@ import crypto from "node:crypto";
 const raiz = path.resolve(import.meta.dirname, "..");
 const assets = [
   "assets/ek.css", "assets/ek.js", "assets/ek-config.js", "assets/ek-data.js",
-  "assets/ek-subcategorias.js", "assets/ek-imagenes.js", "assets/ek-blog.js"
+  "assets/ek-subcategorias.js", "assets/ek-imagenes.js", "assets/ek-blog.js",
+  "assets/ek-blog-data.js", "assets/ek-supabase.js", "assets/ek-live.js",
+  "assets/ek-personalizador.js", "assets/ek-foto-editor.js", "assets/ek-page.js"
 ];
 
 const h = crypto.createHash("sha1");

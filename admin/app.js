@@ -243,22 +243,19 @@
     pintar();
     return { getUrls: function () { return lista.filter(Boolean); } };
   }
-  // Editor de variantes (talla | color | stock | precios | foto de muestra | imagen personalizable | área)
-  function initVariantes(variantesIniciales, personalizable) {
+  // Editor de variantes (talla | color | stock | precios | foto de muestra).
+  // La personalización (imagen base + áreas por campo) ahora se configura en
+  // el editor de personalización a nivel de producto (PersonalizacionEditor).
+  function initVariantes(variantesIniciales) {
     var cont = $("#variantes");
     if (!cont) return { getValor: function () { return []; } };
     var lista = (variantesIniciales || []).map(function (v) {
-      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "", precioDistribuidor: v.precioDistribuidor || "", imagen: v.imagen || "", imagen_personalizacion: v.imagen_personalizacion || "", print_area: v.print_area || null };
+      return { talla: v.talla || "", color: v.color || "", stock: v.stock || 0, precio: v.precio || "", precioDistribuidor: v.precioDistribuidor || "", imagen: v.imagen || "" };
     });
-    var editoresPA = [];
     function thumb(url) {
       return url ? '<img src="' + esc(url) + '" style="width:40px;height:40px;object-fit:cover;border-radius:6px" alt="">' : '<i class="bi bi-image" style="font-size:1.2rem"></i>';
     }
-    function guardarAreas() {
-      editoresPA.forEach(function (ed, i) { if (ed && ed.getValor()) lista[i].print_area = ed.getValor(); });
-    }
     function pintar() {
-      guardarAreas();   // conserva las áreas dibujadas antes de re-renderizar
       cont.innerHTML = lista.map(function (v, i) {
         return '<div class="var-card" data-i="' + i + '">' +
           '<div class="var-row">' +
@@ -274,22 +271,10 @@
               '<button type="button" class="btn btn--ghost btn--sm" data-foto="' + i + '">' + thumb(v.imagen) + "</button>" +
               '<input type="file" class="var-file" accept="image/*" data-i="' + i + '" hidden>' +
             "</div>" +
-            (personalizable ? '<div class="var-media__i"><small>Imagen personalizable (sin texto)</small>' +
-              '<button type="button" class="btn btn--ghost btn--sm" data-foto-pers="' + i + '">' + thumb(v.imagen_personalizacion) + "</button>" +
-              '<input type="file" class="var-file-pers" accept="image/*" data-i="' + i + '" hidden>' +
-            "</div>" : "") +
           "</div>" +
-          (personalizable ? '<div class="var-area"><label>Área de impresión de esta variante</label><div class="var-pa" data-i="' + i + '"></div></div>' : "") +
         "</div>";
       }).join("") +
         '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar variante</button>';
-      // Configuradores de área por variante
-      editoresPA = [];
-      if (personalizable) {
-        $$(".var-pa", cont).forEach(function (el, i) {
-          if (window.PrintAreaEditor) editoresPA[i] = window.PrintAreaEditor({ container: el, imagen: lista[i].imagen_personalizacion || lista[i].imagen || "", valor: lista[i].print_area });
-        });
-      }
     }
     function subir(idx, file, campo) {
       if (!file) return;
@@ -317,27 +302,22 @@
     cont.addEventListener("click", function (e) {
       var b = e.target.closest("button");
       if (!b) return;
-      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", precioDistribuidor: "", imagen: "", imagen_personalizacion: "", print_area: null }); pintar(); }
+      if (b.hasAttribute("data-agregar")) { lista.push({ talla: "", color: "", stock: 0, precio: "", precioDistribuidor: "", imagen: "" }); pintar(); }
       else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
       else if (b.hasAttribute("data-foto")) { cont.querySelector('.var-file[data-i="' + b.getAttribute("data-foto") + '"]').click(); }
-      else if (b.hasAttribute("data-foto-pers")) { cont.querySelector('.var-file-pers[data-i="' + b.getAttribute("data-foto-pers") + '"]').click(); }
     });
     cont.addEventListener("change", function (e) {
       var f = e.target.closest(".var-file");
-      var fp = e.target.closest(".var-file-pers");
       if (f) { subir(+f.getAttribute("data-i"), f.files[0], "imagen"); f.value = ""; }
-      if (fp) { subir(+fp.getAttribute("data-i"), fp.files[0], "imagen_personalizacion"); fp.value = ""; }
     });
     pintar();
     return {
       getValor: function () {
-        guardarAreas();
         return lista.filter(function (v) { return v.talla || v.color; }).map(function (v) {
           return {
             talla: v.talla || null, color: v.color || null, stock: v.stock || 0,
             precio: v.precio || null, precioDistribuidor: v.precioDistribuidor || null,
-            imagen: v.imagen || null, imagen_personalizacion: v.imagen_personalizacion || null,
-            print_area: v.print_area || null,
+            imagen: v.imagen || null,
           };
         });
       },
@@ -699,7 +679,7 @@
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
       fld("Stock y precio por variante <span class=hint>(opcional: una fila por talla/color. Precio cliente + precio distribuidor + stock + foto de esa variante)</span>", '<div id="variantes"></div>') +
-      fld("Campos de personalización <span class=hint>(configura los campos que llenará el cliente: texto, foto, selector…)</span>", '<div id="personalizacion-campos"></div>') +
+      fld("Personalización <span class=hint>(sube la imagen base SIN texto y arrastra cada campo sobre ella para posicionarlo; elige si la foto del cliente es cuadrada o redonda)</span>", '<div id="personalizacion-editor"></div>') +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
@@ -725,25 +705,25 @@
     // Entradas de etiquetas (colores y tallas con chips)
     initTagInput("colores");
     initTagInput("tallas");
-    // Editor de variantes: guarda foto de muestra + imagen personalizable + área por variante
+    // Editor de variantes: talla | color | stock | precios | foto de muestra
     var cbPersonalizable = $('input[name="personalizable"]');
-    var variantesEditor = null;
-    function crearEditorVariantes() {
-      var actuales = variantesEditor ? variantesEditor.getValor() : variantes;
-      variantesEditor = initVariantes(actuales, cbPersonalizable ? cbPersonalizable.checked : false);
-    }
-    crearEditorVariantes();
-    if (cbPersonalizable) cbPersonalizable.addEventListener("change", crearEditorVariantes);
+    var variantesEditor = initVariantes(variantes);
 
     // Galería de imágenes (1-5)
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
     var galeria = initGaleria(imagenesIniciales);
 
-    // Constructor de campos de personalización (form builder)
-    var camposPersEditor = initCamposPersonalizacion(p ? (p.personalizacion_campos || []) : []);
+    // Editor de personalización: imagen base + campos con sus áreas + forma de la foto
+    var imagenPersRef = (p && p.imagen_personalizacion)
+      || (variantes && variantes[0] && variantes[0].imagen_personalizacion)
+      || (p && p.imagen) || "";
+    var camposPersEditor = window.PersonalizacionEditor
+      ? window.PersonalizacionEditor({ container: $("#personalizacion-editor"), campos: p ? (p.personalizacion_campos || []) : [], imagen: imagenPersRef })
+      : null;
     function toggleCamposPers() {
       var on = cbPersonalizable ? cbPersonalizable.checked : false;
-      $("#personalizacion-campos").closest(".field").style.display = on ? "" : "none";
+      var el = $("#personalizacion-editor"); if (el) el.closest(".field").style.display = on ? "" : "none";
+      if (on && camposPersEditor && camposPersEditor.refrescar) setTimeout(function () { camposPersEditor.refrescar(); }, 30);
     }
     toggleCamposPers();
     if (cbPersonalizable) cbPersonalizable.addEventListener("change", toggleCamposPers);
@@ -764,10 +744,10 @@
         caracteristicas: listSplit(f.get("caracteristicas")), keywords: f.get("keywords") || null,
         imagenes: galeria ? galeria.getUrls() : [],
         imagen: (galeria && galeria.getUrls()[0]) || null,
-        imagen_personalizacion: null,
-        imagenes_personalizacion: [],
+        imagen_personalizacion: camposPersEditor ? camposPersEditor.getImagen() : null,
+        imagenes_personalizacion: (camposPersEditor && camposPersEditor.getImagen()) ? [camposPersEditor.getImagen()] : [],
         personalizable: !!f.get("personalizable"),
-        personalizacion_campos: camposPersEditor ? camposPersEditor.getValor() : [],
+        personalizacion_campos: camposPersEditor ? camposPersEditor.getCampos() : [],
         print_area: null,
         print_areas: [],
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),
@@ -778,15 +758,6 @@
         if (v.talla && datos.tallas.indexOf(v.talla) === -1) datos.tallas.push(v.talla);
         if (v.color && datos.colores.indexOf(v.color) === -1) datos.colores.push(v.color);
       });
-      // Derivar la personalización a nivel producto desde las variantes
-      var imgsPers = [], areasPers = [];
-      varRows.forEach(function (v) {
-        if (v.imagen_personalizacion) { imgsPers.push(v.imagen_personalizacion); areasPers.push(v.print_area || null); }
-      });
-      datos.imagen_personalizacion = imgsPers[0] || null;
-      datos.imagenes_personalizacion = imgsPers;
-      datos.print_area = areasPers[0] || null;
-      datos.print_areas = areasPers;
       // Si usa variantes: stock = suma de las variantes y precio = el menor
       var cbUsar = $('input[name="usarVariantes"]');
       if (cbUsar && cbUsar.checked && varRows.length) {
@@ -814,7 +785,7 @@
         // variantes (desde el editor de filas)
         await supa("DELETE", "/rest/v1/Variante?productoId=eq." + pid).catch(function () {});
         for (var j = 0; j < varRows.length; j++) {
-          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, precioDistribuidor: varRows[j].precioDistribuidor || null, imagen: varRows[j].imagen || null, imagen_personalizacion: varRows[j].imagen_personalizacion || null, print_area: varRows[j].print_area || null });
+          await supa("POST", "/rest/v1/Variante", { productoId: pid, talla: varRows[j].talla, color: varRows[j].color, stock: varRows[j].stock, precio: varRows[j].precio, precioDistribuidor: varRows[j].precioDistribuidor || null, imagen: varRows[j].imagen || null });
         }
         cerrarModal(); toast("Producto guardado. Pulsa 'Publicar cambios' para actualizar la tienda.");
         renderProductos();

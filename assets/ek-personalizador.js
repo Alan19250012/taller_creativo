@@ -3,12 +3,22 @@
    ----------------------------------------------------------------------------
    Vista del cliente. Lee los campos dinámicos de Producto.personalizacion_campos
    y construye un formulario con vista previa en tiempo real (canvas).
-   Tipos de campo: texto · textarea · select (fuente) · foto.
-   - Contador de caracteres + validación de obligatorios.
+
+   Modelo de campo (cada campo puede tener su propia área de impresión):
+     { tipo: "texto"|"textarea"|"select"|"foto",
+       label, max, opciones, obligatorio,
+       area: {x,y,width,height}  (porcentajes sobre la imagen personalizable),
+       forma: "cuadrada"|"redonda"  (solo campos "foto") }
+
+   - "select" sigue siendo el selector de fuente global (no se posiciona).
+   - "texto"/"textarea" se dibujan centrados dentro de su área.
+   - "foto" se dibuja recortada (cuadrada o redonda) dentro de su área.
    - "Agregar al carrito" compone la imagen y adjunta los textos como metadatos.
    ========================================================================== */
 (function () {
   "use strict";
+
+  function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); }
 
   var FUENTES_MAPA = { "block": "Montserrat", "script": "Caveat", "serif": "Playfair Display", "cursiva": "Pacifico", "montserrat": "Montserrat", "pacifico": "Pacifico", "caveat": "Caveat", "playfair display": "Playfair Display" };
 
@@ -37,10 +47,9 @@
       ".ekp-btn{display:inline-flex;align-items:center;gap:8px;background:#DA1D2A;color:#fff;border:0;padding:12px 18px;border-radius:9px;font-weight:700;cursor:pointer;font:inherit}" +
       ".ekp-btn[disabled]{opacity:.45;cursor:not-allowed}" +
       ".ekp-btn-ghost{display:inline-flex;align-items:center;gap:8px;background:#fff;color:#244093;border:1px solid #e5e7eb;padding:9px 14px;border-radius:9px;font-weight:600;cursor:pointer;font:inherit}" +
-      ".ekp-thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}" +
-      ".ekp-thumb{width:64px;height:64px;border:2px solid #e5e7eb;border-radius:10px;overflow:hidden;padding:0;background:#f9fafb;cursor:pointer}" +
-      ".ekp-thumb img{width:100%;height:100%;object-fit:cover;display:block}" +
-      ".ekp-thumb.is-on{border-color:#DA1D2A}" +
+      ".ekp-field .ekp-foto-wrap{display:flex;align-items:center;gap:10px}" +
+      ".ekp-foto-prev{max-width:90px;max-height:90px;border-radius:8px;object-fit:cover;border:1px solid #e5e7eb}" +
+      ".ekp-foto-prev.is-round{border-radius:50%;width:90px;height:90px}" +
       "@media(max-width:760px){.ekp-grid{grid-template-columns:1fr}}";
     document.head.appendChild(st);
   }
@@ -76,36 +85,52 @@
       ? p.personalizacion_campos
       : [{ tipo: "texto", label: "Tu texto", max: null, obligatorio: false }];
 
-    // Imágenes base (por variante o generales)
-    var variantesPers = (p.variantes || []).filter(function (v) { return v.imagen_personalizacion; });
-    var items = [];
-    var areaDef = (p.print_areas && p.print_areas[0]) || p.print_area || { x: 30, y: 30, width: 40, height: 30 };
-    if (variantesPers.length) {
-      var v0 = (window.EK_getVariante ? window.EK_getVariante() : null);
-      items.push({ imagen: (v0 && v0.imagen_personalizacion) || variantesPers[0].imagen_personalizacion, area: (v0 && v0.print_area) || variantesPers[0].print_area || areaDef });
-    } else {
-      var imgs = (p.imagenes_personalizacion && p.imagenes_personalizacion.length) ? p.imagenes_personalizacion : (p.imagen_personalizacion ? [p.imagen_personalizacion] : []);
-      var areas = (p.print_areas && p.print_areas.length) ? p.print_areas : (p.print_area ? [p.print_area] : []);
-      imgs.forEach(function (img, i) { if (img) items.push({ imagen: img, area: areas[i] || null }); });
-    }
-    if (!items.length && p.imagen) items.push({ imagen: p.imagen, area: areaDef });
-    if (!items.length) return;
+    // Normaliza cada campo para garantizar estructura
+    campos = campos.map(function (c) {
+      var out = {
+        tipo: c.tipo || "texto",
+        label: c.label || "",
+        max: c.max != null ? c.max : null,
+        opciones: c.opciones || [],
+        obligatorio: !!c.obligatorio,
+        area: c.area || null,
+        forma: c.forma || "cuadrada",
+        color: c.color || "#000000",
+      };
+      return out;
+    });
 
-    var idx = 0;
+    // Imagen base: primero la del producto (nivel producto), luego la de la
+    // variante seleccionada (legado), luego imágenes de personalización, luego principal.
+    function baseImagen() {
+      var v = window.EK_getVariante ? window.EK_getVariante() : null;
+      if (p.imagen_personalizacion) return p.imagen_personalizacion;
+      if (v && v.imagen_personalizacion) return v.imagen_personalizacion;
+      if (p.imagenes_personalizacion && p.imagenes_personalizacion[0]) return p.imagenes_personalizacion[0];
+      if (p.imagen) return p.imagen;
+      return null;
+    }
+    function areaGlobal() {
+      var v = window.EK_getVariante ? window.EK_getVariante() : null;
+      if (v && v.print_area) return v.print_area;
+      if (p.print_areas && p.print_areas[0]) return p.print_areas[0];
+      if (p.print_area) return p.print_area;
+      return { x: 30, y: 30, width: 40, height: 30 };
+    }
+    function areaDe(c) { return (c.area && c.area.width != null) ? c.area : null; }
+
+    var imgBase = baseImagen();
+    if (!imgBase) return;
+
     inyectarEstilos();
     var destino = document.getElementById("ek-producto");
     if (!destino) return;
-
-    var miniaturas = items.length > 1
-      ? '<div class="ekp-thumbs">' + items.map(function (it, i) { return '<button type="button" class="ekp-thumb' + (i === 0 ? " is-on" : "") + '" data-i="' + i + '"><img src="' + it.imagen + '" alt=""></button>'; }).join("") + "</div>"
-      : "";
 
     var sec = document.createElement("section");
     sec.className = "ekp";
     sec.innerHTML =
       '<h3>🎨 Personaliza tu producto</h3>' +
       '<p class="muted">Completa los campos y mira la vista previa en tiempo real.</p>' +
-      miniaturas +
       '<div class="ekp-grid">' +
         '<div class="ekp-canvas"><canvas></canvas></div>' +
         '<div>' + campos.map(function (c, i) {
@@ -117,9 +142,11 @@
           }
           if (c.tipo === "foto") {
             return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label>' +
-              '<input type="file" data-foto="' + i + '" accept="image/jpeg,image/png" hidden>' +
-              '<button type="button" class="ekp-btn-ghost" data-foto-btn="' + i + '"><i class="bi bi-image"></i> Subir foto</button>' +
-              '<img data-foto-img="' + i + '" style="display:none;max-width:90px;max-height:90px;margin-top:8px;border-radius:8px" alt="">' +
+              '<div class="ekp-foto-wrap">' +
+                '<input type="file" data-foto="' + i + '" accept="image/jpeg,image/png" hidden>' +
+                '<button type="button" class="ekp-btn-ghost" data-foto-btn="' + i + '"><i class="bi bi-image"></i> Subir foto</button>' +
+                '<img data-foto-img="' + i + '" class="ekp-foto-prev' + (c.forma === "redonda" ? " is-round" : "") + '" style="display:none" alt="">' +
+              '</div>' +
               '</div>';
           }
           // texto (1 línea)
@@ -135,23 +162,24 @@
 
     var canvas = sec.querySelector("canvas");
     var ctx = canvas.getContext("2d");
-    var fotos = {};   // índice de campo foto → dataURL
+    var fotos = {};     // índice de campo foto → dataURL
+    var fotosImg = {};  // índice de campo foto → Image cargada
 
     var img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = function () { canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; dibujar(); };
     img.onerror = function () { sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base."; };
-    img.src = items[0].imagen;
+    img.src = imgBase;
 
-    if (variantesPers.length) {
-      window.EK_onVarianteChange = function (v) {
-        if (!v || !v.imagen_personalizacion) return;
-        items[0] = { imagen: v.imagen_personalizacion, area: v.print_area || areaDef };
-        idx = 0; img.src = v.imagen_personalizacion;
+    // Al cambiar de variante, actualiza la imagen base según la prioridad del modelo
+    // (imagen del producto → imagen de la variante → imágenes de personalización).
+    if (window.EK_getVariante) {
+      window.EK_onVarianteChange = function () {
+        var nueva = baseImagen();
+        if (nueva && nueva !== img.src) img.src = nueva;
       };
     }
 
-    function areaActual() { return items[idx].area || areaDef; }
     function fuenteActual() {
       for (var i = 0; i < campos.length; i++) {
         if (campos[i].tipo === "select") {
@@ -163,49 +191,61 @@
       return "Montserrat";
     }
 
+    function areaPx(area) {
+      return {
+        px: (area.x / 100) * canvas.width,
+        py: (area.y / 100) * canvas.height,
+        pw: (area.width / 100) * canvas.width,
+        ph: (area.height / 100) * canvas.height,
+      };
+    }
+
     function dibujar() {
       if (!img.naturalWidth) return;
-      var pa = areaActual();
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-      var px = (pa.x / 100) * canvas.width, py = (pa.y / 100) * canvas.height;
-      var pw = (pa.width / 100) * canvas.width, ph = (pa.height / 100) * canvas.height;
-
-      // Fotos subidas: se dibujan arriba del área (escaladas)
-      var fotosArr = [];
-      campos.forEach(function (c, i) { if (c.tipo === "foto" && fotos[i]) fotosArr.push(fotos[i]); });
-      var altoFotos = 0;
-      if (fotosArr.length) {
-        var fImg = new Image();
-        fImg.onload = function () {
-          var fh = ph * 0.5, fw = Math.min(pw, (fImg.width / fImg.height) * fh);
-          ctx.drawImage(fImg, px + (pw - fw) / 2, py, fw, fh);
-          altoFotos = fh;
-          dibujarTexto(px, py + altoFotos, pw, ph - altoFotos);
-        };
-        fImg.src = fotosArr[0];
-        return;
-      }
-      dibujarTexto(px, py, pw, ph);
+      // 1) Fotos (recortadas a su forma) debajo de los textos
+      campos.forEach(function (c, i) {
+        if (c.tipo === "foto" && fotosImg[i] && fotosImg[i].complete && fotosImg[i].naturalWidth) dibujarFoto(i, c);
+      });
+      // 2) Textos encima
+      campos.forEach(function (c, i) {
+        if (c.tipo === "texto" || c.tipo === "textarea") dibujarTexto(i, c);
+      });
     }
 
-    function dibujarTexto(tx, ty, tw, th) {
-      var lineasTexto = [];
-      campos.forEach(function (c, i) {
-        if (c.tipo === "texto" || c.tipo === "textarea") {
-          var el = sec.querySelector('[data-campo="' + i + '"]');
-          if (el && String(el.value).trim()) lineasTexto.push(el.value);
-        }
-      });
-      if (!lineasTexto.length) return;
-      var fit = ajustarTexto(ctx, lineasTexto.join("\n"), fuenteActual(), tw, th);
-      ctx.fillStyle = "#000000";
+    function dibujarFoto(i, c) {
+      var im = fotosImg[i];
+      var area = areaDe(c) || areaGlobal();
+      var a = areaPx(area);
+      ctx.save();
+      if (c.forma === "redonda") {
+        var d = Math.min(a.pw, a.ph);
+        ctx.beginPath();
+        ctx.arc(a.px + a.pw / 2, a.py + a.ph / 2, d / 2, 0, Math.PI * 2);
+        ctx.closePath();
+        ctx.clip();
+      }
+      var scale = Math.min(a.pw / im.naturalWidth, a.ph / im.naturalHeight);
+      var dw = im.naturalWidth * scale, dh = im.naturalHeight * scale;
+      ctx.drawImage(im, a.px + (a.pw - dw) / 2, a.py + (a.ph - dh) / 2, dw, dh);
+      ctx.restore();
+    }
+
+    function dibujarTexto(i, c) {
+      var el = sec.querySelector('[data-campo="' + i + '"]');
+      var texto = el ? el.value : "";
+      if (!texto || !String(texto).trim()) return;
+      var area = areaDe(c) || areaGlobal();
+      var a = areaPx(area);
+      var fit = ajustarTexto(ctx, texto, fuenteActual(), a.pw, a.ph);
+      ctx.fillStyle = c.color || "#000000";
       ctx.font = fit.size + "px " + fuenteActual();
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       var totalH = fit.lineas.length * fit.lineHeight;
-      var inicioY = ty + (th - totalH) / 2 + fit.lineHeight / 2;
-      fit.lineas.forEach(function (linea, i) { ctx.fillText(linea, tx + tw / 2, inicioY + i * fit.lineHeight); });
+      var inicioY = a.py + (a.ph - totalH) / 2 + fit.lineHeight / 2;
+      fit.lineas.forEach(function (linea, li) { ctx.fillText(linea, a.px + a.pw / 2, inicioY + li * fit.lineHeight); });
     }
 
     // Contadores + redibujar
@@ -239,16 +279,19 @@
       var i = +f.getAttribute("data-foto");
       var archivo = f.files[0];
       if (!/image\/(jpeg|png)/.test(archivo.type)) { window.alert("Solo se permiten JPG o PNG."); f.value = ""; return; }
+      function guardar(dataURL) {
+        fotos[i] = dataURL;
+        var im = new Image();
+        im.onload = function () { fotosImg[i] = im; dibujar(); };
+        im.src = dataURL;
+        var prev = sec.querySelector('[data-foto-img="' + i + '"]');
+        if (prev) { prev.src = dataURL; prev.style.display = ""; }
+      }
       if (window.EK_FotoEditor) {
-        window.EK_FotoEditor(archivo, function (dataURL) {
-          fotos[i] = dataURL;
-          var prev = sec.querySelector('[data-foto-img="' + i + '"]');
-          if (prev) { prev.src = dataURL; prev.style.display = ""; }
-          dibujar();
-        });
+        window.EK_FotoEditor(archivo, guardar);
       } else {
         var lector = new FileReader();
-        lector.onload = function () { fotos[i] = lector.result; var prev = sec.querySelector('[data-foto-img="' + i + '"]'); if (prev) { prev.src = lector.result; prev.style.display = ""; } dibujar(); };
+        lector.onload = function () { guardar(lector.result); };
         lector.readAsDataURL(archivo);
       }
       f.value = "";
