@@ -343,6 +343,62 @@
       },
     };
   }
+  // Constructor de campos de personalización (form builder dinámico)
+  function initCamposPersonalizacion(inicial) {
+    var cont = $("#personalizacion-campos");
+    if (!cont) return { getValor: function () { return []; } };
+    var lista = (inicial || []).map(function (c) {
+      return { tipo: c.tipo || "texto", label: c.label || "", max: c.max != null ? c.max : "", opciones: (c.opciones || []).join(", "), obligatorio: !!c.obligatorio };
+    });
+    var TIPOS = [{ v: "texto", l: "Texto (1 línea)" }, { v: "textarea", l: "Texto multilínea" }, { v: "select", l: "Selector de opciones" }, { v: "foto", l: "Subida de foto" }];
+    function pintar() {
+      cont.innerHTML = lista.map(function (c, i) {
+        var extra = "";
+        if (c.tipo === "texto" || c.tipo === "textarea") extra = '<input class="pc-max" placeholder="Máx. caracteres (vacío = sin límite)" value="' + esc(c.max) + '">';
+        else if (c.tipo === "select") extra = '<input class="pc-opciones" placeholder="Opciones separadas por coma (ej. Block, Script, Serif)" value="' + esc(c.opciones) + '">';
+        return '<div class="cfg-faq" data-i="' + i + '">' +
+          '<div class="row">' +
+            '<div class="field"><label>Tipo</label><select class="pc-tipo">' + TIPOS.map(function (t) { return '<option value="' + t.v + '"' + (c.tipo === t.v ? " selected" : "") + '>' + t.l + '</option>'; }).join("") + '</select></div>' +
+            '<div class="field"><label>Etiqueta (visible al cliente)</label><input class="pc-label" value="' + esc(c.label) + '" placeholder="Ej. Nombre de la mascota"></div>' +
+          '</div>' +
+          '<div class="field">' + extra + '</div>' +
+          '<label class="check"><input type="checkbox" class="pc-obligatorio"' + (c.obligatorio ? " checked" : "") + '> Obligatorio (*)</label> ' +
+          '<button type="button" class="btn btn--ghost btn--sm" data-quitar="' + i + '" style="color:var(--rojo)"><i class="bi bi-x-lg"></i> Quitar campo</button>' +
+        '</div>';
+      }).join("") + '<button type="button" class="btn btn--sm btn--ghost" data-agregar><i class="bi bi-plus-lg"></i> Agregar campo</button>';
+    }
+    cont.addEventListener("input", function (e) {
+      var f = e.target.closest(".cfg-faq"); if (!f) return;
+      var c = lista[+f.getAttribute("data-i")];
+      if (e.target.classList.contains("pc-label")) c.label = e.target.value;
+      else if (e.target.classList.contains("pc-max")) c.max = e.target.value;
+      else if (e.target.classList.contains("pc-opciones")) c.opciones = e.target.value;
+      else if (e.target.classList.contains("pc-obligatorio")) c.obligatorio = e.target.checked;
+    });
+    cont.addEventListener("change", function (e) {
+      var s = e.target.closest(".pc-tipo"); if (!s) return;
+      var f = s.closest(".cfg-faq");
+      lista[+f.getAttribute("data-i")].tipo = s.value;
+      pintar();
+    });
+    cont.addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.hasAttribute("data-agregar")) { lista.push({ tipo: "texto", label: "", max: "", opciones: "", obligatorio: false }); pintar(); }
+      else if (b.hasAttribute("data-quitar")) { lista.splice(+b.getAttribute("data-quitar"), 1); pintar(); }
+    });
+    pintar();
+    return {
+      getValor: function () {
+        return lista.filter(function (c) { return c.label; }).map(function (c) {
+          var out = { tipo: c.tipo, label: c.label, obligatorio: !!c.obligatorio };
+          if (c.tipo === "texto" || c.tipo === "textarea") out.max = c.max ? Number(c.max) : null;
+          if (c.tipo === "select") out.opciones = String(c.opciones || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+          return out;
+        });
+      },
+    };
+  }
+
   // Editor de imágenes de personalización (varias, cada una con su propia área de impresión)
   function initPersonalizaciones(inicial) {
     var cont = $("#personalizaciones");
@@ -643,6 +699,7 @@
       "</div>" +
       fld("Características <span class=hint>(una por línea)</span>", area("caracteristicas", p ? (p.caracteristicas || []).join("\n") : "", 4)) +
       fld("Stock y precio por variante <span class=hint>(opcional: una fila por talla/color. Precio cliente + precio distribuidor + stock + foto de esa variante)</span>", '<div id="variantes"></div>') +
+      fld("Campos de personalización <span class=hint>(configura los campos que llenará el cliente: texto, foto, selector…)</span>", '<div id="personalizacion-campos"></div>') +
       fld("Palabras clave (imágenes)", input("keywords", p ? p.keywords : "")) +
       fld("Imágenes del producto (1-5) <span class=hint>(la primera es la principal; súbelas desde aquí)</span>",
         '<div id="galeria"></div>') +
@@ -682,6 +739,15 @@
     var imagenesIniciales = p && p.imagenes && p.imagenes.length ? p.imagenes : (p && p.imagen ? [p.imagen] : []);
     var galeria = initGaleria(imagenesIniciales);
 
+    // Constructor de campos de personalización (form builder)
+    var camposPersEditor = initCamposPersonalizacion(p ? (p.personalizacion_campos || []) : []);
+    function toggleCamposPers() {
+      var on = cbPersonalizable ? cbPersonalizable.checked : false;
+      $("#personalizacion-campos").closest(".field").style.display = on ? "" : "none";
+    }
+    toggleCamposPers();
+    if (cbPersonalizable) cbPersonalizable.addEventListener("change", toggleCamposPers);
+
     $("#f-prod").addEventListener("submit", async function (e) {
       e.preventDefault();
       var f = new FormData(e.target);
@@ -701,6 +767,7 @@
         imagen_personalizacion: null,
         imagenes_personalizacion: [],
         personalizable: !!f.get("personalizable"),
+        personalizacion_campos: camposPersEditor ? camposPersEditor.getValor() : [],
         print_area: null,
         print_areas: [],
         destacado: !!f.get("destacado"), nuevo: !!f.get("nuevo"), liquidacion: !!f.get("liquidacion"),

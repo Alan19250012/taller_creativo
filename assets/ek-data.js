@@ -390,32 +390,12 @@ window.EK_DATA =
    "imagenes": [
     "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/productos/1794953823027-Captura-bol---copia.png"
    ],
-   "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794420953151-Captura-bol.png",
-   "imagenes_personalizacion": [
-    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794420953151-Captura-bol.png",
-    "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/personalizacion/1794951853096-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg"
-   ],
+   "imagen_personalizacion": null,
+   "imagenes_personalizacion": [],
    "personalizable": true,
-   "print_area": {
-    "x": 27.4,
-    "y": 39.6,
-    "width": 46.3,
-    "height": 42.3
-   },
-   "print_areas": [
-    {
-     "x": 27.4,
-     "y": 39.6,
-     "width": 46.3,
-     "height": 42.3
-    },
-    {
-     "x": 30,
-     "y": 30,
-     "width": 41.1,
-     "height": 39.2
-    }
-   ],
+   "print_area": null,
+   "print_areas": [],
+   "personalizacion_campos": [],
    "c": [],
    "col": [
     "rosa",
@@ -445,8 +425,13 @@ window.EK_DATA =
      "precio": 85,
      "precioDistribuidor": 49,
      "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953793769-Captura-bol---copia.png",
-     "imagen_personalizacion": null,
-     "print_area": null
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027264195-Captura-bol.png",
+     "print_area": {
+      "x": 25.5,
+      "y": 33,
+      "width": 50,
+      "height": 57.9
+     }
     },
     {
      "talla": "20 cm",
@@ -455,8 +440,13 @@ window.EK_DATA =
      "precio": 160,
      "precioDistribuidor": 145,
      "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953798070-Captura-bol---copia.png",
-     "imagen_personalizacion": null,
-     "print_area": null
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027321171-Captura-bol.png",
+     "print_area": {
+      "x": 24.4,
+      "y": 31.9,
+      "width": 49.4,
+      "height": 59.3
+     }
     },
     {
      "talla": "10 cm",
@@ -465,8 +455,13 @@ window.EK_DATA =
      "precio": 85,
      "precioDistribuidor": 49,
      "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953802751-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
-     "imagen_personalizacion": null,
-     "print_area": null
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027345668-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
+     "print_area": {
+      "x": 30,
+      "y": 30,
+      "width": 39.8,
+      "height": 41.1
+     }
     },
     {
      "talla": "20 cm",
@@ -475,8 +470,13 @@ window.EK_DATA =
      "precio": 160,
      "precioDistribuidor": 145,
      "imagen": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1794953810103-Gemini_Generated_Image_3ufjq23ufjq23ufj---copia.jpg",
-     "imagen_personalizacion": null,
-     "print_area": null
+     "imagen_personalizacion": "https://vqefszeokokdbykzwloq.supabase.co/storage/v1/object/public/imagenes/variantes/1795027658093-Gemini_Generated_Image_3ufjq23ufjq23ufj.jpg",
+     "print_area": {
+      "x": 30,
+      "y": 30,
+      "width": 39.2,
+      "height": 40.2
+     }
     }
    ]
   },
@@ -493,6 +493,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-nino",
     "mdf",
@@ -537,6 +538,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [],
    "col": [
     "Natural",
@@ -576,6 +578,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-muertos",
     "flores",
@@ -618,6 +621,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "flores",
@@ -660,6 +664,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "primavera",
     "flores",
@@ -704,6 +709,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "flores",
@@ -746,6 +752,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "dtf-uv",
@@ -788,6 +795,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "mdf",
@@ -830,6 +838,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "playeras",
     "navidad",
@@ -873,6 +882,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "dtf-uv",
@@ -916,6 +926,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -961,6 +972,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [],
    "col": [
     "Rojo",
@@ -999,6 +1011,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "mdf",
@@ -1043,6 +1056,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "halloween",
     "mdf",
@@ -1085,6 +1099,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-muertos",
     "mdf",
@@ -1128,6 +1143,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "dtf-uv",
@@ -1170,6 +1186,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-muertos",
     "decoracion",
@@ -1213,6 +1230,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -1256,6 +1274,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -1299,6 +1318,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "personalizados",
     "bodas-eventos",
@@ -1341,6 +1361,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "personalizados",
@@ -1383,6 +1404,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "dtf-uv",
@@ -1425,6 +1447,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -1467,6 +1490,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -1509,6 +1533,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "decoracion",
@@ -1551,6 +1576,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "lamparas",
     "decoracion",
@@ -1593,6 +1619,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "decoracion"
@@ -1638,6 +1665,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "decoracion",
@@ -1680,6 +1708,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -1724,6 +1753,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -1768,6 +1798,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -1813,6 +1844,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -1856,6 +1888,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "decoracion",
@@ -1899,6 +1932,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "amor-amistad",
@@ -1942,6 +1976,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -1984,6 +2019,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-muertos",
     "mdf",
@@ -2026,6 +2062,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "dtf-uv",
@@ -2070,6 +2107,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "regalos",
@@ -2112,6 +2150,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "lamparas",
     "decoracion",
@@ -2153,6 +2192,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "lamparas",
     "mdf",
@@ -2196,6 +2236,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "lamparas",
     "personalizados",
@@ -2240,6 +2281,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "decoracion",
@@ -2283,6 +2325,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "mdf",
@@ -2326,6 +2369,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -2368,6 +2412,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-madres",
     "mdf",
@@ -2412,6 +2457,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -2455,6 +2501,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "mdf",
@@ -2499,6 +2546,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -2541,6 +2589,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "llaveros-pines",
     "personalizados"
@@ -2583,6 +2632,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "llaveros-pines",
     "dtf-uv",
@@ -2626,6 +2676,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "llaveros-pines",
     "mdf",
@@ -2672,6 +2723,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-padres",
     "llaveros-pines",
@@ -2716,6 +2768,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "llaveros-pines",
@@ -2760,6 +2813,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dtf-uv",
     "personalizados"
@@ -2799,6 +2853,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dtf-uv",
     "personalizados"
@@ -2838,6 +2893,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "mdf",
@@ -2880,6 +2936,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -2924,6 +2981,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -2967,6 +3025,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3009,6 +3068,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "regalos",
@@ -3051,6 +3111,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "regalos",
@@ -3093,6 +3154,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "regalos",
@@ -3136,6 +3198,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -3178,6 +3241,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -3220,6 +3284,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "regalos",
@@ -3262,6 +3327,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "llaveros-pines",
@@ -3306,6 +3372,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "llaveros-pines",
     "personalizados",
@@ -3350,6 +3417,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -3392,6 +3460,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "playeras",
     "navidad"
@@ -3436,6 +3505,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "playeras",
     "navidad"
@@ -3480,6 +3550,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "playeras",
     "navidad",
@@ -3523,6 +3594,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "playeras",
     "navidad"
@@ -3568,6 +3640,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -3612,6 +3685,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3656,6 +3730,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3699,6 +3774,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -3742,6 +3818,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "mdf",
@@ -3784,6 +3861,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "mdf",
     "hogar-cocina",
@@ -3829,6 +3907,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -3872,6 +3951,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "ano-nuevo",
     "mdf",
@@ -3914,6 +3994,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "amor-amistad",
     "tazas-termos",
@@ -3958,6 +4039,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "graduacion",
     "regalos",
@@ -4000,6 +4082,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -4042,6 +4125,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-nino",
     "mdf",
@@ -4083,6 +4167,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-muertos",
     "mdf",
@@ -4125,6 +4210,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "playeras",
     "navidad",
@@ -4170,6 +4256,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "tazas-termos",
     "dtf-uv",
@@ -4215,6 +4302,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "tazas-termos",
     "personalizados"
@@ -4258,6 +4346,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-madres",
     "tazas-termos",
@@ -4301,6 +4390,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dia-padres",
     "tazas-termos",
@@ -4344,6 +4434,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "tazas-termos",
     "personalizados",
@@ -4385,6 +4476,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "tazas-termos",
     "personalizados",
@@ -4429,6 +4521,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "tazas-termos",
     "personalizados",
@@ -4472,6 +4565,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "bodas-eventos",
     "decoracion",
@@ -4514,6 +4608,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "regalos",
@@ -4556,6 +4651,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "dtf-uv",
     "personalizados"
@@ -4595,6 +4691,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "mdf",
@@ -4637,6 +4734,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "personalizados",
     "dtf-uv",
@@ -4678,6 +4776,7 @@ window.EK_DATA =
    "personalizable": false,
    "print_area": null,
    "print_areas": [],
+   "personalizacion_campos": [],
    "c": [
     "navidad",
     "lamparas",

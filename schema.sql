@@ -111,6 +111,7 @@ CREATE TABLE "Producto" (
   "imagenes_personalizacion" TEXT[] NOT NULL DEFAULT '{}',  -- varias imágenes base de personalización
   "print_area" JSONB,          -- área de personalización: {x,y,width,height} en %
   "print_areas" JSONB[] NOT NULL DEFAULT '{}',  -- áreas de impresión (una por cada imagen de personalización)
+  "personalizacion_campos" JSONB,    -- definición de campos dinámicos del form builder
   "personalizable" BOOLEAN NOT NULL DEFAULT false,  -- si es personalizable, se muestra el editor
   "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

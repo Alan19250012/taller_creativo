@@ -191,6 +191,7 @@ async function main() {
     personalizable: !!p.personalizable,
     print_area: p.print_area || null,  // área de personalización {x,y,width,height} en %
     print_areas: p.print_areas || [],  // una por cada imagen de personalización
+    personalizacion_campos: p.personalizacion_campos || [],  // form builder dinámico
     c: prodCats[p.slug] || [], col: p.colores || [], t: p.tallas || [],
     st: p.stock, v: p.vendidos, r: p.calificacion, b: badge(p),
     d: p.descripcion || "", f: p.caracteristicas || [], kw: p.keywords || "",

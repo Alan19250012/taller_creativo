@@ -127,7 +127,7 @@
   }
   // Agrega un artículo personalizado (con la imagen compuesta) al carrito.
   // Lo usa assets/ek-personalizador.js al capturar la vista previa.
-  window.EK_agregarPersonalizado = function (slug, imagen) {
+  window.EK_agregarPersonalizado = function (slug, imagen, meta) {
     var p = prod(slug); if (!p || !imagen) return;
     // Si hay una variante seleccionada, el personalizado usa su talla/color y su precio
     var v = (window.EK_getVariante ? window.EK_getVariante() : null);
@@ -140,6 +140,7 @@
       c: 1,
       img: imagen,
       precio: (v && v.precio != null) ? v.precio : p.p,
+      meta: meta || null,
     });
     guardar(c);
     pintarDrawerCarrito();
