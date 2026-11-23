@@ -2057,6 +2057,8 @@
     initAnimaciones();
     revelar();
     if (window.EK_LIVE_APPLY) window.EK_LIVE_APPLY();
+    // Con la barra ya pintada, recalcula si se queda pegada (.es-corta) o crece.
+    if (window.EK_ajustarLateral) window.EK_ajustarLateral();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", arrancar);
   else arrancar();

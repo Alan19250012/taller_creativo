@@ -83,7 +83,7 @@ Admin "Publicar" ──▶ /api/publish ──▶ Deploy Hook ──▶ build �
 - **Cotizaciones** de punta a punta: tabla `Cotizacion`, endpoint `/api/cotizaciones`, formulario público y panel con estados.
 - **Bitácora de auditoría**: `/api/admin` registra escrituras y RPC en `Auditoria` (verificada con inserción/lectura/borrado).
 - **Seguridad**: credenciales fuera de los scripts (`.env` + `_env.mjs`), `.env.example`, sin secretos en Git.
-- Tienda/panel: barra lateral fija, grupos dinámicos (máx. 44), 3 productos en menú, miniaturas (`imagenes_mini`), subcategorías en producto, tipografía/color globales, aviso de privacidad.
+- Tienda/panel: barra lateral fija (sin acordeón), grupos dinámicos (máx. **44 espacios = grupos + categorías visibles en la barra lateral** — `enSidebar`; los grupos se crean libres escribiendo un nombre nuevo en el campo "grupo", pero cada grupo y cada categoría ocupan un espacio de los 44; el total de categorías/subcategorías en BD es libre y no está limitado), 3 productos en menú, miniaturas (`imagenes_mini`), subcategorías en producto, tipografía/color globales, aviso de privacidad.
 - **Documentación**: `docs/` (9 archivos) + `documentacion-residencias/` (12 archivos) + matriz de competencias (84.4%).
 - Desplegado en `main` (commit `dfb0885`).
 

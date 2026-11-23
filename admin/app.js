@@ -989,15 +989,28 @@
 
   /* ============================== CATEGORÍAS ============================== */
   var categoriasCache = [];
+  // La barra lateral tiene "espacios": cada grupo (encabezado) y cada categoría
+  // ocupan un espacio. El máximo es 44 sumando grupos + categorías.
+  // `categoria` (opcional) proyecta un cambio: { id?, grupo, enSidebar }.
+  function espaciosSidebar(categoria) {
+    var cats = categoriasCache.filter(function (c) { return c.enSidebar !== false; });
+    if (categoria && categoria.id) cats = cats.filter(function (x) { return x.id !== categoria.id; });
+    if (categoria && categoria.enSidebar) cats.push(categoria);
+    var grupos = {};
+    cats.forEach(function (c) { grupos[c.grupo || "producto"] = true; });
+    return { categorias: cats.length, grupos: Object.keys(grupos).length, total: cats.length + Object.keys(grupos).length };
+  }
+  function cabeEnSidebar(categoria) {
+    return espaciosSidebar(categoria).total <= 44;
+  }
   async function renderCategorias() {
     var cont = $("#contenido");
     try {
       categoriasCache = await supa("GET", "/rest/v1/Categoria?select=*&order=orden.asc");
-      var subsCount = (await supa("GET", "/rest/v1/Subcategoria?select=id").catch(function () { return []; })).length;
-      var totalCatsSubs = categoriasCache.length + subsCount;
+      var e = espaciosSidebar();
       cont.innerHTML =
         '<div class="card"><div class="toolbar"><button class="btn" id="btn-nueva-cat"><i class="bi bi-plus-lg"></i> Nueva categoría</button>' +
-        '<span class="muted">Usa ↑↓ para ordenar; activa "Menú" o "Lateral". Total categorías+subcategorías: <b>' + totalCatsSubs + '</b> / 44</span></div>' +
+        '<span class="muted">Usa ↑↓ para ordenar; activa "Menú" o "Lateral". En la barra lateral: <b>' + e.total + '</b> / 44 (' + e.categorias + ' categorías + ' + e.grupos + ' grupos)</span></div>' +
         '<table><thead><tr><th>Nombre</th><th>Grupo</th><th>Menú</th><th>Lateral</th><th>Orden</th><th></th></tr></thead><tbody>' +
         categoriasCache.map(function (c) {
           return "<tr><td><b>" + esc(c.nombre) + "</b> " + esc(c.emoji || "") + '<br><small class="muted">' + esc(c.slug) + "</small></td>" +
@@ -1017,6 +1030,10 @@
           var c = categoriasCache.find(function (x) { return x.id === id; });
           if (!c) return;
           var nuevo = !(c[campo] !== false);
+          // El límite de 44 cuenta grupos + categorías de la barra lateral.
+          if (campo === "enSidebar" && nuevo) {
+            if (!cabeEnSidebar({ id: c.id, grupo: c.grupo, enSidebar: true })) { toast("Máximo 44 espacios en la barra lateral (grupos + categorías)", false); return; }
+          }
           try {
             var d = {}; d[campo] = nuevo;
             await supa("PATCH", "/rest/v1/Categoria?id=eq." + id, d);
@@ -1104,12 +1121,9 @@
         keywords: f.get("keywords") || null, enNav: !!f.get("enNav"), enSidebar: !!f.get("enSidebar"), activo: !!f.get("activo"),
       };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
-      if (!c) {
-        var ncTotal = await Promise.all([
-          supa("GET", "/rest/v1/Categoria?select=id"),
-          supa("GET", "/rest/v1/Subcategoria?select=id"),
-        ]);
-        if ((ncTotal[0].length || 0) + (ncTotal[1].length || 0) >= 44) { toast("Máximo 44 categorías/subcategorías en total", false); return; }
+      // El límite de 44 cuenta grupos + categorías de la barra lateral.
+      if (datos.enSidebar && !cabeEnSidebar({ id: c ? c.id : undefined, grupo: datos.grupo, enSidebar: true })) {
+        toast("Máximo 44 espacios en la barra lateral (grupos + categorías)", false); return;
       }
       try {
         if (c) await supa("PATCH", "/rest/v1/Categoria?id=eq." + c.id, datos);
@@ -1230,13 +1244,7 @@
       var f = new FormData(e.target);
       var datos = { nombre: f.get("nombre"), slug: f.get("slug") || slugify(f.get("nombre")), icono: f.get("icono") || "bi-tag", iconoImagen: f.get("iconoImagen") || null, orden: Number(f.get("orden")) || 0, activo: !!f.get("activo") };
       if (!datos.nombre) { toast("El nombre es obligatorio", false); return; }
-      if (!s) {
-        var nsTotal = await Promise.all([
-          supa("GET", "/rest/v1/Categoria?select=id"),
-          supa("GET", "/rest/v1/Subcategoria?select=id"),
-        ]);
-        if ((nsTotal[0].length || 0) + (nsTotal[1].length || 0) >= 44) { toast("Máximo 44 categorías/subcategorías en total", false); return; }
-      }
+      // Las subcategorías no ocupan espacios en la barra lateral: sin límite de 44.
       try {
         var sid;
         if (s) { await supa("PATCH", "/rest/v1/Subcategoria?id=eq." + s.id, datos); sid = s.id; }
