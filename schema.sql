@@ -191,6 +191,24 @@ CREATE TABLE "Factura" (
 CREATE UNIQUE INDEX "Factura_numero_key" ON "Factura"("numero");
 CREATE UNIQUE INDEX "Factura_pedidoId_key" ON "Factura"("pedidoId");
 
+-- Solicitudes de cotización del cliente (formulario público → panel admin)
+CREATE TABLE "Cotizacion" (
+  "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  "nombre" TEXT NOT NULL,
+  "telefono" TEXT,
+  "email" TEXT,
+  "producto" TEXT,
+  "descripcion" TEXT NOT NULL,
+  "cantidad" TEXT,
+  "materiales" TEXT,
+  "medidas" TEXT,
+  "fecha" TEXT,
+  "imagen" TEXT,
+  "estado" TEXT NOT NULL DEFAULT 'PENDIENTE',
+  "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+ALTER TABLE "Cotizacion" ENABLE ROW LEVEL SECURITY;
+
 CREATE TABLE "Articulo" (
   "id" UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   "titulo" TEXT NOT NULL,

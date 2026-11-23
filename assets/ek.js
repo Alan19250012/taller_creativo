@@ -1696,12 +1696,44 @@
     f.addEventListener("submit", function (e) {
       e.preventDefault();
       var d = new FormData(f), g = function (k) { return String(d.get(k) || "").trim(); };
-      var m = "📩 *MENSAJE DESDE LA WEB*\n\n" +
-        "Nombre: " + g("nombre") + "\nTeléfono: " + g("tel") + "\nCorreo: " + g("email") +
-        "\nTipo de pedido: " + g("tipo") + "\nCantidad aproximada: " + g("cantidad") +
-        "\nFecha en que lo necesita: " + g("fecha") + "\n\n*Mensaje:*\n" + g("mensaje");
-      window.open(waLink(m), "_blank");
-      toast("Abriendo WhatsApp…", "bi-whatsapp");
+      var archivo = d.get("imagen");
+      var boton = f.querySelector("button[type=submit]");
+      // Guarda la solicitud en la base de datos (tabla Cotizacion) y además abre
+      // WhatsApp como canal rápido de contacto con el taller.
+      function guardar(base64) {
+        return fetch("/api/cotizaciones", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            nombre: g("nombre"), telefono: g("tel"), email: g("email"),
+            producto: g("tipo"), descripcion: g("mensaje"), cantidad: g("cantidad"),
+            materiales: g("materiales"), medidas: g("medidas"), fecha: g("fecha"),
+            imagen: base64 || null,
+          }),
+        }).then(function (r) { return r.json(); });
+      }
+      function abrirWA() {
+        var m = "📩 *MENSAJE DESDE LA WEB*\n\n" +
+          "Nombre: " + g("nombre") + "\nTeléfono: " + g("tel") + "\nCorreo: " + g("email") +
+          "\nTipo de pedido: " + g("tipo") + "\nCantidad aproximada: " + g("cantidad") +
+          "\nMateriales: " + g("materiales") + "\nMedidas: " + g("medidas") +
+          "\nFecha en que lo necesita: " + g("fecha") + "\n\n*Mensaje:*\n" + g("mensaje");
+        window.open(waLink(m), "_blank");
+      }
+      function terminar(r) {
+        if (r && r.ok) toast("Cotización registrada", "bi-check-circle-fill");
+        else toast((r && r.error) || "No se pudo enviar la cotización", false);
+        abrirWA();
+        if (boton) boton.disabled = false;
+      }
+      if (boton) boton.disabled = true;
+      if (archivo && archivo.size) {
+        var lector = new FileReader();
+        lector.onload = function () { guardar(lector.result).then(terminar).catch(function () { toast("Error de conexión", false); if (boton) boton.disabled = false; }); };
+        lector.readAsDataURL(archivo);
+      } else {
+        guardar(null).then(terminar).catch(function () { toast("Error de conexión", false); if (boton) boton.disabled = false; });
+      }
     });
   }
 

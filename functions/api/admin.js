@@ -11,13 +11,28 @@ import { json, cors, verifyJwt, tokenDe } from "../_lib.js";
 
 const TABLAS_PERMITIDAS = new Set([
   "Usuario", "Categoria", "Subcategoria", "Producto", "Variante", "Resena", "Pedido",
-  "DetallePedido", "Factura", "Articulo", "Banner", "Cupon", "Pagina", "Configuracion", "Auditoria",
+  "DetallePedido", "Factura", "Cotizacion", "Articulo", "Banner", "Cupon", "Pagina", "Configuracion", "Auditoria",
   "_CategoriaToProducto", "_ProductoToSubcategoria", "_CategoriaToSubcategoria",
 ]);
 
 const RPCS_PERMITIDAS = new Set([
   "ek_upsert_usuario",
 ]);
+
+// Registra la operación administrativa en la tabla Auditoria. No interrumpe la
+// respuesta si el registro falla; la bitácora es informativa.
+async function registrarAuditoria(env, payload, accion, detalle) {
+  if (!payload || !payload.sub) return;
+  await fetch(env.SUPABASE_URL + "/rest/v1/Auditoria", {
+    method: "POST",
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: "Bearer " + env.SUPABASE_SERVICE_ROLE_KEY,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ adminId: payload.sub, accion, detalle: String(detalle || "").slice(0, 500) }),
+  }).catch(function () {});
+}
 
 export async function onRequestPost(context) {
   const env = context.env;
@@ -54,6 +69,7 @@ export async function onRequestPost(context) {
     });
     const data = await res.json().catch(() => null);
     if (!res.ok) return cors(json({ ok: false, error: (data && data.message) || "Error en RPC" }, res.status));
+    await registrarAuditoria(env, payload, "RPC " + rpc, JSON.stringify(req.body || {}));
     return cors(json({ ok: true, data }));
   }
 
@@ -93,6 +109,9 @@ export async function onRequestPost(context) {
   if (!res.ok) {
     const mensaje = data && data.message ? data.message : "Error de Supabase";
     return cors(json({ ok: false, error: mensaje, detalle: data }, res.status));
+  }
+  if (["POST", "PATCH", "DELETE"].includes(method)) {
+    await registrarAuditoria(env, payload, method + " " + tabla, url);
   }
   return cors(json({ ok: true, data }));
 }

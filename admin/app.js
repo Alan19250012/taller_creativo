@@ -131,6 +131,7 @@
     blog: { titulo: "Blog", render: renderBlog },
     resenas: { titulo: "Reseñas", render: renderResenas },
     pedidos: { titulo: "Pedidos", render: renderPedidos },
+    cotizaciones: { titulo: "Cotizaciones", render: renderCotizaciones },
     clientes: { titulo: "Clientes", render: renderClientes },
     cupones: { titulo: "Cupones", render: renderCupones },
     constructor: { titulo: "Constructor visual", render: renderConstructor },
@@ -624,14 +625,16 @@
     var cont = $("#contenido");
     cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
     try {
-      var [prods, peds, res, users, cats, arts] = await Promise.all([
+      var [prods, peds, res, users, cats, arts, cots] = await Promise.all([
         supa("GET", "/rest/v1/Producto?select=id,nombre,vendidos,precioMinorista&order=vendidos.desc"),
         supa("GET", "/rest/v1/Pedido?select=id,estado,total"),
         supa("GET", "/rest/v1/Resena?select=id,aprobada"),
         supa("GET", "/rest/v1/Usuario?select=id"),
         supa("GET", "/rest/v1/Categoria?select=id"),
         supa("GET", "/rest/v1/Articulo?select=id,publicado"),
+        supa("GET", "/rest/v1/Cotizacion?select=id,estado"),
       ]);
+      var cotsPend = cots.filter(function (c) { return c.estado === "PENDIENTE"; }).length;
       var pend = peds.filter(function (p) { return p.estado === "PENDIENTE"; }).length;
       var resPend = res.filter(function (r) { return !r.aprobada; }).length;
       var ventas = peds.filter(function (p) { return p.estado !== "CANCELADO"; }).reduce(function (a, p) { return a + (p.total || 0); }, 0);
@@ -641,6 +644,7 @@
           stat(ventas, "Ventas totales", "bi-cash-stack", "pedidos", true) +
           stat(peds.length, "Pedidos", "bi-receipt", "pedidos") +
           stat(pend, "Pendientes", "bi-hourglass-split", "pedidos") +
+          stat(cotsPend, "Cotizaciones pendientes", "bi-file-earmark-text", "cotizaciones") +
           stat(users.length, "Clientes", "bi-people", "clientes") +
           stat(prods.length, "Productos", "bi-box-seam", "productos") +
           stat(resPend, "Reseñas por aprobar", "bi-star", "resenas") +
@@ -666,6 +670,61 @@
     return sec
       ? '<a class="stat stat--link" href="#/' + sec + '">' + inner + "</a>"
       : '<div class="stat">' + inner + "</div>";
+  }
+
+  /* ============================== COTIZACIONES ============================== */
+  async function renderCotizaciones() {
+    var cont = $("#contenido");
+    cont.innerHTML = '<div class="card"><p class="muted">Cargando…</p></div>';
+    try {
+      var lista = await supa("GET", "/rest/v1/Cotizacion?select=*&order=creadoEn.desc");
+      var pend = lista.filter(function (c) { return c.estado === "PENDIENTE"; }).length;
+      var badgeEstado = { "PENDIENTE": "badge--pend", "EN_REVISION": "badge--env", "COTIZADA": "badge--on", "ACEPTADA": "badge--on", "RECHAZADA": "badge--off" };
+      cont.innerHTML =
+        '<div class="card"><div class="toolbar"><span class="muted">Solicitudes recibidas del formulario público de la tienda. Pendientes: <b>' + pend + "</b></span></div>" +
+        '<table><thead><tr><th>Fecha</th><th>Cliente</th><th>Producto</th><th>Descripción</th><th>Estado</th><th></th></tr></thead><tbody>' +
+        lista.map(function (c) {
+          return "<tr><td>" + esc(fecha(c.creadoEn)) + "</td><td><b>" + esc(c.nombre) + "</b><br><small class='muted'>" + esc(c.telefono || "") + (c.email ? " · " + esc(c.email) : "") + "</small></td>" +
+            "<td>" + esc(c.producto || "—") + "</td>" +
+            "<td><small>" + esc(String(c.descripcion || "").slice(0, 80)) + (c.descripcion && c.descripcion.length > 80 ? "…" : "") + "</small></td>" +
+            '<td><span class="badge ' + (badgeEstado[c.estado] || "badge--pend") + '">' + esc(c.estado) + "</span></td>" +
+            '<td class="actions"><button class="btn btn--ghost btn--sm" data-ver="' + c.id + '" title="Ver"><i class="bi bi-eye"></i></button>' +
+            '<button class="btn btn--ghost btn--sm" data-del="' + c.id + '" style="color:var(--rojo)" title="Eliminar"><i class="bi bi-trash3"></i></button></td></tr>';
+        }).join("") + (lista.length ? "" : '<tr><td colspan="6" class="empty">Sin solicitudes de cotización</td></tr>') + "</tbody></table></div>";
+      $$("[data-ver]", cont).forEach(function (b) { b.onclick = function () { verCotizacion(b.getAttribute("data-ver"), lista); }; });
+      $$("[data-del]", cont).forEach(function (b) {
+        b.onclick = async function () {
+          if (!confirm("¿Eliminar esta solicitud de cotización?")) return;
+          try { await supa("DELETE", "/rest/v1/Cotizacion?id=eq." + b.getAttribute("data-del")); toast("Cotización eliminada"); renderCotizaciones(); }
+          catch (e) { toast(e.message, false); }
+        };
+      });
+    } catch (e) { cont.innerHTML = errCard(e); }
+  }
+
+  function verCotizacion(id, lista) {
+    var c = lista.find(function (x) { return x.id === id; });
+    if (!c) return;
+    var ESTADOS = ["PENDIENTE", "EN_REVISION", "COTIZADA", "ACEPTADA", "RECHAZADA"];
+    var body =
+      '<div class="row"><div class="field"><label>Nombre</label><p>' + esc(c.nombre) + "</p></div>" +
+      '<div class="field"><label>Contacto</label><p>' + esc(c.telefono || "—") + (c.email ? " · " + esc(c.email) : "") + "</p></div></div>" +
+      '<div class="row"><div class="field"><label>Producto / servicio</label><p>' + esc(c.producto || "—") + "</p></div>" +
+      '<div class="field"><label>Fecha en que lo necesita</label><p>' + esc(c.fecha || "—") + "</p></div></div>" +
+      '<div class="row"><div class="field"><label>Cantidad</label><p>' + esc(c.cantidad || "—") + "</p></div>" +
+      '<div class="field"><label>Materiales</label><p>' + esc(c.materiales || "—") + "</p></div></div>" +
+      fld("Medidas", "<p>" + esc(c.medidas || "—") + "</p>") +
+      fld("Descripción del trabajo", "<p>" + esc(c.descripcion) + "</p>") +
+      (c.imagen ? '<p><a href="' + esc(c.imagen) + '" target="_blank" rel="noopener"><img src="' + esc(c.imagen) + '" style="max-width:220px;border-radius:10px;border:1px solid var(--linea)"></a></p>' : "") +
+      '<div class="field"><label>Estado</label><select id="cot-estado">' + ESTADOS.map(function (s) { return '<option value="' + s + '"' + (c.estado === s ? " selected" : "") + ">" + s + "</option>"; }).join("") + "</select></div>" +
+      '<div class="modal__ft"><button type="button" class="btn btn--ghost" data-cerrar>Cerrar</button><button class="btn btn--rojo" id="btn-cot-guardar">Guardar estado</button></div>';
+    modal("Cotización de " + c.nombre, body);
+    $("#btn-cot-guardar").onclick = async function () {
+      try {
+        await supa("PATCH", "/rest/v1/Cotizacion?id=eq." + c.id, { estado: $("#cot-estado").value });
+        cerrarModal(); toast("Estado actualizado"); renderCotizaciones();
+      } catch (e) { toast(e.message, false); }
+    };
   }
 
   /* ============================== PRODUCTOS ============================== */
