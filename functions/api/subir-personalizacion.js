@@ -27,7 +27,7 @@ export async function onRequestPost(context) {
     return cors(json({ ok: false, error: "Base64 inválido" }, 400));
   }
   if (!bytes.length) return cors(json({ ok: false, error: "Imagen vacía" }, 400));
-  if (bytes.length > 8 * 1024 * 1024) return cors(json({ ok: false, error: "Imagen demasiado grande (máx. 8 MB)" }, 400));
+  if (bytes.length > 20 * 1024 * 1024) return cors(json({ ok: false, error: "Imagen demasiado grande (máx. 20 MB)" }, 400));
 
   const base = nombre.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9._-]/g, "-");
   const path = "pedidos/" + Date.now() + "-" + base + "." + ext;

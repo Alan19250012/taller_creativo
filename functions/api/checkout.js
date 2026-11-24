@@ -43,7 +43,8 @@ export async function onRequestPost(context) {
       params.set(`line_items[${i}][price_data][product_data][metadata][variante]`, String((it.talla || "") + " / " + (it.color || "")).slice(0, 200));
     }
     if (it.personalizacion) {
-      params.set(`line_items[${i}][price_data][metadata][personalizacion]`, JSON.stringify(it.personalizacion).slice(0, 490));
+      // El metadata va bajo product_data (price_data no acepta metadata).
+      params.set(`line_items[${i}][price_data][product_data][metadata][personalizacion]`, JSON.stringify(it.personalizacion).slice(0, 490));
     }
   });
 

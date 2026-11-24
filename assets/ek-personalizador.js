@@ -222,7 +222,15 @@
 
     var img = new Image();
     img.crossOrigin = "anonymous";
-    img.onload = function () { canvas.width = img.naturalWidth; canvas.height = img.naturalHeight; dibujar(); };
+    img.onload = function () {
+      // Limita la resolución del lienzo (1600 px máx.) para que el PNG final
+      // no pese demasiado y la subida no falle.
+      var MAX = 1600;
+      var s = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight));
+      canvas.width = Math.max(1, Math.round(img.naturalWidth * s));
+      canvas.height = Math.max(1, Math.round(img.naturalHeight * s));
+      dibujar();
+    };
     img.onerror = function () { sec.querySelector(".muted").textContent = "No se pudo cargar la imagen base."; };
     img.src = imgBase;
 

@@ -106,8 +106,8 @@ export async function onRequestPost(context) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     try {
-      // 1) línea de items de Stripe
-      const liRes = await fetch("https://api.stripe.com/v1/checkout/sessions/" + session.id + "/line_items", {
+      // 1) línea de items de Stripe (expandimos el producto para leer su metadata)
+      const liRes = await fetch("https://api.stripe.com/v1/checkout/sessions/" + session.id + "/line_items?expand[]=data.price.product", {
         headers: { Authorization: "Bearer " + env.STRIPE_SECRET_KEY },
       });
       const liData = await liRes.json();
@@ -115,11 +115,12 @@ export async function onRequestPost(context) {
         const unit = li.price && li.price.unit_amount != null ? li.price.unit_amount / 100 : (li.amount_total / Math.max(1, li.quantity)) / 100;
         let personalizacion = null;
         try {
-          const raw = li.price && li.price.metadata && li.price.metadata.personalizacion;
+          const prod = li.price && li.price.product;
+          const raw = (prod && prod.metadata && prod.metadata.personalizacion) || (li.price && li.price.metadata && li.price.metadata.personalizacion);
           if (raw) personalizacion = JSON.parse(raw);
         } catch (e) { personalizacion = null; }
         return {
-          nombre: li.description || (li.price && li.price.product_data && li.price.product_data.name) || "Artículo",
+          nombre: li.description || (li.price && li.price.product && li.price.product.name) || "Artículo",
           cantidad: li.quantity || 1,
           precio: unit,
           personalizacion: personalizacion,
