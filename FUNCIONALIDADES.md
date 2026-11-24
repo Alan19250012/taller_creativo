@@ -61,7 +61,8 @@ La tienda se sirve como archivos estáticos en **Cloudflare Pages**, pero los da
 | **Carrito lateral** | Deslizable, guardado en `localStorage` |
 | **Cupones** | Códigos de descuento (%, monto fijo, envío gratis) |
 | **Checkout por WhatsApp** | Envía el pedido armado al WhatsApp Business |
-| **Pago con tarjeta** | Stripe Checkout (tarjeta 4242… en pruebas) |
+| **Pago con tarjeta** | Stripe Checkout (tarjeta 4242… en pruebas) y **Mercado Pago** (Checkout Pro) |
+| **Modo catálogo** | Configurable desde el panel: al suspender las ventas en línea, se ocultan las pasarelas y la compra se envía directo a WhatsApp |
 | **Factura por correo** | Al pagar, se crea el pedido y se envía la factura por email (Resend) |
 | **Precios por rol** | El cliente ve el precio minorista; el **distribuidor** (logueado) ve ambos precios |
 | **Precio por variante** | Cada combinación talla/color puede tener su propio precio y stock |
@@ -108,7 +109,9 @@ Acceso en `/admin` → login `admin@ek.com` / `admin123`.
 | `/api/publish` | POST | Dispara el Deploy Hook de Cloudflare (redeploy SSG) |
 | `/api/upload` | POST | Sube una imagen a Supabase Storage y devuelve la URL pública |
 | `/api/checkout` | POST | Crea una sesión de Stripe Checkout con el carrito |
+| `/api/checkout-mp` | POST | Crea una preferencia de Mercado Pago (Checkout Pro) y devuelve la liga de pago |
 | `/api/webhook` | POST | Recibe el webhook de Stripe (verifica firma), crea **Pedido + DetallePedido + Factura** y envía la **factura por correo** (Resend) |
+| `/api/webhook-mp` | POST | Recibe la notificación de Mercado Pago, revalida el pago y crea **Pedido + DetallePedido + Factura** + correo (Resend) |
 
 > **Cero dependencias npm**: el JWT se firma con `crypto.subtle` (WebCrypto) y la verificación bcrypt se hace en Postgres (`pgcrypto`).
 

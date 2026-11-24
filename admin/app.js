@@ -2355,6 +2355,7 @@
     { clave: "envioGratisDesde", label: "Envío gratis desde", tipo: "number", g: "Precios y envío" },
     { clave: "mesesSinIntereses", label: "Mensaje de MSI", tipo: "text", g: "Precios y envío" },
     { clave: "pagos", label: "Pagos (JSON)", tipo: "json", g: "Precios y envío" },
+    { clave: "suspension", label: "Suspender ventas en línea (modo catálogo)", tipo: "bool", g: "Ventas y pagos" },
     { clave: "talleres", label: "Talleres (JSON)", tipo: "json", g: "Precios y envío" },
     { clave: "porPagina", label: "Artículos por página", tipo: "number", g: "Catálogo e imágenes" },
     { clave: "modoImagenes", label: "Modo de imágenes (auto|hotlink|local)", tipo: "text", g: "Catálogo e imágenes" },

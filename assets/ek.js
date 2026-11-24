@@ -800,7 +800,7 @@
       '<a class="ek-btn ek-btn--wa ek-btn--block" id="ek-cd-wa" target="_blank" rel="noopener" href="' + waLink(mensajePedido(t)) + '"><i class="bi bi-whatsapp"></i> Pedir por WhatsApp</a>' +
       '<div class="ek-cdpay">' +
         '<a class="ek-btn ek-btn--ghost ek-btn--sm" href="carrito.html"><i class="bi bi-bag-check"></i> Ver carrito</a>' +
-        '<a class="ek-btn ek-btn--azul ek-btn--sm" href="carrito.html"><i class="bi bi-credit-card"></i> Pagar</a>' +
+        (C.suspension ? "" : '<a class="ek-btn ek-btn--azul ek-btn--sm" href="carrito.html"><i class="bi bi-credit-card"></i> Pagar</a>') +
       "</div>";
   }
   function refrescarCarrito() { pintarDrawerCarrito(); if ($("#ek-carrito") && window.EK_pintarCarrito) window.EK_pintarCarrito(); }
@@ -1621,7 +1621,10 @@
         '<div class="ek-coupon"><input id="ek-cupon" placeholder="Código de descuento" value="' + esc(t.cuponTxt) + '"><button class="ek-btn ek-btn--ghost ek-btn--sm" id="ek-aplica">Aplicar</button></div>' +
         '<div class="ek-summary__tot"><span>Total</span><span class="ek-price">' + money(t.total) + "</span></div>" +
         '<a class="ek-btn ek-btn--wa ek-btn--block ek-btn--lg ek-mt" id="ek-checkout" target="_blank" rel="noopener" href="' + waLink(mensajePedido(t)) + '"><i class="bi bi-whatsapp"></i> Enviar pedido por WhatsApp</a>' +
-        '<button class="ek-btn ek-btn--rojo ek-btn--block ek-mt" id="ek-stripe" type="button"><i class="bi bi-credit-card-2-front"></i> Pagar con tarjeta y recibir factura por correo</button>' +
+        (C.suspension
+          ? '<div class="ek-suspension"><i class="bi bi-pause-circle-fill"></i><span><b>Estamos en modo catálogo.</b> Por ahora los pagos en línea están pausados: tu pedido se concreta por WhatsApp.</span></div>'
+          : '<button class="ek-btn ek-btn--rojo ek-btn--block ek-mt" id="ek-stripe" type="button"><i class="bi bi-credit-card-2-front"></i> Pagar con tarjeta y recibir factura por correo</button>' +
+            '<button class="ek-btn ek-btn--mp ek-btn--block ek-mt" id="ek-mercadopago" type="button"><i class="bi bi-hand-index-thumb"></i> Pagar con Mercado Pago</button>') +
         '<a class="ek-btn ek-btn--azul ek-btn--block ek-mt" href="contacto.html"><i class="bi bi-chat-dots"></i> Dudas antes de comprar</a>' +
         '<div class="ek-paylist"><span>SPEI</span><span>Mercado Pago</span><span>Clip</span><span>Efectivo</span><span>3, 6 y 9 MSI</span></div>' +
         '<p class="ek-muted" style="font-size:.8rem;margin-top:14px">El pago se realiza fuera del sitio (transferencia o liga de pago segura). ' +
@@ -1672,8 +1675,26 @@
       }).catch(function () { toast("Error de conexión al iniciar el pago", "bi-x-circle"); });
     }
 
+    function pagarConMercadoPago() {
+      var t = totales();
+      if (!t.lineas.length) return;
+      var items = t.lineas.map(function (l) {
+        return { nombre: l.p.n, precio: l.precio, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
+      });
+      var u = usuarioLogueado();
+      fetch("/api/checkout-mp", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ items: items, usuarioId: u ? u.id : "" }),
+      }).then(function (r) { return r.json(); }).then(function (d) {
+        if (d.ok && d.url) location.href = d.url;
+        else toast(d.error || "No se pudo iniciar el pago con Mercado Pago", "bi-x-circle");
+      }).catch(function () { toast("Error de conexión al iniciar el pago", "bi-x-circle"); });
+    }
+
     document.addEventListener("click", function (e) {
       if (e.target.closest("#ek-stripe")) { pagarConTarjeta(); return; }
+      if (e.target.closest("#ek-mercadopago")) { pagarConMercadoPago(); return; }
       if (e.target.closest("#ek-aplica")) {
         var v = ($("#ek-cupon").value || "").trim().toUpperCase();
         if (!v) { LS.set("cupon", ""); pintar(); return; }
@@ -1684,10 +1705,11 @@
       if (e.target.closest("#ek-vaciar")) { guardar([]); LS.set("cupon", ""); pintar(); toast("Carrito vaciado", "bi-trash3"); }
     });
     pintar();
-    // Retorno desde Stripe
+    // Retorno desde Stripe / Mercado Pago
     var pag = param("pago");
     if (pag === "ok") { guardar([]); LS.set("cupon", ""); pintar(); toast("✅ Pago recibido. Te enviamos tu factura por correo.", "bi-check-circle-fill"); }
     else if (pag === "cancelado") { toast("Pago cancelado. Tu carrito sigue guardado.", "bi-x-circle"); }
+    else if (pag === "pendiente") { guardar([]); LS.set("cupon", ""); pintar(); toast("Pago pendiente de aprobación. Te avisamos cuando se confirme.", "bi-clock-history"); }
   }
 
   /* ======================= CONTACTO ======================= */

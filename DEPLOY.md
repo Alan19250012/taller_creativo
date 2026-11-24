@@ -85,10 +85,11 @@ En **Settings → Environment variables → Production** agrega:
 | `DEPLOY_HOOK_URL` | el Deploy Hook (paso 3.4) |
 | `STRIPE_SECRET_KEY` | clave secreta de Stripe (`sk_...`) |
 | `STRIPE_WEBHOOK_SECRET` | secreto del webhook de Stripe (`whsec_...`) |
+| `MERCADO_PAGO_ACCESS_TOKEN` | access token de Mercado Pago (`APP_USR-...` o `TEST-...` para pruebas) |
 | `RESEND_API_KEY` | API key de Resend (`re_...`) |
 | `EMAIL_FROM` | remitente, ej. `Taller Creativo EK <pedidos@tallercreativoek.com>` |
 
-Marca `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` y `RESEND_API_KEY` como **secret** si Cloudflare lo permite.
+Marca `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `MERCADO_PAGO_ACCESS_TOKEN` y `RESEND_API_KEY` como **secret** si Cloudflare lo permite.
 
 ### 3.5 Configura el webhook de Stripe (para pago con tarjeta + factura)
 1. En [Stripe Dashboard](https://dashboard.stripe.com) → **Developers → Webhooks → Add endpoint**.
@@ -97,6 +98,13 @@ Marca `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `STRIPE_SECRET_KEY`, `STRIPE_WE
 4. Copia el **Signing secret** (`whsec_...`) en la variable `STRIPE_WEBHOOK_SECRET`.
 
 El flujo es: cliente pulsa **"Pagar con tarjeta"** en el carrito → se crea una sesión de Stripe Checkout → paga → Stripe llama a `/api/webhook` → se crea el pedido y se envía la **factura por correo** (Resend). El pago de prueba usa la tarjeta `4242 4242 4242 4242`.
+
+### 3.6 Configura Mercado Pago (pago con tarjeta alternativo)
+1. En [Mercado Pago Developers](https://www.mercadopago.com.mx/developers) crea una aplicación y copia el **Access Token** (`APP_USR-...` en producción o `TEST-...` para pruebas).
+2. Pégalo en la variable `MERCADO_PAGO_ACCESS_TOKEN` (paso 3.3).
+3. La URL del webhook es automática (`/api/webhook-mp`): el propio `/api/checkout-mp` la configura en la preferencia. No hace falta configurarla manualmente.
+
+El flujo es: cliente pulsa **"Pagar con Mercado Pago"** → se crea una preferencia (`/api/checkout-mp`) → paga en Mercado Pago → Mercado Pago notifica a `/api/webhook-mp` → se crea el pedido y se envía la factura por correo (Resend). En pruebas usa las tarjetas de prueba de Mercado Pago.
 
 ### 3.4 Crea el Deploy Hook (para el botón "Publicar cambios")
 1. En el proyecto Pages → **Settings → Builds & deployments → Deploy hooks → Add deploy hook**.

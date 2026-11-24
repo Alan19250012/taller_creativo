@@ -94,6 +94,7 @@ ul{margin:0;padding:0;list-style:none}
 .ek-btn:active{transform:translateY(0) scale(.99)}
 .ek-btn--rojo{--bg:linear-gradient(120deg,var(--rojo),#F04552);box-shadow:var(--sombra-roja)}
 .ek-btn--azul{--bg:linear-gradient(120deg,var(--azul),#3358BF)}
+.ek-btn--mp{--bg:linear-gradient(120deg,#00B1EA,#009EE3);box-shadow:0 14px 30px -14px rgba(0,158,227,.7)}
 .ek-btn--wa{--bg:linear-gradient(120deg,#1FBE5B,var(--wa));box-shadow:0 14px 30px -14px rgba(37,211,102,.8)}
 .ek-btn--oro{--bg:linear-gradient(120deg,#E9A410,var(--oro));--fg:#3A2A00;box-shadow:0 14px 30px -14px rgba(245,179,37,.85)}
 .ek-btn--ghost{--bg:transparent;--fg:var(--azul);border:2px solid var(--linea);box-shadow:none}
@@ -102,6 +103,10 @@ ul{margin:0;padding:0;list-style:none}
 .ek-btn--sm{padding:9px 16px;font-size:.84rem}
 .ek-btn--lg{padding:16px 32px;font-size:1.05rem}
 .ek-btn--block{width:100%}
+/* Aviso de modo catálogo / suspensión de servicios */
+.ek-suspension{display:flex;align-items:flex-start;gap:10px;margin-top:14px;padding:12px 14px;border-radius:var(--radio);
+  background:var(--azul-tinte);color:var(--azul-osc);font-size:.88rem;line-height:1.45;border:1px dashed var(--azul)}
+.ek-suspension i{font-size:1.1rem;color:var(--azul);flex-shrink:0;margin-top:1px}
 .ek-btn--ico{padding:12px;width:46px;height:46px}
 .ek-btn[disabled]{opacity:.45;pointer-events:none;filter:grayscale(.6)}
 

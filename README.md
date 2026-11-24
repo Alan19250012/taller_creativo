@@ -67,6 +67,7 @@ Las Pages Functions leen su configuración de las variables de Cloudflare (o del
 - `JWT_SECRET`
 - `DEPLOY_HOOK_URL`
 - `STRIPE_SECRET_KEY` y `STRIPE_WEBHOOK_SECRET`
+- `MERCADO_PAGO_ACCESS_TOKEN`
 - `RESEND_API_KEY` y `EMAIL_FROM`
 
 Estas variables nunca se suben al repositorio; `.env` y `.dev.vars` están en `.gitignore`.
