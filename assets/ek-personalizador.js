@@ -26,6 +26,13 @@
     { n: "Playfair Display", c: "Playfair Display" },
     { n: "Pacifico", c: "Pacifico" },
     { n: "Caveat", c: "Caveat" },
+    { n: "Great Vibes", c: "Great Vibes" },
+    { n: "Dancing Script", c: "Dancing Script" },
+    { n: "Lobster", c: "Lobster" },
+    { n: "Oswald", c: "Oswald" },
+    { n: "Cinzel", c: "Cinzel" },
+    { n: "Bebas Neue", c: "Bebas Neue" },
+    { n: "Amatic SC", c: "Amatic SC" },
   ];
 
   var estilosInyectados = false;
@@ -34,7 +41,7 @@
     estilosInyectados = true;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Playfair+Display:wght@700&family=Pacifico&family=Caveat&display=swap";
+    link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Playfair+Display:wght@700&family=Pacifico&family=Caveat:wght@400;700&family=Great+Vibes&family=Dancing+Script:wght@400;700&family=Lobster&family=Oswald:wght@400;700&family=Cinzel:wght@400;700&family=Bebas+Neue&family=Amatic+SC:wght@400;700&display=swap";
     document.head.appendChild(link);
 
     var st = document.createElement("style");
@@ -57,29 +64,55 @@
       ".ekp-field .ekp-foto-wrap{display:flex;align-items:center;gap:10px}" +
       ".ekp-foto-prev{max-width:90px;max-height:90px;border-radius:8px;object-fit:cover;border:1px solid #e5e7eb}" +
       ".ekp-foto-prev.is-round{border-radius:50%;width:90px;height:90px}" +
+      ".ekp-estilo{display:flex;gap:8px;margin-top:6px;align-items:center}" +
+      ".ekp-estilo select{flex:1;min-width:0;padding:7px 9px;border:1px solid #e5e7eb;border-radius:8px;font:inherit;background:#fff}" +
+      ".ekp-estilo input[type=color]{width:44px;height:38px;border:1px solid #e5e7eb;border-radius:8px;padding:2px;background:#fff;cursor:pointer;flex-shrink:0}" +
+      ".ekp-estilo label{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#6b7280;margin:0}" +
       "@media(max-width:760px){.ekp-grid{grid-template-columns:1fr}}";
     document.head.appendChild(st);
   }
 
   function envolver(ctx, texto, maxW) {
+    // Divide por palabras y, si una palabra es más ancha que el área, la parte
+    // por caracteres para que el texto nunca se salga del contenedor.
     var lineas = [], palabras = String(texto).split(/\s+/), actual = "";
+    function trozosDe(palabra) {
+      if (ctx.measureText(palabra).width <= maxW) return [palabra];
+      var trozos = [], trozo = "";
+      for (var i = 0; i < palabra.length; i++) {
+        var prueba = trozo + palabra[i];
+        if (trozo && ctx.measureText(prueba).width > maxW) { trozos.push(trozo); trozo = palabra[i]; }
+        else trozo = prueba;
+      }
+      if (trozo) trozos.push(trozo);
+      return trozos.length ? trozos : [palabra];
+    }
     for (var i = 0; i < palabras.length; i++) {
-      var prueba = actual ? actual + " " + palabras[i] : palabras[i];
-      if (!actual || ctx.measureText(prueba).width <= maxW) actual = prueba;
-      else { if (actual) lineas.push(actual); actual = palabras[i]; }
+      var trozos = trozosDe(palabras[i]);
+      for (var j = 0; j < trozos.length; j++) {
+        var prueba = actual ? actual + " " + trozos[j] : trozos[j];
+        if (!actual || ctx.measureText(prueba).width <= maxW) actual = prueba;
+        else { lineas.push(actual); actual = trozos[j]; }
+      }
     }
     if (actual) lineas.push(actual);
     return lineas.length ? lineas : [""];
   }
   function ajustarTexto(ctx, texto, fuente, maxW, maxH) {
     var parrafos = String(texto || "").split("\n");
-    var size = Math.max(12, Math.floor(maxH / 1.3)), lineas = [], lineHeight;
-    while (size > 8) {
+    // Arranca con un tamaño razonable (según alto Y ancho) y baja hasta que todo
+    // quepa tanto en ancho como en alto.
+    var size = Math.max(8, Math.floor(Math.min(maxH / 1.2, maxW / 4))), lineas = [], lineHeight, cabe;
+    while (size >= 6) {
       ctx.font = size + "px " + fuente;
       lineas = [];
       parrafos.forEach(function (p) { lineas = lineas.concat(envolver(ctx, p, maxW)); });
       lineHeight = size * 1.28;
-      if (lineas.length * lineHeight <= maxH) break;
+      cabe = true;
+      for (var i = 0; i < lineas.length; i++) {
+        if (ctx.measureText(lineas[i]).width > maxW) { cabe = false; break; }
+      }
+      if (cabe && lineas.length * lineHeight <= maxH) break;
       size -= 2;
     }
     return { size: size, lineas: lineas, lineHeight: lineHeight };
@@ -146,12 +179,14 @@
       '<div class="ekp-grid">' +
         '<div class="ekp-canvas"><canvas></canvas></div>' +
         '<div>' +
-          '<div class="ekp-field"><label>Tipografía</label><select id="ekp-fuente">' + FUENTES.map(function (f) { return '<option value="' + f.c + '">' + f.n + '</option>'; }).join("") + '</select></div>' +
-          '<div class="ekp-field"><label>Color del texto</label><input type="color" id="ekp-color" value="#000000"></div>' +
           campos.map(function (c, i) {
-          if (c.tipo === "select") { return ""; } // la tipografía ahora es global (no es un campo)
+          if (c.tipo === "select") { return ""; }
+          // Cada campo de texto tiene SU PROPIA tipografía y color.
+          var estilo = '<div class="ekp-estilo"><select data-fuente="' + i + '" aria-label="Tipo de letra">' +
+            FUENTES.map(function (f) { return '<option value="' + f.c + '">' + f.n + '</option>'; }).join("") +
+            '</select><input type="color" data-color="' + i + '" value="#000000" aria-label="Color" title="Color del texto"></div>';
           if (c.tipo === "textarea") {
-            return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><textarea data-campo="' + i + '" rows="2" maxlength="' + (c.max || 500) + '"></textarea>' + (c.max ? '<small class="ekp-contador" data-contador="' + i + '"></small>' : '') + '</div>';
+            return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><textarea data-campo="' + i + '" rows="2" maxlength="' + (c.max || 500) + '"></textarea>' + estilo + (c.max ? '<small class="ekp-contador" data-contador="' + i + '"></small>' : '') + '</div>';
           }
           if (c.tipo === "foto") {
             return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label>' +
@@ -164,7 +199,7 @@
               '</div>';
           }
           // texto (1 línea)
-          return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><input type="text" data-campo="' + i + '" maxlength="' + (c.max || 500) + '">' + (c.max ? '<small class="ekp-contador" data-contador="' + i + '"></small>' : '') + '</div>';
+          return '<div class="ekp-field"><label>' + esc(c.label) + (c.obligatorio ? " *" : "") + '</label><input type="text" data-campo="' + i + '" maxlength="' + (c.max || 500) + '">' + estilo + (c.max ? '<small class="ekp-contador" data-contador="' + i + '"></small>' : '') + '</div>';
         }).join("") +
         '<button class="ekp-btn" id="ekp-agregar" type="button"><i class="bi bi-bag-plus"></i> Agregar al carrito</button>' +
         '</div>' +
@@ -176,14 +211,14 @@
 
     var canvas = sec.querySelector("canvas");
     var ctx = canvas.getContext("2d");
-    var fuenteSel = sec.querySelector("#ekp-fuente");
-    var colorSel = sec.querySelector("#ekp-color");
     var fotos = {};         // índice de campo foto → dataURL
     var fotosImg = {};      // índice de campo foto → Image cargada
     var fotoArchivos = {};  // índice de campo foto → File original (para re-editar sin volver a subir)
+    var fuentes = {};       // índice de campo texto → tipografía elegida
+    var colores = {};       // índice de campo texto → color (hex)
 
-    function fuenteActual() { return (fuenteSel && fuenteSel.value) || "Montserrat"; }
-    function colorActual() { return (colorSel && colorSel.value) || "#000000"; }
+    function fuenteDe(i) { return fuentes[i] || "Montserrat"; }
+    function colorDe(i) { return colores[i] || "#000000"; }
 
     var img = new Image();
     img.crossOrigin = "anonymous";
@@ -249,9 +284,9 @@
       if (!texto || !String(texto).trim()) return;
       var area = areaDeCampo(c, i);
       var a = areaPx(area);
-      var fit = ajustarTexto(ctx, texto, fuenteActual(), a.pw, a.ph);
-      ctx.fillStyle = colorActual();
-      ctx.font = fit.size + "px " + fuenteActual();
+      var fit = ajustarTexto(ctx, texto, fuenteDe(i), a.pw, a.ph);
+      ctx.fillStyle = colorDe(i);
+      ctx.font = fit.size + "px " + fuenteDe(i);
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
       var totalH = fit.lineas.length * fit.lineHeight;
       var inicioY = a.py + (a.ph - totalH) / 2 + fit.lineHeight / 2;
@@ -276,14 +311,20 @@
       }
     });
 
-    // Tipografía y color del texto (globales para todos los textos)
-    function redibujarFuente() {
+    // Tipografía y color por campo: cada contenedor tiene su propia selección.
+    function redibujarFuente(i) {
       if (document.fonts && document.fonts.load) {
-        document.fonts.load("16px " + fuenteActual()).then(dibujar).catch(dibujar);
+        document.fonts.load("16px " + fuenteDe(i)).then(dibujar).catch(dibujar);
       } else dibujar();
     }
-    if (fuenteSel) fuenteSel.addEventListener("change", redibujarFuente);
-    if (colorSel) colorSel.addEventListener("input", function () { dibujar(); });
+    sec.addEventListener("change", function (e) {
+      var fs = e.target.closest("[data-fuente]");
+      if (fs) { fuentes[+fs.getAttribute("data-fuente")] = fs.value; redibujarFuente(+fs.getAttribute("data-fuente")); }
+    });
+    sec.addEventListener("input", function (e) {
+      var cs = e.target.closest("[data-color]");
+      if (cs) { colores[+cs.getAttribute("data-color")] = cs.value; dibujar(); }
+    });
 
     // Subida de fotos (con editor si está disponible). La foto original se conserva
     // para poder volver a editarla sin tener que subirla de nuevo.
@@ -357,7 +398,16 @@
         campos.forEach(function (c, i) {
           if (c.tipo === "foto") meta[c.label] = fotos[i] ? "[Foto adjunta]" : "";
           else if (c.tipo === "select") meta[c.label] = "";
-          else { var el = sec.querySelector('[data-campo="' + i + '"]'); meta[c.label] = el ? el.value : ""; }
+          else {
+            var el = sec.querySelector('[data-campo="' + i + '"]');
+            var valor = el ? el.value : "";
+            meta[c.label] = valor;
+            // Se guarda también la tipografía y el color (hex) de cada texto.
+            if (String(valor).trim()) {
+              meta[c.label + " (fuente)"] = fuenteDe(i);
+              meta[c.label + " (color)"] = colorDe(i);
+            }
+          }
         });
         // Sube la composición al servidor y guarda la URL (no el data-URL gigante)
         fetch("/api/subir-personalizacion", {

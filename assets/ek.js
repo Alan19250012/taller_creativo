@@ -448,11 +448,11 @@
           particles: {
             number: { value: C.particulasMax || 38, density: { enable: true } },
             color: { value: ["#DA1D2A", "#244093", "#F5B325", "#ffffff"] },
-            shape: { type: ["circle", "star"] },
-            opacity: { value: { min: .18, max: .62 } },
-            size: { value: { min: 1.4, max: 4.6 } },
-            links: { enable: true, distance: 145, color: "#ffffff", opacity: .16, width: 1 },
-            move: { enable: true, speed: .85, outModes: { default: "bounce" } }
+            shape: { type: "circle" },
+            opacity: { value: { min: .3, max: .75 } },
+            size: { value: { min: 2.2, max: 5.6 } },
+            links: { enable: true, distance: 145, color: "#ffffff", opacity: .22, width: 1.1 },
+            move: { enable: true, speed: .9, outModes: { default: "bounce" } }
           },
           interactivity: {
             events: { onHover: { enable: true, mode: "grab" }, onClick: { enable: true, mode: "push" } },
@@ -1061,7 +1061,7 @@
       if (faq.dataset.listo) return;
       faq.dataset.listo = "1";
       faq.innerHTML = D.faq.map(function (f) {
-        return '<div class="ek-side ek-reveal" style="margin-bottom:12px"><div class="ek-side__hd" style="cursor:pointer">' + esc(f.p) + '<i class="bi bi-chevron-down"></i></div>' +
+        return '<div class="ek-side ek-reveal"><div class="ek-side__hd" style="cursor:pointer">' + esc(f.p) + '<i class="bi bi-chevron-down"></i></div>' +
           '<div class="ek-side__bd" style="font-size:.93rem;color:var(--gris)">' + esc(f.r) + "</div></div>";
       }).join("");
     });

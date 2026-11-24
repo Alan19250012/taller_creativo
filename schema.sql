@@ -177,6 +177,7 @@ CREATE TABLE "DetallePedido" (
   "precioUnitario" DOUBLE PRECISION NOT NULL,
   "tipoPrecio" TEXT,
   "talla" TEXT,
+  "personalizacion" JSONB,               -- {imagen, campos} del producto personalizado
   CONSTRAINT "DetallePedido_pedidoId_fkey" FOREIGN KEY ("pedidoId") REFERENCES "Pedido"("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 

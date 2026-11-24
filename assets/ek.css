@@ -202,6 +202,9 @@ ul{margin:0;padding:0;list-style:none}
 .ek-side.is-cerrado .ek-side__hd i{transform:rotate(-90deg)}
 .ek-side__bd{padding:12px 14px;display:flex;flex-direction:column;gap:3px}
 .ek-side.is-cerrado .ek-side__bd{display:none}
+/* Preguntas frecuentes en dos columnas */
+#ek-faq{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+@media(max-width:640px){#ek-faq{grid-template-columns:1fr}}
 .ek-cat{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:.9rem;
   font-weight:600;transition:background var(--t),transform var(--t),color var(--t)}
 .ek-cat:hover{background:var(--rojo-tinte);color:var(--rojo);transform:translateX(4px)}
