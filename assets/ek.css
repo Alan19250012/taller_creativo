@@ -233,7 +233,7 @@ ul{margin:0;padding:0;list-style:none}
 
 /* La diapositiva activa se muestra con display:grid (no absolute) */
 .ek-hero__slide{display:none}
-.ek-hero__slide.is-on{display:grid;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr);
+.ek-hero__slide.is-on{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,.96fr);
   align-items:center;gap:clamp(20px,3.2vw,54px);
   width:100%;max-width:var(--max);margin-inline:auto;
   padding:clamp(24px,3.6vw,60px) 18px clamp(14px,2vw,26px);
