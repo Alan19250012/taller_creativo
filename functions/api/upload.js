@@ -24,8 +24,10 @@ export async function onRequestPost(context) {
 
   // Detecta el MIME real desde el prefijo data:image/...;base64,...
   const m = base64.match(/^data:([^;]+);base64,/);
-  const mime = m ? m[1] : "image/png";           // p.ej. image/png, image/jpeg, image/webp
-  const ext = ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif", "image/svg+xml": "svg" })[mime] || "png";
+  const mime = m ? m[1] : "image/png";
+  // Lista blanca de MIME: se excluye SVG (riesgo de XSS almacenado)
+  const ext = ({ "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/avif": "avif" })[mime];
+  if (!ext) return cors(json({ ok: false, error: "Tipo de imagen no permitido (solo PNG, JPG, WebP, GIF o AVIF)" }, 400));
 
   const limpio = base64.replace(/^data:[^;]+;base64,/, "");
   let bytes;
@@ -35,6 +37,7 @@ export async function onRequestPost(context) {
     return cors(json({ ok: false, error: "Base64 inválido" }, 400));
   }
   if (!bytes.length) return cors(json({ ok: false, error: "Imagen vacía" }, 400));
+  if (bytes.length > 5 * 1024 * 1024) return cors(json({ ok: false, error: "Imagen demasiado grande (máx. 5 MB)" }, 400));
 
   const base = nombre.replace(/\.[^.]+$/, "").replace(/[^a-zA-Z0-9._-]/g, "-");
   const path = tipo + "/" + Date.now() + "-" + base + "." + ext;

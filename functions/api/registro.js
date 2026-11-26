@@ -17,6 +17,9 @@ export async function onRequestPost(context) {
   const telefono = String(body.telefono || "").trim() || null;
   const password = String(body.password || "");
 
+  // Honeypot anti-spam: campo oculto que solo los bots rellenan
+  if (body.website && String(body.website).length) return cors(json({ ok: false, error: "Solicitud rechazada" }, 400));
+
   if (!nombre) return cors(json({ ok: false, error: "Escribe tu nombre" }, 400));
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return cors(json({ ok: false, error: "Correo inválido" }, 400));
   if (password.length < 6) return cors(json({ ok: false, error: "La contraseña debe tener al menos 6 caracteres" }, 400));

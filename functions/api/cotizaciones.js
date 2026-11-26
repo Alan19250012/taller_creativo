@@ -59,6 +59,9 @@ export async function onRequestPost(context) {
   const medidas = String(body.medidas || "").trim() || null;
   const fecha = String(body.fecha || "").trim() || null;
 
+  // Honeypot anti-spam: campo oculto que solo los bots rellenan
+  if (body.website && String(body.website).length) return cors(json({ ok: false, error: "Solicitud rechazada" }, 400));
+
   if (!nombre) return cors(json({ ok: false, error: "Escribe tu nombre" }, 400));
   if (descripcion.length < 5) return cors(json({ ok: false, error: "Describe brevemente qué necesitas" }, 400));
   if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return cors(json({ ok: false, error: "Correo inválido" }, 400));

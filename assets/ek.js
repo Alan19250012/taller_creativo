@@ -1656,7 +1656,7 @@
       if (!t.lineas.length) return;
       var items = t.lineas.map(function (l) {
         return {
-          nombre: l.p.n, precio: l.precio, cantidad: l.x.c, talla: l.x.t, color: l.x.col,
+          slug: l.p.s, nombre: l.p.n, cantidad: l.x.c, talla: l.x.t, color: l.x.col,
           personalizacion: l.x.meta ? { imagen: l.x.img || null, campos: l.x.meta } : null,
         };
       });
@@ -1666,7 +1666,7 @@
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          items: items, success_url: base + "?pago=ok", cancel_url: base + "?pago=cancelado",
+          items: items, cupon: t.cuponTxt || "", success_url: base + "?pago=ok", cancel_url: base + "?pago=cancelado",
           email: u ? u.email : "", usuarioId: u ? u.id : "",
         }),
       }).then(function (r) { return r.json(); }).then(function (d) {
@@ -1679,13 +1679,13 @@
       var t = totales();
       if (!t.lineas.length) return;
       var items = t.lineas.map(function (l) {
-        return { nombre: l.p.n, precio: l.precio, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
+        return { slug: l.p.s, nombre: l.p.n, cantidad: l.x.c, talla: l.x.t, color: l.x.col };
       });
       var u = usuarioLogueado();
       fetch("/api/checkout-mp", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ items: items, usuarioId: u ? u.id : "" }),
+        body: JSON.stringify({ items: items, cupon: t.cuponTxt || "", usuarioId: u ? u.id : "" }),
       }).then(function (r) { return r.json(); }).then(function (d) {
         if (d.ok && d.url) location.href = d.url;
         else toast(d.error || "No se pudo iniciar el pago con Mercado Pago", "bi-x-circle");
@@ -1730,7 +1730,7 @@
             nombre: g("nombre"), telefono: g("tel"), email: g("email"),
             producto: g("tipo"), descripcion: g("mensaje"), cantidad: g("cantidad"),
             materiales: g("materiales"), medidas: g("medidas"), fecha: g("fecha"),
-            imagen: base64 || null,
+            website: g("website"), imagen: base64 || null,
           }),
         }).then(function (r) { return r.json(); });
       }
@@ -1987,6 +1987,7 @@
     var m = document.createElement("div");
     m.style.cssText = "position:fixed;inset:0;background:rgba(16,24,40,.65);z-index:99999;display:grid;place-items:center;padding:20px";
     m.innerHTML = '<div style="background:#fff;border-radius:16px;padding:26px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.35)">' +
+      '<input id="dk-website" type="text" style="position:absolute;left:-9999px" tabindex="-1" autocomplete="off" aria-hidden="true">' +
       '<h3 style="margin:0 0 4px" id="dk-titulo">Iniciar sesión</h3>' +
       '<p style="color:#6b7280;font-size:.9rem;margin:0 0 16px" id="dk-sub">Entra con tu cuenta para ver tus precios y dar seguimiento a tus pedidos.</p>' +
       '<div id="dk-reg" style="display:none">' +
@@ -2041,7 +2042,8 @@
     err.textContent = "";
     if (!nombre || !email || !pass) { err.textContent = "Completa nombre, correo y contraseña"; return; }
     try {
-      var res = await fetch("/api/registro", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nombre: nombre, email: email, telefono: tel, password: pass }) });
+      var website = (m.querySelector("#dk-website").value || "").trim();
+      var res = await fetch("/api/registro", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ nombre: nombre, email: email, telefono: tel, password: pass, website: website }) });
       var d = await res.json();
       if (!d.ok || !d.usuario) { err.textContent = d.error || "No se pudo crear la cuenta"; return; }
       guardarSesion(d.usuario, d.token);
